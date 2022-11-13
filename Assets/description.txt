@@ -1,0 +1,1 @@
+Contient les ressources (images, vidéos, sprites, sons, ...)

@@ -1,0 +1,42 @@
+{ "backgroundcolor":"#c6f3be",
+ "compressionlevel":-1,
+ "height":10,
+ "infinite":false,
+ "layers":[
+        {
+         "data":[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 22, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            32, 0, 22, 0, 0, 0, 0, 0, 0, 0, 22, 22, 22, 0, 0,
+            32, 0, 0, 0, 0, 22, 0, 0, 2, 0, 0, 0, 0, 0, 0,
+            32, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0,
+            26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26],
+         "height":10,
+         "id":1,
+         "name":"walls",
+         "opacity":1,
+         "type":"tilelayer",
+         "visible":true,
+         "width":15,
+         "x":0,
+         "y":0
+        }],
+ "nextlayerid":2,
+ "nextobjectid":1,
+ "orientation":"orthogonal",
+ "renderorder":"right-down",
+ "tiledversion":"1.9.2",
+ "tileheight":128,
+ "tilesets":[
+        {
+         "firstgid":1,
+         "source":"My_tileset.json"
+        }],
+ "tilewidth":128,
+ "type":"map",
+ "version":"1.9",
+ "width":15
+}

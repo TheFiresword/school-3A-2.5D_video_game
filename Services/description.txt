@@ -1,0 +1,2 @@
+Services qui pourraient être partagés entre plusieurs modules
+Ex: Définition des variables globales
