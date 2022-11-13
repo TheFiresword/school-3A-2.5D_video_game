@@ -1,8 +1,8 @@
 import arcade
 from pyglet.math import Vec2
-
+import math
 from Services import servicesGlobalVariables
-from CoreModules.WalkersManagement import walkersManagementWalker
+
 LAYER1 = "grass"
 LAYER2 = "hills"
 LAYER3 = "trees"
@@ -15,7 +15,26 @@ LAYER3 = "trees"
 # A scene is a list of spriteLists
 class RealMap():
     def __init__(self):
-        pass
+        self.grass_layer = []
+        self.hills_layer = []
+        self.trees_layer = []
+
+        self.buildings_list = []
+        self.walkers_list = []
+
+        self.map = []
+
+    def setup(self):
+        for i in range(servicesGlobalVariables.TILE_COUNT*servicesGlobalVariables.TILE_COUNT):
+            self.grass_layer.append(0)
+        for i in range(servicesGlobalVariables.TILE_COUNT*servicesGlobalVariables.TILE_COUNT):
+            self.hills_layer.append(0)
+        for i in range(servicesGlobalVariables.TILE_COUNT*servicesGlobalVariables.TILE_COUNT):
+            self.trees_layer.append(0)
+
+        self.map = {LAYER1: self.grass_layer,
+                    LAYER2: self.hills_layer,
+                    LAYER3: self.trees_layer}
 
 class Map(arcade.Scene):
     def __init__(self, map_file):
