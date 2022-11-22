@@ -39,7 +39,7 @@ class Game(arcade.View):
         self.manager.add(self.b1)
 
     def setup(self):
-        self.map = mapManagementMap.Map("../Assets/maps/test_map.json")
+        self.map = mapManagementMap.MapGraphic("../Assets/maps/test_map.json")
         self.map.setup()
 
         layer_grass = self.map.get_sprite_list(LAYER1)

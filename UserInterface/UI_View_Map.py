@@ -14,7 +14,7 @@ class MapView(arcade.View):
     # Notes: Rescale function
     def __init__(self):
         super().__init__()
-        self.map = mapManagementMap.Map("./Assets/maps/test_map.json")
+        self.map = mapManagementMap.MapGraphic("./Assets/maps/test_map.json")
 
         # positions is an attribute that I used to easily convert coordinates
         self.grass_positions = []

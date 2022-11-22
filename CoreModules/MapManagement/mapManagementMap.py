@@ -2,10 +2,12 @@ import arcade
 from pyglet.math import Vec2
 import math
 from Services import servicesGlobalVariables
-
+from CoreModules.MapManagement import mapManagementLayer as overlay
 LAYER1 = "grass"
 LAYER2 = "hills"
 LAYER3 = "trees"
+LAYER4 = "building"
+
 """
  A map is constituted by the grass layer, the hills layer and the trees layer.
  But also the walkers list and buildings list 
@@ -15,28 +17,21 @@ LAYER3 = "trees"
 # A scene is a list of spriteLists
 class RealMap():
     def __init__(self):
-        self.grass_layer = []
-        self.hills_layer = []
-        self.trees_layer = []
+        # Booléen qui dit si la map est affichée ou pas
+        self.active = False
 
-        self.buildings_list = []
+        self.grass_layer = overlay.Layer(LAYER1)
+        self.grass_layer.automatic_fill_layer()
+
+        self.hills_layer = overlay.Layer(LAYER2)
+        self.trees_layer = overlay.Layer(LAYER3)
+
+        self.building_layer = overlay.Layer(LAYER4)
+        # liste de Walker()
         self.walkers_list = []
 
-        self.map = []
 
-    def setup(self):
-        for i in range(servicesGlobalVariables.TILE_COUNT*servicesGlobalVariables.TILE_COUNT):
-            self.grass_layer.append(0)
-        for i in range(servicesGlobalVariables.TILE_COUNT*servicesGlobalVariables.TILE_COUNT):
-            self.hills_layer.append(0)
-        for i in range(servicesGlobalVariables.TILE_COUNT*servicesGlobalVariables.TILE_COUNT):
-            self.trees_layer.append(0)
-
-        self.map = {LAYER1: self.grass_layer,
-                    LAYER2: self.hills_layer,
-                    LAYER3: self.trees_layer}
-
-class Map(arcade.Scene):
+class MapGraphic(arcade.Scene):
     def __init__(self, map_file):
         super().__init__()
 
