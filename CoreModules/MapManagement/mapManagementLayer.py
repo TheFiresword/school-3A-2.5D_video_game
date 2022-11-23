@@ -17,7 +17,7 @@ class Layer:
     # Fonction qui remplit layer avec un type par défaut; ex: pour grass, on peut remplir avec un type de grass
     # donné
     def automatic_fill_layer(self):
-        default_version = 0
+        default_version = "normal"
         # Tile(self.type, default_version)
         self.array = [[default_version for i in range(0, globalVar.TILE_COUNT)] for j in range(0, globalVar.TILE_COUNT)]
 

@@ -8,13 +8,78 @@ from pyglet.math import Vec2
 from UserInterface import UI_Section as uis
 
 MAP_CAMERA_SPEED = 0.5
+"""
+ A map is constituted by the grass layer, the hills layer and the trees layer.
+ But also the walkers list and buildings list 
+ The layers are generated with the software Tiled
+"""
+class MapGraphic(arcade.Scene):
+    def __init__(self, map_file, logic_map):
+        super().__init__()
+
+        # The scaling of the sprites of this layer
+        self.map_scaling = constantes.SPRITE_SCALING
+        # Pour générer la map avec un json de tiled
+        self.map_file = map_file
+        self.tilemap = None
+
+        # Pour utiliser la logique
+        self.logic_map = logic_map
+
+        self.grass_layer = None
+        self.hills_layer = None
+        self.trees_layer = None
+
+        self.buildings_list = None
+        self.walkers_list = None
+
+    def setup(self):
+        # Map générée avec json
+        self.tilemap = arcade.load_tilemap(self.map_file, scaling=self.map_scaling)
+
+        #self.grass_layer = self.tilemap.sprite_lists[LAYER1]
+        #self.hills_layer = self.tilemap.sprite_lists[LAYER2]
+        #self.trees_layer = self.tilemap.sprite_lists[LAYER3]
+
+        # Map générée à la main
+        self.grass_layer = arcade.SpriteList()
+        grass_array = self.logic_map.grass_layer.array
+
+        for i in range(0, len(grass_array)):
+            line = grass_array[i]
+            for j in range(0, len(line)):
+                if grass_array[i][j] == "normal":
+                    grass = arcade.Sprite("./Assets/sprites/C3/Land/Land1/Land1a_00272.png", self.map_scaling)
+                elif grass_array[i][j] == "yellow":
+                    grass = arcade.Sprite("./Assets/sprites/C3/Land/Land1/Land1a_00029.png", self.map_scaling)
+                elif grass_array[i][j] == "buisson":
+                    grass = arcade.Sprite("./Assets/sprites/C3/Land/Land1/Land1a_00235.png", self.map_scaling)
+                else:
+                    grass = arcade.Sprite()
+                grass.center_x = grass.width * (i + 1 / 2)
+                grass.center_y = grass.height * (j + 1 / 2)
+                self.grass_layer.append(grass)
+
+        self.add_sprite_list(LAYER1, sprite_list=self.grass_layer)
+        self.add_sprite_list(LAYER2, sprite_list=self.hills_layer)
+        self.add_sprite_list(LAYER3, sprite_list=self.trees_layer)
+
+        self.buildings_list = arcade.SpriteList()
+        self.walkers_list = arcade.SpriteList()
+        #self.walkers_list.append(walkersManagementWalker.Walker().walker_sprite)
+    def clear(self):
+        self.sprite_lists.clear()
+
+    def get_map_center(self):
+        center_tile = self.grass_layer[int(len(self.grass_layer)//2 + constantes.TILE_COUNT//2)]
+        return Vec2(center_tile.center_x, center_tile.center_y)
 
 
 class MapView(arcade.View):
     # Notes: Rescale function
     def __init__(self):
         super().__init__()
-        self.map = mapManagementMap.MapGraphic("./Assets/maps/test_map.json")
+        self.map = MapGraphic("./Assets/maps/test_map.json", mapManagementMap.MapLogic())
 
         # positions is an attribute that I used to easily convert coordinates
         self.grass_positions = []

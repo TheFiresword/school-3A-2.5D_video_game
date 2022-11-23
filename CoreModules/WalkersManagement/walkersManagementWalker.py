@@ -1,10 +1,43 @@
-import arcade
+class Walker:
+    def __init__(self, id, x_pos, y_pos, house):
+        self.id = id
+        self.x_pos = x_pos
+        self.y_pos = y_pos
+        self.house = house
+
+    def walk(self):
+        pass
+
+    def work(self):
+        pass
 
 
-class Walker():
-    def __init__(self):
-        self.walker_sprite = arcade.Sprite("../Assets/sprites/C3/Citizen1/Type1/Citizen01_00004.png")
-
-        self.linked_building = None
+class Engineer(Walker):
+    def work(self):
+        pass
 
 
+class Prefect(Walker):
+    def work(self):
+        pass
+
+
+class Immigrant(Walker):
+    def find_house(self):
+        # Parcourir la liste des maisons, trouver celle dans lesquelle peut s'installer(nombre d'habitant, niveau d'habitaion)
+        pass
+
+
+class Cart_Pusher(Walker):
+    def work(self):
+        pass
+
+
+class Delivery_Boy(Walker):
+    def work(self):
+        pass
+
+
+class Market_Trader(Walker):
+    def work(self):
+        pass
