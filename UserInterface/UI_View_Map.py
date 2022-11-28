@@ -14,7 +14,7 @@ MAP_CAMERA_SPEED = 0.5
  The layers are generated with the software Tiled
 """
 class MapGraphic(arcade.Scene):
-    def __init__(self, map_file, logic_map):
+    def __init__(self, map_file, logic_map): # paramètre map_file à retirer à terme
         super().__init__()
 
         # The scaling of the sprites of this layer
@@ -43,7 +43,14 @@ class MapGraphic(arcade.Scene):
 
         # Map générée à la main
         self.grass_layer = arcade.SpriteList()
+        self.hills_layer = arcade.SpriteList()
+        self.trees_layer = arcade.SpriteList()
+
+        # Remplissage de la map avec des sprites en fonction du tableau logique
         grass_array = self.logic_map.grass_layer.array
+        hills_array = self.logic_map.hills_layer.array
+        trees_array = self.logic_map.trees_layer.array
+
 
         for i in range(0, len(grass_array)):
             line = grass_array[i]
@@ -56,9 +63,36 @@ class MapGraphic(arcade.Scene):
                     grass = arcade.Sprite("./Assets/sprites/C3/Land/Land1/Land1a_00235.png", self.map_scaling)
                 else:
                     grass = arcade.Sprite()
-                grass.center_x = grass.width * (i + 1 / 2)
-                grass.center_y = grass.height * (j + 1 / 2)
+                # Les coordonnées de départ sont en cartésien
+                grass.center_x = constantes.TILE_WIDTH*self.map_scaling * (i + 1 / 2)
+                grass.center_y = constantes.TILE_HEIGHT*self.map_scaling * (j + 1 / 2)
                 self.grass_layer.append(grass)
+
+        for i in range(0, len(trees_array)):
+            line = trees_array[i]
+            for j in range(0, len(line)):
+                if trees_array[i][j] == "normal":
+                    trees = arcade.Sprite("./Assets/sprites/C3/Land/Land1/Arbres/Land1a_00045.png", self.map_scaling)
+                else:
+                    trees = arcade.Sprite()
+
+                # Les coordonnées de départ sont en cartésien
+                trees.center_x = constantes.TILE_WIDTH*self.map_scaling * (i + 1 / 2)
+                trees.center_y = constantes.TILE_HEIGHT*self.map_scaling * (j + 1 / 2)
+                self.hills_layer.append(trees)
+
+        for i in range(0, len(hills_array)):
+            line = hills_array[i]
+            for j in range(0, len(line)):
+                if hills_array[i][j] == "normal":
+                    hills = arcade.Sprite("./Assets/sprites/C3/Land/Land1/Cailloux/Land1a_00290.png", self.map_scaling)
+                else:
+                    hills = arcade.Sprite()
+
+                # Les coordonnées de départ sont en cartésien
+                hills.center_x = constantes.TILE_WIDTH * self.map_scaling * (i + 1 / 2)
+                hills.center_y = constantes.TILE_HEIGHT * self.map_scaling * (j + 1 / 2)
+                self.hills_layer.append(hills)
 
         self.add_sprite_list(LAYER1, sprite_list=self.grass_layer)
         self.add_sprite_list(LAYER2, sprite_list=self.hills_layer)
@@ -275,15 +309,13 @@ class MapView(arcade.View):
         self.convert_layer_cartesian_to_isometric(trees_layer, self.trees_positions)
 
     def convert_layer_cartesian_to_isometric(self, layer, positions_list):
-        width = (self.map.get_sprite_list(LAYER1))[0].width
-        height = (self.map.get_sprite_list(LAYER1))[0].height
         k = 0
         for sprite in layer:
             if sprite is not None:
                 cart_x, cart_y = sprite.center_x, sprite.center_y
                 (i, j) = positions_list[k]
-                sprite.center_x = (cart_x + cart_y) - (width * j / 2)
-                sprite.center_y = (-cart_x + cart_y) / 2 + (height * j / 2)
+                sprite.center_x = (cart_x + cart_y) - (constantes.TILE_WIDTH*self.map.map_scaling * j / 2)
+                sprite.center_y = (-cart_x + cart_y) / 2 + (constantes.TILE_HEIGHT*self.map.map_scaling * j / 2)
                 k += 1
 
 
