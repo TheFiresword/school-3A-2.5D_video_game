@@ -4,7 +4,7 @@ from Services import servicesGlobalVariables as constantes
 from Services import servicesmMapSpriteToFile as map_sprite
 from CoreModules.MapManagement import mapManagementMap
 from CoreModules.MapManagement.mapManagementMap import LAYER1, LAYER2, LAYER3
-from math import pow
+import math
 from pyglet.math import Vec2
 from UserInterface import UI_Section as uis
 
@@ -97,6 +97,9 @@ class MapGraphic(arcade.Scene):
 
 class MapView(arcade.View):
     # Notes: Rescale function
+    red_sprite = arcade.Sprite()
+    tmp = False
+
     def __init__(self):
         super().__init__()
         self.map = MapGraphic("./Assets/maps/test_map.json", mapManagementMap.MapLogic())
@@ -125,7 +128,6 @@ class MapView(arcade.View):
         # set up the camera and centre it
         self.map_camera = arcade.Camera()
         self.menu_camera = arcade.Camera()
-        print(self.map_camera.position)
 
         self.center_map()
 
@@ -165,6 +167,7 @@ class MapView(arcade.View):
         # On draw la map que si elle est activée
         if self.map.logic_map.active:
             self.map.draw()
+            if self.tmp: self.red_sprite.draw_hit_box(color=(255, 0, 0), line_thickness=1)
 
         self.menu_camera.use()
         arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH - 81,
@@ -178,7 +181,17 @@ class MapView(arcade.View):
         self.secmanager.disable()
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
-        print(x, y)
+        """
+        Quand on clique un sprite orange se dessine sur le sprite le plus proche du point cliqué
+        """
+        (x, y) = Vec2(x, y) + self.map_camera.position
+        self.tmp = True
+        self.red_sprite = arcade.Sprite("./Assets/sprites/C3/Land/LandOverlay/Land2a_00037.png",
+                                        scale=self.map.map_scaling, center_x=x,
+                                        center_y=y, hit_box_algorithm="Detailed")
+
+        (nearest_sprite, d) = arcade.get_closest_sprite(self.red_sprite, self.map.get_sprite_list(LAYER1))
+        self.red_sprite.center_x, self.red_sprite.center_y = nearest_sprite.center_x, nearest_sprite.center_y
 
     def on_update(self, delta_time: float):
         self.map.update()
@@ -299,6 +312,16 @@ class MapView(arcade.View):
             if sprite is not None:
                 cart_x, cart_y = sprite.center_x, sprite.center_y
                 (i, j) = positions_list[k]
-                sprite.center_x = (cart_x + cart_y) - (constantes.TILE_WIDTH * self.map.map_scaling * j / 2)
-                sprite.center_y = (-cart_x + cart_y) / 2 + (constantes.TILE_HEIGHT * self.map.map_scaling * j / 2)
+                sprite.center_x, sprite.center_y = self.convert_cartesian_px_to_isometric_px(cart_x, cart_y, j)
                 k += 1
+
+    def convert_cartesian_px_to_isometric_px(self, cartesian_x, cartesian_y, offset):
+        isometric_x = (cartesian_x + cartesian_y) - (constantes.TILE_WIDTH * self.map.map_scaling * offset / 2)
+        isometric_y = (-cartesian_x + cartesian_y) / 2 + (constantes.TILE_HEIGHT * self.map.map_scaling * offset / 2)
+        return isometric_x, isometric_y
+
+    def check_sprite_at_screen_coordinates(self, x, y):
+        """
+        Cette fonction va retourner la position du sprite qui se trouve aux coordonnées x,y en px des
+        """
+        grass_layer = self.map.get_sprite_list(LAYER1)

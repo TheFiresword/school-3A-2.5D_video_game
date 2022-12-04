@@ -15,7 +15,7 @@ Chaque case contient un Element, instance de la classe Element
 ++++Lorsque cells_number>1 ie que l'Element occupe plus d'une case, on considère que la cellule courante contient le 
 coin inférieur gauche de l'Element.
 Ensuite, dans les cellules supplémentaires que l'Element occupe, on met un Element dont l'attribut dic vaut
-{version:"occupied", cells_number:0} et qui a le même id que l'Element initial
+{version:"occupied", cells_number:1} et qui a le même id que l'Element initial
 Il faut vérifier en amont que ces cellules supplémentaires ne sont pas déja occupées.
 Le cas échéant, on annule l'insertion de l'Element
 
@@ -28,7 +28,7 @@ Les versions de remplissage sont respectivement:
 
 
 # a macro to test if an index couple (i,j) is correct
-def index_is_valid(i, j):
+def position_is_valid(i, j):
     return (0 <= i < globalVar.TILE_COUNT) and (0 <= j < globalVar.TILE_COUNT)
 
 
@@ -38,11 +38,17 @@ class Layer:
     def __init__(self, _type):
         # Le tableau qui contient les Elements
         self.array = []
+
         # Un booléen qui dit si layer doit être affiché ou pas
         self.activate = True
+
         # Le type de layer; ex: pour les herbes, type="grass"
         self.type = _type
+
+        # Le dernier id qui a été utilisé pour pouvoir incrémenter cet id quand on ajoute un nouvel Element
         self.last_id = 0
+
+        # Initialisation du layer; chaque case contient un Element de version null
         self.setup()
 
     def setup(self):
@@ -55,9 +61,12 @@ class Layer:
         manière incrémentale
         """
         if cells_number == 1:
+            # On remplit toutes les cases du layer avec des Elements de taille 1 avec la version passée en paramètre
             self.array = [[Element.Element(self, self.type, 1, version) for i in range(0, globalVar.TILE_COUNT)] for j
                           in range(0, globalVar.TILE_COUNT)]
+            # Incrémenteur d'id
             count = 0
+            # On set l'id de chaque case de manière incrémentale
             for i in range(0, globalVar.TILE_COUNT):
                 for j in range(0, globalVar.TILE_COUNT):
                     self.array[i][j].id = count
@@ -65,7 +74,13 @@ class Layer:
             self.last_id = self.array[globalVar.TILE_COUNT - 1][globalVar.TILE_COUNT - 1].id
 
         else:
-            # Le type d'Element occupe plus d'une case
+            """
+            Le type d'Element occupe plus d'une case
+            Si cette condition est atteinte, c'est que le layer a été précédemment rempli au moins via setup()
+            L'importance de cette information est qu'on a plus besoin de set des id de manière incrémentale
+            La fonction set_cell() s'occupe d'ajouter un par un les éléments
+            """
+
             for line in range(0, globalVar.TILE_COUNT):
                 for column in range(0, globalVar.TILE_COUNT):
                     status = self.set_cell(line, column, {"version": version, "cells_number": cells_number}, False)
@@ -74,6 +89,7 @@ class Layer:
     def custom_fill_layer(self, config_list):
         # config_list est un tableau de TILE_COUNT*TILE_COUNT Elements
         # Peut être long à écrire
+        # Pour l'instant cette fonction n'est jamais appelée
         for i in range(0, len(self.array)):
             del self.array[i]
         self.array = config_list
@@ -86,7 +102,7 @@ class Layer:
         for i in range(0, globalVar.TILE_COUNT):
             for j in range(0, globalVar.TILE_COUNT):
                 if self.array[i][j]:
-                    self.array[i][j].dic = {"version": "null", "cells_number": 0}
+                    self.array[i][j].dic = {"version": "null", "cells_number": 1}
 
     def set_cell(self, column, line, _dic, can_replace=False) -> bool:
         """
@@ -99,7 +115,7 @@ class Layer:
         """
         # Pré-conditions: La position doit être valide et la case doit contenir un Element de version "null" si can't
         # replace
-        if not index_is_valid(line, column) or self.changeable(line, column, 0, can_replace):
+        if not position_is_valid(line, column) or self.changeable(line, column, 0, can_replace):
             return False
         else:
 
@@ -110,9 +126,9 @@ class Layer:
             # Si l'Element occupe plus d'1 case, on vérifie que les cases supplémentaires existent et sont vides
             else:
                 for k in range(1, cells_number):
-                    if not index_is_valid(line, column + k) or \
-                            not index_is_valid(line + k, column + k) or \
-                            not index_is_valid(line + k, column) or self.changeable(line, column, k, can_replace):
+                    if not position_is_valid(line, column + k) or \
+                            not position_is_valid(line + k, column + k) or \
+                            not position_is_valid(line + k, column) or self.changeable(line, column, k, can_replace):
                         return False
 
                 # Toutes les conditions sont remplies
@@ -144,6 +160,9 @@ class Layer:
                    self.array[line + k][column].dic['version'] != "null"
 
     def print_content(self):
+        """
+        Fonction d'aide au debogage qui affiche le contenu de chaque layer
+        """
         for line in range(0, globalVar.TILE_COUNT):
             for column in range(0, globalVar.TILE_COUNT):
                 print(self.array[line][column].dic, end=" | ")
