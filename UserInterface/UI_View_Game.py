@@ -21,10 +21,10 @@ class Game(arcade.View):
         self.menusect = uis.MenuSect()
         self.secmanager.add_section(self.menusect)
         self.tab = arcade.load_texture(constantes.SPRITE_PATH + "Frames/map_panels_00001.png")
-        self.b1 = arcade.gui.UITextureButton(x=constantes.DEFAULT_SCREEN_WIDTH-162+10, y= constantes.DEFAULT_SCREEN_HEIGHT* 4/5 ,texture= arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel13/paneling_00080.png"),
-                                             texture_hovered=arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel13/paneling_00081.png"),
-                                             texture_pressed=arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel13/paneling_00079.png"))
-        self.manager.add(self.b1)
+        #self.b1 = arcade.gui.UITextureButton(x=constantes.DEFAULT_SCREEN_WIDTH-162+150, y= constantes.DEFAULT_SCREEN_HEIGHT* 6/7 +200 ,texture= arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel13/paneling_00080.png"),
+        #                                     texture_hovered=arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel13/paneling_00081.png"),
+        #                                     texture_pressed=arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel13/paneling_00079.png"))
+        #self.manager.add(self.b1)
         # positions is an attribute that I used to easily convert coordinates
         self.grass_positions = []
         self.hills_positions = []
@@ -119,14 +119,14 @@ class Game(arcade.View):
                 self.rescale_the_map(constantes.SCALE_MAX)
 
     def on_key_press(self, symbol: int, modifiers: int):
-
-        if symbol == arcade.key.UP:
-            self.up_pressed = True
-        elif symbol == arcade.key.DOWN:
-            self.down_pressed = True
-        elif symbol == arcade.key.LEFT:
-            self.left_pressed = True
-        elif symbol == arcade.key.RIGHT:
+        match simbol:
+            case arcade.key.UP:
+                self.up_pressed = True
+            case arcade.key.DOWN:
+                self.down_pressed = True
+            case arcade.key.LEFT:
+                self.left_pressed = True
+            case arcade.key.RIGHT:
             self.right_pressed = True
 
     def on_key_release(self, _symbol: int, _modifiers: int):

@@ -6,6 +6,7 @@ from CoreModules.MapManagement.mapManagementMap import LAYER1, LAYER2, LAYER3
 from math import pow
 from pyglet.math import Vec2
 from UserInterface import UI_Section as uis
+from UserInterface import UI_buttons
 
 MAP_CAMERA_SPEED = 0.5
 """
@@ -118,15 +119,19 @@ class MapView(arcade.View):
         self.secmanager = arcade.SectionManager(view=self)
         self.menusect = uis.MenuSect()
         self.secmanager.add_section(self.menusect)
-        self.tab = arcade.load_texture(constantes.SPRITE_PATH + "Frames/map_panels_00001.png")
-        self.b1 = arcade.gui.UITextureButton(x=constantes.DEFAULT_SCREEN_WIDTH - 162 + 10,
-                                             y=constantes.DEFAULT_SCREEN_HEIGHT * 4 / 5, texture=arcade.load_texture(
-                constantes.SPRITE_PATH + "Panel/Panel13/paneling_00080.png"),
-                                             texture_hovered=arcade.load_texture(
-                                                 constantes.SPRITE_PATH + "Panel/Panel13/paneling_00081.png"),
-                                             texture_pressed=arcade.load_texture(
-                                                 constantes.SPRITE_PATH + "Panel/Panel13/paneling_00079.png"))
-        self.manager.add(self.b1)
+        self.tab = arcade.load_texture(constantes.SPRITE_PATH + "PanelsOther/paneling_00017.png")
+        buttons_render = UI_buttons.buttons
+        self.buttons = [arcade.gui.UITextureButton(x=b0,y=b1,texture=b2,texture_hovered=b3,texture_pressed=b4) for (b0,b1,b2,b3,b4) in buttons_render]
+        #self.b1 = constantes.DEFAULT_SCREEN_WIDTH - 155,
+        #                                     y=constantes.DEFAULT_SCREEN_HEIGHT - 200 , texture=arcade.load_texture(
+        #        constantes.SPRITE_PATH + "Panel/Panel13/paneling_00080.png"),
+        #                                     texture_hovered=arcade.load_texture(
+        #                                         constantes.SPRITE_PATH + "Panel/Panel13/paneling_00081.png"),
+        #                                     texture_pressed=arcade.load_texture(
+        #                                         constantes.SPRITE_PATH + "Panel/Panel13/paneling_00079.png"))
+
+        for k in self.buttons:
+            self.manager.add(k)
         arcade.set_background_color(arcade.color.BLACK)
 
     def on_show_view(self):
