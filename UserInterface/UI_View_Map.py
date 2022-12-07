@@ -165,6 +165,7 @@ class MapView(arcade.View):
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
         print(x,y)
+        #print(type(self))
 
     def on_update(self, delta_time: float):
         self.map.update()
@@ -193,7 +194,8 @@ class MapView(arcade.View):
                 self.rescale_the_map(constantes.SCALE_MAX)
 
     def on_key_press(self, symbol: int, modifiers: int):
-
+        if symbol == arcade.key.ESCAPE:
+            arcade.exit()
         if symbol == arcade.key.UP:
             self.up_pressed = True
         elif symbol == arcade.key.DOWN:
