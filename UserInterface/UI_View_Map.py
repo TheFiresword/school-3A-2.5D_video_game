@@ -1,9 +1,10 @@
 import arcade
 import arcade.gui
 from Services import servicesGlobalVariables as constantes
+from Services import servicesmMapSpriteToFile as map_sprite
 from CoreModules.MapManagement import mapManagementMap
 from CoreModules.MapManagement.mapManagementMap import LAYER1, LAYER2, LAYER3
-from math import pow
+import math
 from pyglet.math import Vec2
 from UserInterface import UI_Section as uis
 
@@ -13,8 +14,10 @@ MAP_CAMERA_SPEED = 0.5
  But also the walkers list and buildings list 
  The layers are generated with the software Tiled
 """
+
+
 class MapGraphic(arcade.Scene):
-    def __init__(self, map_file, logic_map):
+    def __init__(self, map_file, logic_map):  # paramètre map_file à retirer à terme
         super().__init__()
 
         # The scaling of the sprites of this layer
@@ -37,28 +40,24 @@ class MapGraphic(arcade.Scene):
         # Map générée avec json
         self.tilemap = arcade.load_tilemap(self.map_file, scaling=self.map_scaling)
 
-        #self.grass_layer = self.tilemap.sprite_lists[LAYER1]
-        #self.hills_layer = self.tilemap.sprite_lists[LAYER2]
-        #self.trees_layer = self.tilemap.sprite_lists[LAYER3]
+        # self.grass_layer = self.tilemap.sprite_lists[LAYER1]
+        # self.hills_layer = self.tilemap.sprite_lists[LAYER2]
+        # self.trees_layer = self.tilemap.sprite_lists[LAYER3]
 
         # Map générée à la main
         self.grass_layer = arcade.SpriteList()
-        grass_array = self.logic_map.grass_layer.array
+        self.hills_layer = arcade.SpriteList()
+        self.trees_layer = arcade.SpriteList()
 
-        for i in range(0, len(grass_array)):
-            line = grass_array[i]
-            for j in range(0, len(line)):
-                if grass_array[i][j] == "normal":
-                    grass = arcade.Sprite("./Assets/sprites/C3/Land/Land1/Land1a_00272.png", self.map_scaling)
-                elif grass_array[i][j] == "yellow":
-                    grass = arcade.Sprite("./Assets/sprites/C3/Land/Land1/Land1a_00029.png", self.map_scaling)
-                elif grass_array[i][j] == "buisson":
-                    grass = arcade.Sprite("./Assets/sprites/C3/Land/Land1/Land1a_00235.png", self.map_scaling)
-                else:
-                    grass = arcade.Sprite()
-                grass.center_x = grass.width * (i + 1 / 2)
-                grass.center_y = grass.height * (j + 1 / 2)
-                self.grass_layer.append(grass)
+        # On récupère le tableau logique associé à chaque layer
+        grass_array = self.logic_map.grass_layer.array
+        hills_array = self.logic_map.hills_layer.array
+        trees_array = self.logic_map.trees_layer.array
+
+        # On remplit les SpriteList de chaque layer
+        self.create_sprite_list(self.grass_layer, "grass", grass_array)
+        self.create_sprite_list(self.hills_layer, "hills", hills_array)
+        self.create_sprite_list(self.trees_layer, "trees", trees_array)
 
         self.add_sprite_list(LAYER1, sprite_list=self.grass_layer)
         self.add_sprite_list(LAYER2, sprite_list=self.hills_layer)
@@ -66,17 +65,41 @@ class MapGraphic(arcade.Scene):
 
         self.buildings_list = arcade.SpriteList()
         self.walkers_list = arcade.SpriteList()
-        #self.walkers_list.append(walkersManagementWalker.Walker().walker_sprite)
+        # self.walkers_list.append(walkersManagementWalker.Walker().walker_sprite)
+
+    def create_sprite_list(self, layer, layer_name, array):
+        for i in range(0, len(array)):  # I=On parcout le tableau logique du bas vers le haut
+            line = array[i]
+            for j in range(0, len(line)):
+                file_name = map_sprite.mapping_function(layer_name, array[i][j].dic['version'])
+                if file_name != "":
+                    _sprite = arcade.Sprite(file_name, self.map_scaling)
+                else:
+                    _sprite = arcade.Sprite()
+                # Les coordonnées de départ sont en cartésien
+                count = array[i][j].dic['cells_number']
+                overflowing_width = (_sprite.width - constantes.TILE_WIDTH * self.map_scaling * count) / 2
+                overflowing_height = (_sprite.height - constantes.TILE_HEIGHT * self.map_scaling * count) / 2
+
+                _sprite.center_x = constantes.TILE_WIDTH * self.map_scaling * (i + 1 / 2 + (count - 1) / 2) + \
+                                   overflowing_width
+                _sprite.center_y = constantes.TILE_HEIGHT * self.map_scaling * (j + 1 / 2 + (count - 1) / 2) + \
+                                   overflowing_height
+                layer.append(_sprite)
+
     def clear(self):
         self.sprite_lists.clear()
 
     def get_map_center(self):
-        center_tile = self.grass_layer[int(len(self.grass_layer)//2 + constantes.TILE_COUNT//2)]
+        center_tile = self.grass_layer[int(len(self.grass_layer) // 2 + constantes.TILE_COUNT // 2)]
         return Vec2(center_tile.center_x, center_tile.center_y)
 
 
 class MapView(arcade.View):
     # Notes: Rescale function
+    red_sprite = arcade.Sprite()
+    tmp = False
+
     def __init__(self):
         super().__init__()
         self.map = MapGraphic("./Assets/maps/test_map.json", mapManagementMap.MapLogic())
@@ -85,8 +108,6 @@ class MapView(arcade.View):
         self.grass_positions = []
         self.hills_positions = []
         self.trees_positions = []
-
-
 
         # 4 booleans to check the key pressed
         self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed = False, False, False, False
@@ -107,7 +128,6 @@ class MapView(arcade.View):
         # set up the camera and centre it
         self.map_camera = arcade.Camera()
         self.menu_camera = arcade.Camera()
-        print(self.map_camera.position)
 
         self.center_map()
 
@@ -131,6 +151,7 @@ class MapView(arcade.View):
 
     def on_show_view(self):
         self.secmanager.enable()
+
     def setup_list_positions(self, layer, layer_positions):
         width = (self.map.get_sprite_list(LAYER1))[0].width
         height = (self.map.get_sprite_list(LAYER1))[0].height
@@ -142,9 +163,11 @@ class MapView(arcade.View):
     def on_draw(self):
         self.clear()
 
-
         self.map_camera.use()
-        self.map.draw()
+        # On draw la map que si elle est activée
+        if self.map.logic_map.active:
+            self.map.draw()
+            if self.tmp: self.red_sprite.draw_hit_box(color=(255, 0, 0), line_thickness=1)
 
         self.menu_camera.use()
         arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH - 81,
@@ -153,13 +176,22 @@ class MapView(arcade.View):
                                       texture=self.tab)
         self.manager.draw()
 
-
     def on_hide(self):
         self.manager.disable()
         self.secmanager.disable()
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
-        print(x,y)
+        """
+        Quand on clique un sprite orange se dessine sur le sprite le plus proche du point cliqué
+        """
+        (x, y) = Vec2(x, y) + self.map_camera.position
+        self.tmp = True
+        self.red_sprite = arcade.Sprite("./Assets/sprites/C3/Land/LandOverlay/Land2a_00037.png",
+                                        scale=self.map.map_scaling, center_x=x,
+                                        center_y=y, hit_box_algorithm="Detailed")
+
+        (nearest_sprite, d) = arcade.get_closest_sprite(self.red_sprite, self.map.get_sprite_list(LAYER1))
+        self.red_sprite.center_x, self.red_sprite.center_y = nearest_sprite.center_x, nearest_sprite.center_y
 
     def on_update(self, delta_time: float):
         self.map.update()
@@ -275,37 +307,21 @@ class MapView(arcade.View):
         self.convert_layer_cartesian_to_isometric(trees_layer, self.trees_positions)
 
     def convert_layer_cartesian_to_isometric(self, layer, positions_list):
-        width = (self.map.get_sprite_list(LAYER1))[0].width
-        height = (self.map.get_sprite_list(LAYER1))[0].height
         k = 0
         for sprite in layer:
             if sprite is not None:
                 cart_x, cart_y = sprite.center_x, sprite.center_y
                 (i, j) = positions_list[k]
-                sprite.center_x = (cart_x + cart_y) - (width * j / 2)
-                sprite.center_y = (-cart_x + cart_y) / 2 + (height * j / 2)
+                sprite.center_x, sprite.center_y = self.convert_cartesian_px_to_isometric_px(cart_x, cart_y, j)
                 k += 1
 
+    def convert_cartesian_px_to_isometric_px(self, cartesian_x, cartesian_y, offset):
+        isometric_x = (cartesian_x + cartesian_y) - (constantes.TILE_WIDTH * self.map.map_scaling * offset / 2)
+        isometric_y = (-cartesian_x + cartesian_y) / 2 + (constantes.TILE_HEIGHT * self.map.map_scaling * offset / 2)
+        return isometric_x, isometric_y
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def check_sprite_at_screen_coordinates(self, x, y):
+        """
+        Cette fonction va retourner la position du sprite qui se trouve aux coordonnées x,y en px des
+        """
+        grass_layer = self.map.get_sprite_list(LAYER1)
