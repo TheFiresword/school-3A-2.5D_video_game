@@ -1,4 +1,3 @@
-import CoreModules.MapManagement.mapManagementLayer as Layer
 
 """
 Un Element va être un objet contenu dans un layer
@@ -14,7 +13,9 @@ class Element:
     # version est la version du _type de l'Element-- Ex: yellow pour grass
     def __init__(self, layer, _type, cells_number, version="normal"):
         self.type = _type
-        # L'id va être calculé directement à partir du layer auquel l'Element appartient
+        # L'id et la position vont être calculés directement à partir du layer auquel l'Element appartient
         self.id = None
+        self.position = (None, None)
+
         self.layer = layer
         self.dic = {"version": version, "cells_number": cells_number}

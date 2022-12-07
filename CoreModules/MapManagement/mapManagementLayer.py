@@ -70,6 +70,7 @@ class Layer:
             for i in range(0, globalVar.TILE_COUNT):
                 for j in range(0, globalVar.TILE_COUNT):
                     self.array[i][j].id = count
+                    self.array[i][j].position = (i, j)
                     count += 1
             self.last_id = self.array[globalVar.TILE_COUNT - 1][globalVar.TILE_COUNT - 1].id
 
@@ -87,6 +88,9 @@ class Layer:
                     if status: self.last_id = self.array[line][column].id
 
     def custom_fill_layer(self, config_list):
+        """
+        A modifier en fonction de position
+        """
         # config_list est un tableau de TILE_COUNT*TILE_COUNT Elements
         # Peut être long à écrire
         # Pour l'instant cette fonction n'est jamais appelée

@@ -19,7 +19,7 @@ class MapLogic:
         # -------------------------------------------------------------------------------------------------------------#
         self.grass_layer = overlay.Layer(LAYER1)
 
-        possible_grass = ["00079", "yellow", "normal", "buisson", "00114", "00094"]
+        possible_grass = ["00079", "yellow", "normal", "buisson", "00114", "00094", "00027", "00070", "00001"]
 
         for i in range(0, globalVar.TILE_COUNT):
             for j in range(0, globalVar.TILE_COUNT):
