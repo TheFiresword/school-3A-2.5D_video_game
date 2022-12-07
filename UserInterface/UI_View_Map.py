@@ -186,10 +186,6 @@ class MapView(arcade.View):
         self.secmanager.disable()
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
-<<<<<<< HEAD
-        print(x,y)
-        #print(type(self))
-=======
         """
         Quand on clique un sprite orange se dessine sur le sprite le plus proche du point cliqué
         """
@@ -202,7 +198,6 @@ class MapView(arcade.View):
         (nearest_sprite, d) = arcade.get_closest_sprite(self.red_sprite, self.map.get_sprite_list(LAYER1))
         self.red_sprite.center_x, self.red_sprite.center_y = nearest_sprite.center_x, nearest_sprite.center_y
 
->>>>>>> 3624d70ab4b900f7faf249d6d6724a4878b9889a
 
     def on_update(self, delta_time: float):
         self.map.update()
