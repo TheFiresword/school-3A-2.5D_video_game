@@ -1,5 +1,15 @@
-class Walker:
+import CoreModules.TileManagement.tileManagementElement as element
+
+"""
+Un walker va être un Element qui en plus possède certaines propriétés.
+Notamment un walker doit être lié à un building.
+Il doit pouvoir se déplacer sur la map
+"""
+
+
+class Walker(element.Element):
     def __init__(self, id, x_pos, y_pos, house):
+        super().__init__()
         self.id = id
         self.x_pos = x_pos
         self.y_pos = y_pos
