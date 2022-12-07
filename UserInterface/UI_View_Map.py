@@ -7,6 +7,7 @@ from CoreModules.MapManagement.mapManagementMap import LAYER1, LAYER2, LAYER3
 import math
 from pyglet.math import Vec2
 from UserInterface import UI_Section as uis
+from UserInterface import UI_buttons
 
 MAP_CAMERA_SPEED = 0.5
 """
@@ -138,15 +139,19 @@ class MapView(arcade.View):
         self.secmanager = arcade.SectionManager(view=self)
         self.menusect = uis.MenuSect()
         self.secmanager.add_section(self.menusect)
-        self.tab = arcade.load_texture(constantes.SPRITE_PATH + "Frames/map_panels_00001.png")
-        self.b1 = arcade.gui.UITextureButton(x=constantes.DEFAULT_SCREEN_WIDTH - 162 + 10,
-                                             y=constantes.DEFAULT_SCREEN_HEIGHT * 4 / 5, texture=arcade.load_texture(
-                constantes.SPRITE_PATH + "Panel/Panel13/paneling_00080.png"),
-                                             texture_hovered=arcade.load_texture(
-                                                 constantes.SPRITE_PATH + "Panel/Panel13/paneling_00081.png"),
-                                             texture_pressed=arcade.load_texture(
-                                                 constantes.SPRITE_PATH + "Panel/Panel13/paneling_00079.png"))
-        self.manager.add(self.b1)
+        self.tab = arcade.load_texture(constantes.SPRITE_PATH + "PanelsOther/paneling_00017.png")
+        buttons_render = UI_buttons.buttons
+        self.buttons = [arcade.gui.UITextureButton(x=b0,y=b1,texture=b2,texture_hovered=b3,texture_pressed=b4) for (b0,b1,b2,b3,b4) in buttons_render]
+        #self.b1 = constantes.DEFAULT_SCREEN_WIDTH - 155,
+        #                                     y=constantes.DEFAULT_SCREEN_HEIGHT - 200 , texture=arcade.load_texture(
+        #        constantes.SPRITE_PATH + "Panel/Panel13/paneling_00080.png"),
+        #                                     texture_hovered=arcade.load_texture(
+        #                                         constantes.SPRITE_PATH + "Panel/Panel13/paneling_00081.png"),
+        #                                     texture_pressed=arcade.load_texture(
+        #                                         constantes.SPRITE_PATH + "Panel/Panel13/paneling_00079.png"))
+
+        for k in self.buttons:
+            self.manager.add(k)
         arcade.set_background_color(arcade.color.BLACK)
 
     def on_show_view(self):
@@ -181,6 +186,10 @@ class MapView(arcade.View):
         self.secmanager.disable()
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
+<<<<<<< HEAD
+        print(x,y)
+        #print(type(self))
+=======
         """
         Quand on clique un sprite orange se dessine sur le sprite le plus proche du point cliqué
         """
@@ -192,6 +201,7 @@ class MapView(arcade.View):
 
         (nearest_sprite, d) = arcade.get_closest_sprite(self.red_sprite, self.map.get_sprite_list(LAYER1))
         self.red_sprite.center_x, self.red_sprite.center_y = nearest_sprite.center_x, nearest_sprite.center_y
+>>>>>>> main
 
     def on_update(self, delta_time: float):
         self.map.update()
@@ -220,7 +230,8 @@ class MapView(arcade.View):
                 self.rescale_the_map(constantes.SCALE_MAX)
 
     def on_key_press(self, symbol: int, modifiers: int):
-
+        if symbol == arcade.key.ESCAPE:
+            arcade.exit()
         if symbol == arcade.key.UP:
             self.up_pressed = True
         elif symbol == arcade.key.DOWN:
