@@ -126,6 +126,7 @@ class Layer:
             cells_number = _dic['cells_number']
             if cells_number == 1:
                 self.array[line][column].dic = _dic
+                return True
 
             # Si l'Element occupe plus d'1 case, on vérifie que les cases supplémentaires existent et sont vides
             else:
@@ -150,6 +151,17 @@ class Layer:
                         column].id \
                         = self.array[line][column].id
         return True
+
+    def set_cell_constrained_to_bottom_layer(self, bottom_layers_list, column, line, _dic, can_replace=False) -> bool:
+        """
+        Cette fonction insère un Element dans un layer à la position (line, column)  si et seulement si les cellules
+        (line, column) des layers contenus dans la liste bottom_layers_list, sont "null"
+        """
+        count = len(bottom_layers_list)
+        for i in range(0, count):
+            if bottom_layers_list[i].array[line][column].dic["version"] != "null":
+                return False
+        return self.set_cell(column, line, _dic, can_replace)
 
     def changeable(self, line, column, k, can_replace):
         """
