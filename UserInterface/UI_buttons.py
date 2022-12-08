@@ -1,12 +1,6 @@
 import arcade
 from Services import servicesGlobalVariables as constantes
 
-b1 = (constantes.DEFAULT_SCREEN_WIDTH - 155,
-      constantes.DEFAULT_SCREEN_HEIGHT - 200,
-      arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel13/paneling_00079.png"),
-      arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel13/paneling_00080.png"),
-      arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel13/paneling_00081.png"))
-
 tuples_buttons = [(155,240,13,"000",79),(78,240,14,"000",82),
                   (117,274,16,"000",88),(78,274,17,"000",91),(40,274,18,"000",94),
                   (155,200,24,"00",119),(155,200,25,"00",123),(155,200,26,"00",127),

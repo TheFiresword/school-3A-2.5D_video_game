@@ -6,7 +6,7 @@ DEFAULT_SCREEN_WIDTH = user32.GetSystemMetrics(0)
 DEFAULT_SCREEN_HEIGHT = user32.GetSystemMetrics(1)
 TITLE = "Pysar"
 
-SPRITE_PATH = "Assets/sprites/C3/"
+SPRITE_PATH = "./Assets/sprites/C3/"
 
 DEFAULT_FPS = 1 / 60
 

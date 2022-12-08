@@ -1,13 +1,19 @@
 import arcade
 import arcade.gui
-from Services import servicesGlobalVariables as constantes
-from Services import servicesmMapSpriteToFile as map_sprite
-from CoreModules.MapManagement import mapManagementMap
-from CoreModules.MapManagement.mapManagementMap import LAYER1, LAYER2, LAYER3
 import math
 from pyglet.math import Vec2
+
+from Services import servicesGlobalVariables as constantes
+from Services import servicesmMapSpriteToFile as map_sprite
+from Services import Service_Game_Data as gdata
+
+from CoreModules.MapManagement import mapManagementMap
+from CoreModules.MapManagement.mapManagementMap import LAYER1, LAYER2, LAYER3
+
+
 from UserInterface import UI_Section as uis
 from UserInterface import UI_buttons
+from UserInterface import UI_HUD_Build as hudb
 
 MAP_CAMERA_SPEED = 0.5
 """
@@ -36,6 +42,13 @@ class MapGraphic(arcade.Scene):
 
         self.buildings_list = None
         self.walkers_list = None
+
+
+        
+
+
+
+        
 
     def setup(self):
         # Map générée avec json
@@ -104,6 +117,7 @@ class MapView(arcade.View):
     def __init__(self):
         super().__init__()
         self.map = MapGraphic("./Assets/maps/test_map.json", mapManagementMap.MapLogic())
+        self.mouse_pos = (0,0)
 
         # positions is an attribute that I used to easily convert coordinates
         self.grass_positions = []
@@ -153,6 +167,7 @@ class MapView(arcade.View):
         for k in self.buttons:
             self.manager.add(k)
         arcade.set_background_color(arcade.color.BLACK)
+        self.builder_mode = False
 
     def on_show_view(self):
         self.secmanager.enable()
@@ -173,6 +188,9 @@ class MapView(arcade.View):
         if self.map.logic_map.active:
             self.map.draw()
             if self.tmp: self.red_sprite.draw_hit_box(color=(255, 0, 0), line_thickness=1)
+        if self.builder_mode:
+            sprite = hudb.hollow_build(self.mouse_pos[0],self.mouse_pos[1],gdata.building_dico["Dwell"])
+            sprite.draw()
 
         self.menu_camera.use()
         arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH - 81,
@@ -202,6 +220,8 @@ class MapView(arcade.View):
     def on_update(self, delta_time: float):
         self.map.update()
         self.move_map_camera_with_keys()
+        
+
 
     def on_mouse_scroll(self, x: int, y: int, scroll_x: int, scroll_y: int):
         """
@@ -236,6 +256,10 @@ class MapView(arcade.View):
             self.left_pressed = True
         elif symbol == arcade.key.RIGHT:
             self.right_pressed = True
+        elif symbol == arcade.key.B:
+            self.builder_mode = True
+        elif symbol == arcade.key.N:
+            self.builder_mode = False
 
     def on_key_release(self, _symbol: int, _modifiers: int):
         if _symbol == arcade.key.UP:
