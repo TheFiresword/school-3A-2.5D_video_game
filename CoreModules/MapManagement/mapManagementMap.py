@@ -121,25 +121,17 @@ class MapLogic:
         # -------------------------------------------------------------------------------------------------------------#
         # BUILDINGS
         self.buildings_layer = building.BuildingLayer(LAYER5)
-        my_dwelling = building.Dwelling(self.buildings_layer, LAYER5, 1, 0, 10)
-        my_luxious_dwelling = building.Dwelling(self.buildings_layer, LAYER5, 4, 0, 100, version="dwelling5")
 
         for i in range(0, 10):
+            my_dwelling = building.Dwelling(self.buildings_layer, LAYER5, 1, 0, 10)
             self.buildings_layer.set_cell_constrained_to_bottom_layer([self.hills_layer, self.trees_layer,
                                                                        self.roads_layer], globalVar.TILE_COUNT - 3,
                                                                       2 + i, my_dwelling)
-        """
-        self.buildings_layer.set_cell_constrained_to_bottom_layer([self.hills_layer, self.trees_layer,
-                                                                   self.roads_layer], 3, 0, my_luxious_dwelling)
-        self.buildings_layer.set_cell_constrained_to_bottom_layer([self.hills_layer, self.trees_layer,
-                                                                   self.roads_layer], 3, 4, my_luxious_dwelling)
-        self.buildings_layer.set_cell_constrained_to_bottom_layer([self.hills_layer, self.trees_layer,
-                                                                   self.roads_layer], 3, 8, my_luxious_dwelling)
-        self.buildings_layer.set_cell_constrained_to_bottom_layer([self.hills_layer, self.trees_layer,
-                                                                   self.roads_layer], 3, 12, my_luxious_dwelling)
-        self.buildings_layer.set_cell_constrained_to_bottom_layer([self.hills_layer, self.trees_layer,
-                                                                   self.roads_layer], 3, 16, my_luxious_dwelling)
-        """
+        for i in range(0, 20, 4):
+            my_luxious_dwelling = building.Dwelling(self.buildings_layer, LAYER5, 4, 0, 100, version="dwelling5")
+            self.buildings_layer.set_cell_constrained_to_bottom_layer([self.hills_layer, self.trees_layer,
+                                                                       self.roads_layer], 3, i, my_luxious_dwelling)
+
         # liste de Walker()
         self.walkers_list = []
 
@@ -151,6 +143,6 @@ class MapLogic:
         # self.hills_layer.remove_cell(30, 24)
         # self.hills_layer.remove_cell(30, 28)
         # self.hills_layer.print_currents_elements()
-        # self.buildings_layer.remove_cell(3, 0)
-        # print("\nAfter remove")
-        # self.buildings_layer.print_currents_elements()
+        self.buildings_layer.remove_cell(3, 0)
+        print("\nAfter remove")
+        self.buildings_layer.print_currents_elements()

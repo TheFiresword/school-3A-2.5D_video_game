@@ -168,6 +168,7 @@ class Layer:
                 # Toutes les conditions sont remplies
                 # On copie les informations de l'Element dans la case correspondante--On garde l'id de la case
                 self.array[line][column] = element
+                self.array[line][column].id = next(self.id_iterator)
 
                 # On met les cases supplémentaires à la version occupied
                 for k in range(1, cells_number):
@@ -176,9 +177,9 @@ class Layer:
                     self.array[line + k][column].dic['version'] = "occupied"
 
                     # Les id des cellules supplémentaires sont set à l'id de l'Element ajouté
-                    self.array[line][column + k].id = self.array[line + k][column + k].id = self.array[line + k][
-                        column].id = self.array[line][column].id = next(self.id_iterator)
 
+                    self.array[line][column + k].id = self.array[line + k][column + k].id = self.array[line + k][
+                        column].id = self.array[line][column].id
 
                     self.array[line][column + k].position = self.array[line + k][column + k].position = \
                         self.array[line + k][column].position = self.array[line][column].position = (line, column)
