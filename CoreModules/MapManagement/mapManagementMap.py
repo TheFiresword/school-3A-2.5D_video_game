@@ -18,6 +18,10 @@ class MapLogic:
         self.active = True
 
         # Remplissage de chaque layer de la map
+        """
+        !!!!!!!!!! IMPORTANT """  # POUR PLACER UN ELEMENT DANS UN LAYER, IL FAUT LE CREER ET PAS JUSTE COPIER UN
+        # ELEMENT PRECEDEMMENT CREE !!!!!!!!!! L'opérateur = en python est un monstre impitoyable qui m'a arraché les
+        # cheveux
 
         # -------------------------------------------------------------------------------------------------------------#
         # GRASS
@@ -140,4 +144,3 @@ class MapLogic:
         # -------------------------------------------------------------------------------------------------------------#
         # Test logiques
         # self.trees_layer.print_currents_elements()
-
