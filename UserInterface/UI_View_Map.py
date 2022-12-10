@@ -44,13 +44,6 @@ class MapView(arcade.View):
         self.roads_array = []
         self.buildings_array = []
 
-        # positions is an attribute that I used to easily convert coordinates
-        self.grass_positions = []
-        self.hills_positions = []
-        self.trees_positions = []
-        self.roads_positions = []
-        self.buildings_positions = []
-
         # 4 booleans to check the key pressed
         self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed = False, False, False, False
 
@@ -104,15 +97,15 @@ class MapView(arcade.View):
         self.buildings_array = self.logic_map.buildings_layer.array
 
         # On remplit les SpriteList de chaque layer
-        self.create_sprite_list(self.grass_layer, LAYER1, self.grass_array, self.grass_positions)
-        self.create_sprite_list(self.hills_layer, LAYER2, self.hills_array, self.hills_positions)
-        self.create_sprite_list(self.trees_layer, LAYER3, self.trees_array, self.trees_positions)
-        self.create_sprite_list(self.roads_layer, LAYER4, self.roads_array, self.roads_positions)
-        self.create_sprite_list(self.buildings_layer, LAYER5, self.buildings_array, self.buildings_positions)
+        self.create_sprite_list(self.grass_layer, LAYER1, self.grass_array)
+        self.create_sprite_list(self.hills_layer, LAYER2, self.hills_array)
+        self.create_sprite_list(self.trees_layer, LAYER3, self.trees_array)
+        self.create_sprite_list(self.roads_layer, LAYER4, self.roads_array)
+        self.create_sprite_list(self.buildings_layer, LAYER5, self.buildings_array)
 
         self.walkers_list = arcade.SpriteList()
 
-    def create_sprite_list(self, layer, layer_name, array, layer_positions_list):
+    def create_sprite_list(self, layer, layer_name, array):
         for i in range(0, len(array)):  # I=On parcout le tableau logique du bas vers le haut
             line = array[i]
             for j in range(0, len(line)):
@@ -131,9 +124,6 @@ class MapView(arcade.View):
                 _sprite.center_y = constantes.TILE_HEIGHT * self.map_scaling * (i + 1 / 2 + (count - 1) / 2) + \
                                    overflowing_height
                 layer.append(_sprite)
-
-                # ----------------------------------------#
-                layer_positions_list.append((i, j))
 
     def on_show_view(self):
         self.secmanager.enable()
@@ -286,19 +276,20 @@ class MapView(arcade.View):
         """"
         Convert a cartesian map to an isometric map
         """
-        self.convert_layer_cartesian_to_isometric(self.grass_layer, self.grass_positions)
-        self.convert_layer_cartesian_to_isometric(self.hills_layer, self.hills_positions)
-        self.convert_layer_cartesian_to_isometric(self.trees_layer, self.trees_positions)
-        self.convert_layer_cartesian_to_isometric(self.roads_layer, self.roads_positions)
-        self.convert_layer_cartesian_to_isometric(self.buildings_layer, self.buildings_positions)
+        self.convert_layer_cartesian_to_isometric(self.grass_layer)
+        self.convert_layer_cartesian_to_isometric(self.hills_layer)
+        self.convert_layer_cartesian_to_isometric(self.trees_layer)
+        self.convert_layer_cartesian_to_isometric(self.roads_layer)
+        self.convert_layer_cartesian_to_isometric(self.buildings_layer)
 
-    def convert_layer_cartesian_to_isometric(self, layer, positions_list):
+    def convert_layer_cartesian_to_isometric(self, layer):
         k = 0
         for sprite in layer:
-            cart_x, cart_y = sprite.center_x, sprite.center_y
-            (i, j) = positions_list[k]
-            sprite.center_x, sprite.center_y = self.convert_cartesian_px_to_isometric_px(cart_x, cart_y, j)
-            k += 1
+            if sprite is not None:
+                cart_x, cart_y = sprite.center_x, sprite.center_y
+                sprite.center_x, sprite.center_y = self.convert_cartesian_px_to_isometric_px(cart_x, cart_y, k)
+                k += 1
+                k = k % constantes.TILE_COUNT
 
     def convert_cartesian_px_to_isometric_px(self, cartesian_x, cartesian_y, offset):
         isometric_x = (cartesian_x + cartesian_y) - (constantes.TILE_WIDTH * self.map_scaling * offset / 2)
