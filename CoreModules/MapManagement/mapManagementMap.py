@@ -6,10 +6,10 @@ import CoreModules.TileManagement.tileManagementElement as element
 import Services.servicesGlobalVariables as globalVar
 
 LAYER1 = "grass"
-LAYER2 = "hill"
-LAYER3 = "tree"
-LAYER4 = "road"
-LAYER5 = "building"
+LAYER2 = "hills"
+LAYER3 = "trees"
+LAYER4 = "roads"
+LAYER5 = "buildings"
 
 
 class MapLogic:
@@ -101,12 +101,13 @@ class MapLogic:
             random_version = random.choice(possible_trees)
             my_normal_tree = element.Element(self.trees_layer, LAYER3, 1, random_version)
             self.trees_layer.set_cell(i, 5, my_normal_tree)
+
+            my_normal_tree = element.Element(self.trees_layer, LAYER3, 1, random_version)
             self.trees_layer.set_cell(i, 6, my_normal_tree)
 
         # -------------------------------------------------------------------------------------------------------------#
         # ROADS
         self.roads_layer = overlay.Layer(LAYER4)
-        my_normal_road = element.Element(self.roads_layer, LAYER4, 1, "normal")
 
         entry_road = element.Element(self.roads_layer, LAYER4, 1, "entry")
         exit_road = element.Element(self.roads_layer, LAYER4, 1, "exit")
@@ -115,6 +116,7 @@ class MapLogic:
         self.roads_layer.set_cell(0, middle - 1, exit_road)
 
         for i in range(0, 2 * middle):
+            my_normal_road = element.Element(self.roads_layer, LAYER4, 1, "normal")
             self.roads_layer.set_cell_constrained_to_bottom_layer([self.hills_layer, self.trees_layer],
                                                                   i, middle, my_normal_road)
 
@@ -137,5 +139,5 @@ class MapLogic:
 
         # -------------------------------------------------------------------------------------------------------------#
         # Test logiques
-        # self.buildings_layer.print_currents_elements()
+        # self.trees_layer.print_currents_elements()
 

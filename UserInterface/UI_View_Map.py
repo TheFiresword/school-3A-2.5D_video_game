@@ -2,9 +2,7 @@ import arcade
 import arcade.gui
 from Services import servicesGlobalVariables as constantes
 from Services import servicesmMapSpriteToFile as map_sprite
-from CoreModules.MapManagement import mapManagementMap
 from CoreModules.MapManagement.mapManagementMap import LAYER1, LAYER2, LAYER3, LAYER4, LAYER5
-import math
 from pyglet.math import Vec2
 from UserInterface import UI_Section as uis
 from UserInterface import UI_buttons
@@ -39,13 +37,19 @@ class MapView(arcade.View):
 
         self.walkers_list = None
 
+        # Les tableaux logiques des layers
+        self.grass_array = []
+        self.hills_array = []
+        self.trees_array = []
+        self.roads_array = []
+        self.buildings_array = []
+
         # positions is an attribute that I used to easily convert coordinates
         self.grass_positions = []
         self.hills_positions = []
         self.trees_positions = []
         self.roads_positions = []
         self.buildings_positions = []
-        # self.buildings_positions = []
 
         # 4 booleans to check the key pressed
         self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed = False, False, False, False
@@ -93,18 +97,18 @@ class MapView(arcade.View):
         self.buildings_layer = arcade.SpriteList()
 
         # On récupère le tableau logique associé à chaque layer
-        grass_array = self.logic_map.grass_layer.array
-        hills_array = self.logic_map.hills_layer.array
-        trees_array = self.logic_map.trees_layer.array
-        roads_array = self.logic_map.roads_layer.array
-        buildings_array = self.logic_map.buildings_layer.array
+        self.grass_array = self.logic_map.grass_layer.array
+        self.hills_array = self.logic_map.hills_layer.array
+        self.trees_array = self.logic_map.trees_layer.array
+        self.roads_array = self.logic_map.roads_layer.array
+        self.buildings_array = self.logic_map.buildings_layer.array
 
         # On remplit les SpriteList de chaque layer
-        self.create_sprite_list(self.grass_layer, LAYER1, grass_array, self.grass_positions)
-        self.create_sprite_list(self.hills_layer, LAYER2, hills_array, self.hills_positions)
-        self.create_sprite_list(self.trees_layer, LAYER3, trees_array, self.trees_positions)
-        self.create_sprite_list(self.roads_layer, LAYER4, roads_array, self.roads_positions)
-        self.create_sprite_list(self.buildings_layer, LAYER5, buildings_array, self.buildings_positions)
+        self.create_sprite_list(self.grass_layer, LAYER1, self.grass_array, self.grass_positions)
+        self.create_sprite_list(self.hills_layer, LAYER2, self.hills_array, self.hills_positions)
+        self.create_sprite_list(self.trees_layer, LAYER3, self.trees_array, self.trees_positions)
+        self.create_sprite_list(self.roads_layer, LAYER4, self.roads_array, self.roads_positions)
+        self.create_sprite_list(self.buildings_layer, LAYER5, self.buildings_array, self.buildings_positions)
 
         self.walkers_list = arcade.SpriteList()
 
@@ -113,7 +117,6 @@ class MapView(arcade.View):
             line = array[i]
             for j in range(0, len(line)):
                 file_name = map_sprite.mapping_function(layer_name, array[i][j].dic['version'])
-                print(array[i][j].dic['version'])
                 if file_name != "":
                     _sprite = arcade.Sprite(file_name, self.map_scaling)
                 else:
@@ -131,7 +134,6 @@ class MapView(arcade.View):
 
                 # ----------------------------------------#
                 layer_positions_list.append((i, j))
-                print(i, j)
 
     def on_show_view(self):
         self.secmanager.enable()
@@ -293,11 +295,10 @@ class MapView(arcade.View):
     def convert_layer_cartesian_to_isometric(self, layer, positions_list):
         k = 0
         for sprite in layer:
-            if sprite is not None:
-                cart_x, cart_y = sprite.center_x, sprite.center_y
-                (i, j) = positions_list[k]
-                sprite.center_x, sprite.center_y = self.convert_cartesian_px_to_isometric_px(cart_x, cart_y, j)
-                k += 1
+            cart_x, cart_y = sprite.center_x, sprite.center_y
+            (i, j) = positions_list[k]
+            sprite.center_x, sprite.center_y = self.convert_cartesian_px_to_isometric_px(cart_x, cart_y, j)
+            k += 1
 
     def convert_cartesian_px_to_isometric_px(self, cartesian_x, cartesian_y, offset):
         isometric_x = (cartesian_x + cartesian_y) - (constantes.TILE_WIDTH * self.map_scaling * offset / 2)

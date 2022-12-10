@@ -21,7 +21,8 @@ class MainWindow(arcade.Window):
         self.welcomescreen = wv.WelcomeScreen()
         self.settingscreen = sv.SettingScreen()
         self.loadscreen = lv.LoadScreen()
-        self.gamescreen = gv.MapView(map.MapLogic())
+        map1 = map.MapLogic()
+        self.gamescreen = gv.MapView(map1)
 
 
     # Lancement
