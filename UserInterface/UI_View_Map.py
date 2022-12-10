@@ -35,8 +35,8 @@ class MapView(arcade.View):
         self.hills_layer = None
         self.trees_layer = None
         self.roads_layer = None
-
         self.buildings_layer = None
+
         self.walkers_list = None
 
         # positions is an attribute that I used to easily convert coordinates
@@ -44,7 +44,7 @@ class MapView(arcade.View):
         self.hills_positions = []
         self.trees_positions = []
         self.roads_positions = []
-        self.roads_positions = []
+        self.buildings_positions = []
         # self.buildings_positions = []
 
         # 4 booleans to check the key pressed
@@ -100,26 +100,20 @@ class MapView(arcade.View):
         buildings_array = self.logic_map.buildings_layer.array
 
         # On remplit les SpriteList de chaque layer
-        self.create_sprite_list(self.grass_layer, "grass", grass_array)
-        self.create_sprite_list(self.hills_layer, "hills", hills_array)
-        self.create_sprite_list(self.trees_layer, "trees", trees_array)
-        self.create_sprite_list(self.trees_layer, "roads", roads_array)
-        self.create_sprite_list(self.trees_layer, "buildings", buildings_array)
+        self.create_sprite_list(self.grass_layer, LAYER1, grass_array, self.grass_positions)
+        self.create_sprite_list(self.hills_layer, LAYER2, hills_array, self.hills_positions)
+        self.create_sprite_list(self.trees_layer, LAYER3, trees_array, self.trees_positions)
+        self.create_sprite_list(self.roads_layer, LAYER4, roads_array, self.roads_positions)
+        self.create_sprite_list(self.buildings_layer, LAYER5, buildings_array, self.buildings_positions)
 
-        self.setup_list_positions(self.grass_layer, self.grass_positions)
-        self.setup_list_positions(self.hills_layer, self.hills_positions)
-        self.setup_list_positions(self.trees_layer, self.trees_positions)
-        self.setup_list_positions(self.roads_layer, self.roads_positions)
-
-        # self.buildings_layer = arcade.SpriteList()
         self.walkers_list = arcade.SpriteList()
-        # self.walkers_list.append(walkersManagementWalker.Walker().walker_sprite)
 
-    def create_sprite_list(self, layer, layer_name, array):
+    def create_sprite_list(self, layer, layer_name, array, layer_positions_list):
         for i in range(0, len(array)):  # I=On parcout le tableau logique du bas vers le haut
             line = array[i]
             for j in range(0, len(line)):
                 file_name = map_sprite.mapping_function(layer_name, array[i][j].dic['version'])
+                print(array[i][j].dic['version'])
                 if file_name != "":
                     _sprite = arcade.Sprite(file_name, self.map_scaling)
                 else:
@@ -129,25 +123,18 @@ class MapView(arcade.View):
                 overflowing_width = (_sprite.width - constantes.TILE_WIDTH * self.map_scaling * count) / 2
                 overflowing_height = (_sprite.height - constantes.TILE_HEIGHT * self.map_scaling * count) / 2
 
-                _sprite.center_x = constantes.TILE_WIDTH * self.map_scaling * (i + 1 / 2 + (count - 1) / 2) + \
+                _sprite.center_x = constantes.TILE_WIDTH * self.map_scaling * (j + 1 / 2 + (count - 1) / 2) + \
                                    overflowing_width
-                _sprite.center_y = constantes.TILE_HEIGHT * self.map_scaling * (j + 1 / 2 + (count - 1) / 2) + \
+                _sprite.center_y = constantes.TILE_HEIGHT * self.map_scaling * (i + 1 / 2 + (count - 1) / 2) + \
                                    overflowing_height
                 layer.append(_sprite)
 
+                # ----------------------------------------#
+                layer_positions_list.append((i, j))
+                print(i, j)
+
     def on_show_view(self):
         self.secmanager.enable()
-
-    def setup_list_positions(self, layer, layer_positions):
-        """
-        A voir
-        """
-        width = self.grass_layer[0].width
-        height = self.grass_layer[0].height
-        for sprite in layer:
-            j = int(sprite.center_x / width)
-            i = int(sprite.center_y / height)
-            layer_positions.append((i, j))
 
     def on_draw(self):
         self.clear()
@@ -300,6 +287,8 @@ class MapView(arcade.View):
         self.convert_layer_cartesian_to_isometric(self.grass_layer, self.grass_positions)
         self.convert_layer_cartesian_to_isometric(self.hills_layer, self.hills_positions)
         self.convert_layer_cartesian_to_isometric(self.trees_layer, self.trees_positions)
+        self.convert_layer_cartesian_to_isometric(self.roads_layer, self.roads_positions)
+        self.convert_layer_cartesian_to_isometric(self.buildings_layer, self.buildings_positions)
 
     def convert_layer_cartesian_to_isometric(self, layer, positions_list):
         k = 0
@@ -341,7 +330,7 @@ class MapView(arcade.View):
             return self.logic_map.buildings_layer.array[line][column]
 
     def get_sprite_associated(self, layer, position):
-        index = position(0)*40 + position(1)
+        index = position(0) * 40 + position(1)
         if layer == self.logic_map.grass_layer:
             return self.grass_layer[index]
         elif layer == self.logic_map.hills_layer:

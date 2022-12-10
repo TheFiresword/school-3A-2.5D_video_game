@@ -137,12 +137,5 @@ class MapLogic:
 
         # -------------------------------------------------------------------------------------------------------------#
         # Test logiques
-        self.buildings_layer.print_currents_elements()
-        # self.grass_layer.print_currents_elements()
-        # self.hills_layer.print_currents_elements()
-        # self.hills_layer.remove_cell(30, 24)
-        # self.hills_layer.remove_cell(30, 28)
-        # self.hills_layer.print_currents_elements()
-        self.buildings_layer.remove_cell(3, 0)
-        print("\nAfter remove")
-        self.buildings_layer.print_currents_elements()
+        # self.buildings_layer.print_currents_elements()
+
