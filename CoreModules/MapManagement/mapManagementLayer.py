@@ -32,6 +32,20 @@ def position_is_valid(i, j):
     return (0 <= i < globalVar.TILE_COUNT) and (0 <= j < globalVar.TILE_COUNT)
 
 
+MAX_NUMBER_ID = 1000000
+VOID_CELL_ID = -1
+
+
+# an id generator
+
+
+def get_available_id():
+    start = 0
+    while start < MAX_NUMBER_ID:
+        yield start
+        start += 1
+
+
 class Layer:
 
     # Constructeur d'un layer; le _type doit être une valeur parmi "grass", "hill", "tree", "building"
@@ -45,47 +59,42 @@ class Layer:
         # Le type de layer; ex: pour les herbes, type="grass"
         self.type = _type
 
-        # Le dernier id qui a été utilisé pour pouvoir incrémenter cet id quand on ajoute un nouvel Element
-        self.last_id = 0
+        # Un générateur d'id
+        self.id_iterator = get_available_id()
 
         # Initialisation du layer; chaque case contient un Element de version null
         self.setup()
 
     def setup(self):
         # Initialise chaque case du layer à un Element de version null
-        self.completely_fill_layer("null", 1)
+        self.completely_fill_layer("null", 0)
 
     def completely_fill_layer(self, version, cells_number):
         """
         Cette fonction remplit le layer d'Elements de même type que le Layer.On set l'id de chaque Element de
         manière incrémentale
         """
-        if cells_number == 1:
+        if cells_number <= 1:
             # On remplit toutes les cases du layer avec des Elements de taille 1 avec la version passée en paramètre
-            self.array = [[Element.Element(self, self.type, 1, version) for i in range(0, globalVar.TILE_COUNT)] for j
-                          in range(0, globalVar.TILE_COUNT)]
-            # Incrémenteur d'id
-            count = 0
-            # On set l'id de chaque case de manière incrémentale
+            self.array = [[Element.Element(self, self.type, cells_number, version) for j in
+                           range(0, globalVar.TILE_COUNT)] for i in range(0, globalVar.TILE_COUNT)]
+
+            # On set l'id de chaque case de manière incrémentale si les éléments sont non nuls
             for i in range(0, globalVar.TILE_COUNT):
                 for j in range(0, globalVar.TILE_COUNT):
-                    self.array[i][j].id = count
+                    if version == "null":
+                        self.array[i][j].id = VOID_CELL_ID
+                    else:
+                        self.array[i][j].id = next(self.id_iterator)
                     self.array[i][j].position = (i, j)
-                    count += 1
-            self.last_id = self.array[globalVar.TILE_COUNT - 1][globalVar.TILE_COUNT - 1].id
 
         else:
             """
             Le type d'Element occupe plus d'une case
-            Si cette condition est atteinte, c'est que le layer a été précédemment rempli au moins via setup()
-            L'importance de cette information est qu'on a plus besoin de set des id de manière incrémentale
-            La fonction set_cell() s'occupe d'ajouter un par un les éléments
             """
-
             for line in range(0, globalVar.TILE_COUNT):
                 for column in range(0, globalVar.TILE_COUNT):
-                    status = self.set_cell(line, column, {"version": version, "cells_number": cells_number}, False)
-                    if status: self.last_id = self.array[line][column].id
+                    self.set_cell(line, column, {"version": version, "cells_number": cells_number}, False)
 
     def custom_fill_layer(self, config_list):
         """
@@ -105,10 +114,27 @@ class Layer:
         # self.array = [["null" for i in range(0, globalVar.TILE_COUNT)] for j in range(0, globalVar.TILE_COUNT)]
         for i in range(0, globalVar.TILE_COUNT):
             for j in range(0, globalVar.TILE_COUNT):
-                if self.array[i][j]:
-                    self.array[i][j].dic = {"version": "null", "cells_number": 1}
+                self.remove_cell(i, j)
 
-    def set_cell(self, column, line, _dic, can_replace=False) -> bool:
+    def remove_cell(self, line, column):
+        (origin_x, origin_y) = self.array[line][column].position
+        origin_version = self.array[origin_x][origin_y].dic['version']
+        size = self.array[origin_x][origin_y].dic['cells_number']
+        if origin_version != "null":
+            for k in range(0, size):
+                self.array[origin_x][origin_y + k].dic = {"version": "null", "cells_number": 0}
+                self.array[origin_x][origin_y + k].position = (origin_x, origin_y + k)
+
+                self.array[origin_x + k][origin_y + k].dic = {"version": "null", "cells_number": 0}
+                self.array[origin_x + k][origin_y + k].position = (origin_x + k, origin_y + k)
+
+                self.array[origin_x + k][origin_y].dic = {"version": "null", "cells_number": 0}
+                self.array[origin_x + k][origin_y].position = (origin_x + k, origin_y)
+
+                self.array[origin_x][origin_y + k].id = self.array[origin_x + k][origin_y + k].id = \
+                    self.array[origin_x + k][origin_y].id = VOID_CELL_ID
+
+    def set_cell(self, line, column, element, can_replace=False) -> bool:
         """
         _dic: Un dictionnaire avec une version et un nombre de cellules
         can_replace: Un booléen qui dit si on peut remplacer une cellule existante
@@ -123,9 +149,12 @@ class Layer:
             return False
         else:
 
-            cells_number = _dic['cells_number']
+            cells_number = element.dic['cells_number']
+            assert cells_number > 0
             if cells_number == 1:
-                self.array[line][column].dic = _dic
+                self.array[line][column] = element
+                self.array[line][column].id = next(self.id_iterator)
+                self.array[line][column].position = (line, column)
                 return True
 
             # Si l'Element occupe plus d'1 case, on vérifie que les cases supplémentaires existent et sont vides
@@ -138,21 +167,25 @@ class Layer:
 
                 # Toutes les conditions sont remplies
                 # On copie les informations de l'Element dans la case correspondante--On garde l'id de la case
-                self.array[line][column].dic = _dic
+                self.array[line][column] = element
 
                 # On met les cases supplémentaires à la version occupied
                 for k in range(1, cells_number):
-                    self.array[line][column + k].dic = {"version": "occupied", "cells_number": 0}
-                    self.array[line + k][column + k].dic = {"version": "occupied", "cells_number": 0}
-                    self.array[line + k][column].dic = {"version": "occupied", "cells_number": 0}
+                    self.array[line][column + k].dic['version'] = "occupied"
+                    self.array[line + k][column + k].dic['version'] = "occupied"
+                    self.array[line + k][column].dic['version'] = "occupied"
 
                     # Les id des cellules supplémentaires sont set à l'id de l'Element ajouté
                     self.array[line][column + k].id = self.array[line + k][column + k].id = self.array[line + k][
-                        column].id \
-                        = self.array[line][column].id
+                        column].id = self.array[line][column].id = next(self.id_iterator)
+
+
+                    self.array[line][column + k].position = self.array[line + k][column + k].position = \
+                        self.array[line + k][column].position = self.array[line][column].position = (line, column)
         return True
 
-    def set_cell_constrained_to_bottom_layer(self, bottom_layers_list, column, line, _dic, can_replace=False) -> bool:
+    def set_cell_constrained_to_bottom_layer(self, bottom_layers_list, line, column, element,
+                                             can_replace=False) -> bool:
         """
         Cette fonction insère un Element dans un layer à la position (line, column)  si et seulement si les cellules
         (line, column) des layers contenus dans la liste bottom_layers_list, sont "null"
@@ -161,7 +194,7 @@ class Layer:
         for i in range(0, count):
             if bottom_layers_list[i].array[line][column].dic["version"] != "null":
                 return False
-        return self.set_cell(column, line, _dic, can_replace)
+        return self.set_cell(line, column, element, can_replace)
 
     def changeable(self, line, column, k, can_replace):
         """
@@ -175,14 +208,27 @@ class Layer:
                    self.array[line + k][column + k].dic['version'] != "null" or \
                    self.array[line + k][column].dic['version'] != "null"
 
-    def print_content(self):
+    def print_content(self, cells_number=int(pow(globalVar.TILE_COUNT, 2))):
         """
         Fonction d'aide au debogage qui affiche le contenu de chaque layer
         """
+        i = int(cells_number / globalVar.TILE_COUNT)
+        j = int(cells_number % globalVar.TILE_COUNT)
+
         for line in range(0, globalVar.TILE_COUNT):
             for column in range(0, globalVar.TILE_COUNT):
-                print(self.array[line][column].dic, end=" | ")
-            print("\n")
+                if (line, column) == (i, j): return
+                print(f"{self.array[line][column].dic} -- {self.array[line][column].id} -- "
+                      f"{self.array[line][column].position} ")
 
-    def get_last_id(self):
-        print(self.last_id)
+
+    def print_currents_elements(self):
+        count = 0
+        for line in range(0, globalVar.TILE_COUNT):
+            for column in range(0, globalVar.TILE_COUNT):
+                if self.array[line][column].dic['version'] != "null" and \
+                        self.array[line][column].dic['version'] != "occupied":
+                    print(f"{self.array[line][column].dic} -- {self.array[line][column].id} -- "
+                          f"{self.array[line][column].position} ")
+                    count += 1
+        print(f"{count} elements")
