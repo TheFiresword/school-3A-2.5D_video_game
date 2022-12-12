@@ -10,7 +10,8 @@ from pyglet.math import Vec2
 
 from UserInterface import UI_Section as uis
 from UserInterface import UI_buttons
-from UserInterface import  UI_HUD_Build as hudb
+from UserInterface import UI_HUD_Build as hudb
+
 MAP_CAMERA_SPEED = 0.5
 """
  A map is constituted by the grass layer, the hills layer and the trees layer.
@@ -29,6 +30,8 @@ class MapView(arcade.View):
         # self.map = MapGraphic(mapManagementMap.MapLogic())
         # The scaling of the sprites of this layer
         self.map_scaling = constantes.SPRITE_SCALING
+
+        self.mouse_pos = (0, 0)
 
         # Pour utiliser la logique
         self.logic_map = logic_map
@@ -173,6 +176,9 @@ class MapView(arcade.View):
 
         (nearest_sprite, d) = arcade.get_closest_sprite(self.red_sprite, self.grass_layer)
         self.red_sprite.center_x, self.red_sprite.center_y = nearest_sprite.center_x, nearest_sprite.center_y
+
+    def on_mouse_motion(self, x: int, y: int, dx: int, dy: int):
+        self.mouse_pos = Vec2(x, y) + self.map_camera.position
 
     def on_update(self, delta_time: float):
         self.grass_layer.update()
