@@ -1,12 +1,16 @@
 import arcade
 import arcade.gui
+
 from Services import servicesGlobalVariables as constantes
 from Services import servicesmMapSpriteToFile as map_sprite
+from Services import Service_Game_Data as gdata
+
 from CoreModules.MapManagement.mapManagementMap import LAYER1, LAYER2, LAYER3, LAYER4, LAYER5
 from pyglet.math import Vec2
+
 from UserInterface import UI_Section as uis
 from UserInterface import UI_buttons
-
+from UserInterface import  UI_HUD_Build as hudb
 MAP_CAMERA_SPEED = 0.5
 """
  A map is constituted by the grass layer, the hills layer and the trees layer.
@@ -19,7 +23,7 @@ class MapView(arcade.View):
     # Notes: Rescale function
     red_sprite = arcade.Sprite()
     tmp = False
-    yo = "ou"
+
     def __init__(self, logic_map):
         super().__init__()
         # self.map = MapGraphic(mapManagementMap.MapLogic())
@@ -80,6 +84,7 @@ class MapView(arcade.View):
         for k in self.buttons:
             self.manager.add(k)
         arcade.set_background_color(arcade.color.BLACK)
+        self.builder_mode = False
 
     def setup(self):
         # On crée les SpriteList pour chaque layer
@@ -139,8 +144,11 @@ class MapView(arcade.View):
             self.trees_layer.draw()
             self.roads_layer.draw()
             self.buildings_layer.draw()
-
             if self.tmp: self.red_sprite.draw_hit_box(color=(255, 0, 0), line_thickness=1)
+
+        if self.builder_mode:
+            sprite = hudb.hollow_build(self.mouse_pos[0], self.mouse_pos[1], gdata.building_dico["Dwell"])
+            sprite.draw()
 
         self.menu_camera.use()
         arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH - 81,
