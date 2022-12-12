@@ -19,7 +19,7 @@ class MapView(arcade.View):
     # Notes: Rescale function
     red_sprite = arcade.Sprite()
     tmp = False
-
+    yo = "ou"
     def __init__(self, logic_map):
         super().__init__()
         # self.map = MapGraphic(mapManagementMap.MapLogic())
