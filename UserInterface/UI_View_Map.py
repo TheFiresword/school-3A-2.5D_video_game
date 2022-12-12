@@ -216,6 +216,10 @@ class MapView(arcade.View):
             self.left_pressed = True
         elif symbol == arcade.key.RIGHT:
             self.right_pressed = True
+        elif symbol == arcade.key.B:
+            self.builder_mode = True
+        elif symbol == arcade.key.N:
+            self.builder_mode = False
 
     def on_key_release(self, _symbol: int, _modifiers: int):
         if _symbol == arcade.key.UP:
