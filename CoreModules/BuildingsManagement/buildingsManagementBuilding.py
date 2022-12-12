@@ -43,17 +43,12 @@ class BuildingLayer(layer.Layer):
         origin_version = self.array[origin_x][origin_y].dic['version']
         size = self.array[origin_x][origin_y].dic['cells_number']
         if origin_version != "null":
-            b = Building(self, self.type, 0, "null")
-            for k in range(0, size):
-                self.array[origin_x][origin_y + k] = self.array[origin_x + k][origin_y + k] = \
-                    self.array[origin_x + k][origin_y] = b
-
-                self.array[origin_x][origin_y + k].position = (origin_x, origin_y + k)
-                self.array[origin_x + k][origin_y + k].position = (origin_x + k, origin_y + k)
-                self.array[origin_x + k][origin_y].position = (origin_x + k, origin_y)
-
-                self.array[origin_x][origin_y + k].id = self.array[origin_x + k][origin_y + k].id = \
-                    self.array[origin_x + k][origin_y].id = VOID_CELL_ID
+            for i in range(0, size):
+                for j in range(0, size):
+                    b = Building(self, self.type, 0, "null")
+                    self.array[origin_x + i][origin_y + j] = b
+                    self.array[origin_x + i][origin_y + j].position = (origin_x + i, origin_y + j)
+                    self.array[origin_x + i][origin_y + j].id = VOID_CELL_ID
 
 
 

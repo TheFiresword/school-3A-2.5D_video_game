@@ -143,4 +143,4 @@ class MapLogic:
 
         # -------------------------------------------------------------------------------------------------------------#
         # Test logiques
-        # self.trees_layer.print_currents_elements()
+        # self.buildings_layer.print_currents_elements()

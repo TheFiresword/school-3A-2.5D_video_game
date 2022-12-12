@@ -94,7 +94,7 @@ class Layer:
             """
             for line in range(0, globalVar.TILE_COUNT):
                 for column in range(0, globalVar.TILE_COUNT):
-                    self.set_cell(line, column, {"version": version, "cells_number": cells_number}, False)
+                    self.set_cell(line, column, Element.Element(self, self.type, cells_number, version), False)
 
     def custom_fill_layer(self, config_list):
         """
@@ -121,18 +121,12 @@ class Layer:
         origin_version = self.array[origin_x][origin_y].dic['version']
         size = self.array[origin_x][origin_y].dic['cells_number']
         if origin_version != "null":
-            for k in range(0, size):
-                self.array[origin_x][origin_y + k].dic = {"version": "null", "cells_number": 0}
-                self.array[origin_x][origin_y + k].position = (origin_x, origin_y + k)
-
-                self.array[origin_x + k][origin_y + k].dic = {"version": "null", "cells_number": 0}
-                self.array[origin_x + k][origin_y + k].position = (origin_x + k, origin_y + k)
-
-                self.array[origin_x + k][origin_y].dic = {"version": "null", "cells_number": 0}
-                self.array[origin_x + k][origin_y].position = (origin_x + k, origin_y)
-
-                self.array[origin_x][origin_y + k].id = self.array[origin_x + k][origin_y + k].id = \
-                    self.array[origin_x + k][origin_y].id = VOID_CELL_ID
+            for i in range(0, size):
+                for j in range(0, size):
+                    e = Element.Element(self, self.type, 0, "null")
+                    self.array[origin_x + i][origin_y + j] = e
+                    self.array[origin_x + i][origin_y + j].position = (origin_x + i, origin_y + j)
+                    self.array[origin_x + i][origin_y + j].id = VOID_CELL_ID
 
     def set_cell(self, line, column, element, can_replace=False) -> bool:
         """
@@ -145,44 +139,28 @@ class Layer:
         """
         # Pré-conditions: La position doit être valide et la case doit contenir un Element de version "null" si can't
         # replace
-        if not position_is_valid(line, column) or self.changeable(line, column, 0, can_replace):
+
+        cells_number = element.dic['cells_number']
+        assert cells_number > 0
+        if not self.changeable(line, column, cells_number, can_replace):
             return False
-        else:
 
-            cells_number = element.dic['cells_number']
-            assert cells_number > 0
-            if cells_number == 1:
-                self.array[line][column] = element
-                self.array[line][column].id = next(self.id_iterator)
-                self.array[line][column].position = (line, column)
-                return True
+        # Toutes les conditions sont remplies
+        # On copie les informations de l'Element dans la case correspondante--On garde l'id de la case
+        self.array[line][column] = element
+        self.array[line][column].id = next(self.id_iterator)
+        self.array[line][column].position = (line, column)
 
-            # Si l'Element occupe plus d'1 case, on vérifie que les cases supplémentaires existent et sont vides
-            else:
-                for k in range(1, cells_number):
-                    if not position_is_valid(line, column + k) or \
-                            not position_is_valid(line + k, column + k) or \
-                            not position_is_valid(line + k, column) or self.changeable(line, column, k, can_replace):
-                        return False
-
-                # Toutes les conditions sont remplies
-                # On copie les informations de l'Element dans la case correspondante--On garde l'id de la case
-                self.array[line][column] = element
-                self.array[line][column].id = next(self.id_iterator)
-
-                # On met les cases supplémentaires à la version occupied
-                for k in range(1, cells_number):
-                    self.array[line][column + k].dic['version'] = "occupied"
-                    self.array[line + k][column + k].dic['version'] = "occupied"
-                    self.array[line + k][column].dic['version'] = "occupied"
-
+        # On met les cases supplémentaires à la version occupied
+        for i in range(0, cells_number):
+            for j in range(0, cells_number):
+                if (i, j) == (0, 0):
+                    continue
+                else:
+                    self.array[line + i][column + j].dic['version'] = "occupied"
                     # Les id des cellules supplémentaires sont set à l'id de l'Element ajouté
-
-                    self.array[line][column + k].id = self.array[line + k][column + k].id = self.array[line + k][
-                        column].id = self.array[line][column].id
-
-                    self.array[line][column + k].position = self.array[line + k][column + k].position = \
-                        self.array[line + k][column].position = self.array[line][column].position = (line, column)
+                    self.array[line + i][column + j].id = self.array[line][column].id
+                    self.array[line + i][column + j].position = (line, column)
         return True
 
     def set_cell_constrained_to_bottom_layer(self, bottom_layers_list, line, column, element,
@@ -197,17 +175,22 @@ class Layer:
                 return False
         return self.set_cell(line, column, element, can_replace)
 
-    def changeable(self, line, column, k, can_replace):
+    def changeable(self, line, column, cells_number, can_replace):
         """
         Cette fonction permet de rajouter les conditions version!="null" dans la fonction set_cell uniquement quand
         can_replace vaut False
         """
-        if can_replace:
-            return False
+        valid_positions = all(
+            [position_is_valid(line + i, column + j) for j in range(0, cells_number) for i in
+             range(0, cells_number)]
+        )
+        if valid_positions and can_replace:
+            return True
         else:
-            return self.array[line][column + k].dic['version'] != "null" or \
-                   self.array[line + k][column + k].dic['version'] != "null" or \
-                   self.array[line + k][column].dic['version'] != "null"
+            return valid_positions and all(
+                [self.array[line + i][column + j].dic['version'] == "null" for j in range(0, cells_number) for i in
+                 range(0, cells_number)]
+            )
 
     def print_content(self, cells_number=int(pow(globalVar.TILE_COUNT, 2))):
         """
@@ -221,7 +204,6 @@ class Layer:
                 if (line, column) == (i, j): return
                 print(f"{self.array[line][column].dic} -- {self.array[line][column].id} -- "
                       f"{self.array[line][column].position} ")
-
 
     def print_currents_elements(self):
         count = 0
