@@ -7,7 +7,7 @@ Il doit pouvoir se déplacer sur la map
 """
 
 
-class Walker(element.Element):
+class Walker():
     def __init__(self, id, x_pos, y_pos, house):
         super().__init__()
         self.id = id
