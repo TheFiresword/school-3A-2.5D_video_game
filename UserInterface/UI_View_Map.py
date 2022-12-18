@@ -1,3 +1,5 @@
+import math
+
 import arcade
 import arcade.gui
 
@@ -5,7 +7,6 @@ from Services import servicesGlobalVariables as constantes
 from Services import servicesmMapSpriteToFile as map_sprite
 from Services import Service_Game_Data as gdata
 
-from CoreModules.MapManagement.mapManagementMap import LAYER1, LAYER2, LAYER3, LAYER4, LAYER5
 from pyglet.math import Vec2
 
 from UserInterface import UI_Section as uis
@@ -55,8 +56,9 @@ class MapView(arcade.View):
         self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed = False, False, False, False
 
         self.setup()
-
-        self.convert_map_cartesian_to_isometric()
+        # self.convert_map_cartesian_to_isometric()
+        # Afficher les sprites du haut vers le bas
+        self.draw_sprites_from_top()
 
         # a camera to travel through the map
         # set up the camera and centre it
@@ -105,15 +107,16 @@ class MapView(arcade.View):
         self.buildings_array = self.logic_map.buildings_layer.array
 
         # On remplit les SpriteList de chaque layer
-        self.create_sprite_list(self.grass_layer, LAYER1, self.grass_array)
-        self.create_sprite_list(self.hills_layer, LAYER2, self.hills_array)
-        self.create_sprite_list(self.trees_layer, LAYER3, self.trees_array)
-        self.create_sprite_list(self.roads_layer, LAYER4, self.roads_array)
-        self.create_sprite_list(self.buildings_layer, LAYER5, self.buildings_array)
+        self.create_sprite_list(self.grass_layer, constantes.LAYER1, self.grass_array)
+        self.create_sprite_list(self.hills_layer, constantes.LAYER2, self.hills_array)
+        self.create_sprite_list(self.trees_layer, constantes.LAYER3, self.trees_array)
+        self.create_sprite_list(self.roads_layer, constantes.LAYER4, self.roads_array)
+        self.create_sprite_list(self.buildings_layer, constantes.LAYER5, self.buildings_array)
 
         self.walkers_list = arcade.SpriteList()
 
     def create_sprite_list(self, layer, layer_name, array):
+        k = 0
         for i in range(0, len(array)):  # I=On parcout le tableau logique du bas vers le haut
             line = array[i]
             for j in range(0, len(line)):
@@ -124,17 +127,47 @@ class MapView(arcade.View):
                     _sprite = arcade.Sprite()
                 # Les coordonnées de départ sont en cartésien
                 count = array[i][j].dic['cells_number']
-                overflowing_width = (_sprite.width - constantes.TILE_WIDTH * self.map_scaling * count) / 2
-                overflowing_height = (_sprite.height - constantes.TILE_HEIGHT * self.map_scaling * count) / 2
 
-                _sprite.center_x = constantes.TILE_WIDTH * self.map_scaling * (j + 1 / 2 + (count - 1) / 2) + \
-                                   overflowing_width
-                _sprite.center_y = constantes.TILE_HEIGHT * self.map_scaling * (i + 1 / 2 + (count - 1) / 2) + \
-                                   overflowing_height
+                """
+                La taille des sprites peut déborder, donc il faut calculer ce débordement et l'ajouter comme offset
+                pour que le coin inférieur gauche soit bien aligné avec sa case
+                Ensuite, les coordonnées des sprites sont calculés en cartésien
+                Puis transformés en isométriques
+                Puis on ajoute l'offset
+                """
+                # overflowing_width = (_sprite.width - constantes.TILE_WIDTH * self.map_scaling * count) / 2
+                overflowing_height = (_sprite.height - constantes.TILE_HEIGHT * self.map_scaling * count) / 2
+                if layer is self.buildings_layer:
+                     pass
+                     # print(f"({_sprite.width},{overflowing_height})")
+
+                # Calcul des coordonnées du sprite en cartésien --
+                _sprite.center_x = constantes.TILE_WIDTH * self.map_scaling * j
+                _sprite.center_y = (constantes.TILE_HEIGHT * self.map_scaling * i) + 1 * overflowing_height
+
+                # Conversion en isométrique des coordonnées
+                _isometric_x = (_sprite.center_x + _sprite.center_y) - (constantes.TILE_WIDTH * self.map_scaling *
+                                                                        k/2)
+                _isometric_y = (-_sprite.center_x + _sprite.center_y) / 2 + (
+                        constantes.TILE_HEIGHT * self.map_scaling * k/2)
+
+                _sprite.center_x, _sprite.center_y = _isometric_x, _isometric_y
+
+                k += 1
+                k = k % constantes.TILE_COUNT
+
+                # On ajoute le sprite au layer (spriteList)
                 layer.append(_sprite)
 
     def on_show_view(self):
         self.secmanager.enable()
+
+    def draw_sprites_from_top(self):
+        self.trees_layer.reverse()
+        self.grass_layer.reverse()
+        self.roads_layer.reverse()
+        self.hills_layer.reverse()
+        self.buildings_layer.reverse()
 
     def on_draw(self):
         self.clear()
@@ -147,6 +180,8 @@ class MapView(arcade.View):
             self.trees_layer.draw()
             self.roads_layer.draw()
             self.buildings_layer.draw()
+
+            # Testing
             if self.tmp: self.red_sprite.draw_hit_box(color=(255, 0, 0), line_thickness=1)
 
         if self.builder_mode:
@@ -287,7 +322,8 @@ class MapView(arcade.View):
         self.map_scaling = new_scale
         self.clear()
         self.setup()
-        self.convert_map_cartesian_to_isometric()
+        # self.convert_map_cartesian_to_isometric()
+        self.draw_sprites_from_top()
         self.center_map()
 
     def convert_map_cartesian_to_isometric(self):
