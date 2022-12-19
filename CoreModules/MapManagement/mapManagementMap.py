@@ -29,7 +29,7 @@ class MapLogic:
         for i in range(0, globalVar.TILE_COUNT):
             for j in range(0, globalVar.TILE_COUNT):
                 random_version = random.choice(possible_grass)
-                my_grass = element.Element(self.grass_layer, globalVar.LAYER1, 1, random_version)
+                my_grass = element.Element(self.grass_layer, globalVar.LAYER1, random_version)
                 self.grass_layer.set_cell(i, j, my_grass)
 
         # -------------------------------------------------------------------------------------------------------------#
@@ -50,11 +50,11 @@ class MapLogic:
 
             second_random_version = random.choice([random_1_cell_version, random_2_cell_version, random_3_cell_version])
             if second_random_version == random_1_cell_version:
-                my_hill = element.Element(self.hills_layer, globalVar.LAYER2, 1, second_random_version)
+                my_hill = element.Element(self.hills_layer, globalVar.LAYER2, second_random_version)
             elif second_random_version == random_2_cell_version:
-                my_hill = element.Element(self.hills_layer, globalVar.LAYER2, 3, second_random_version)
+                my_hill = element.Element(self.hills_layer, globalVar.LAYER2, second_random_version)
             else:
-                my_hill = element.Element(self.hills_layer, globalVar.LAYER2, 4, second_random_version)
+                my_hill = element.Element(self.hills_layer, globalVar.LAYER2, second_random_version)
 
             self.hills_layer.set_cell(i, globalVar.TILE_COUNT - 3, my_hill)
 
@@ -67,11 +67,11 @@ class MapLogic:
             second_random_version = random.choice([random_1_cell_version, random_2_cell_version,
                                                    random_3_cell_version])
             if second_random_version == random_1_cell_version:
-                my_hill = element.Element(self.hills_layer, globalVar.LAYER2, 1, second_random_version)
+                my_hill = element.Element(self.hills_layer, globalVar.LAYER2, second_random_version)
             elif second_random_version == random_2_cell_version:
-                my_hill = element.Element(self.hills_layer, globalVar.LAYER2, 3, second_random_version)
+                my_hill = element.Element(self.hills_layer, globalVar.LAYER2, second_random_version)
             else:
-                my_hill = element.Element(self.hills_layer, globalVar.LAYER2, 4, second_random_version)
+                my_hill = element.Element(self.hills_layer, globalVar.LAYER2, second_random_version)
 
             status = self.hills_layer.set_cell(i, globalVar.TILE_COUNT - (i % 7), my_hill)
 
@@ -84,11 +84,11 @@ class MapLogic:
                 second_random_version = random.choice([random_1_cell_version, random_2_cell_version,
                                                        random_3_cell_version])
                 if second_random_version == random_1_cell_version:
-                    my_hill = element.Element(self.hills_layer, globalVar.LAYER2, 1, second_random_version)
+                    my_hill = element.Element(self.hills_layer, globalVar.LAYER2, second_random_version)
                 elif second_random_version == random_2_cell_version:
-                    my_hill = element.Element(self.hills_layer, globalVar.LAYER2, 3, second_random_version)
+                    my_hill = element.Element(self.hills_layer, globalVar.LAYER2, second_random_version)
                 else:
-                    my_hill = element.Element(self.hills_layer, globalVar.LAYER2, 4, second_random_version)
+                    my_hill = element.Element(self.hills_layer, globalVar.LAYER2, second_random_version)
 
                 self.hills_layer.set_cell(i, j, my_hill)
 
@@ -99,24 +99,24 @@ class MapLogic:
         possible_trees = ["normal", "00033", "00012", "00043"]
         for i in range(int(globalVar.TILE_COUNT / 4), int(globalVar.TILE_COUNT * 3 / 4)):
             random_version = random.choice(possible_trees)
-            my_normal_tree = element.Element(self.trees_layer, globalVar.LAYER3, 1, random_version)
+            my_normal_tree = element.Element(self.trees_layer, globalVar.LAYER3, random_version)
             self.trees_layer.set_cell(i, 5, my_normal_tree)
 
-            my_normal_tree = element.Element(self.trees_layer, globalVar.LAYER3, 1, random_version)
+            my_normal_tree = element.Element(self.trees_layer, globalVar.LAYER3, random_version)
             self.trees_layer.set_cell(i, 7, my_normal_tree)
 
         # -------------------------------------------------------------------------------------------------------------#
         # ROADS
         self.roads_layer = overlay.Layer(globalVar.LAYER4)
 
-        entry_road = element.Element(self.roads_layer, globalVar.LAYER4, 1, "entry")
-        exit_road = element.Element(self.roads_layer, globalVar.LAYER4, 1, "exit")
+        entry_road = element.Element(self.roads_layer, globalVar.LAYER4, "entry")
+        exit_road = element.Element(self.roads_layer, globalVar.LAYER4, "exit")
         middle = int(globalVar.TILE_COUNT * 1 / 2)
         self.roads_layer.set_cell(2 * middle - 1, middle - 1, entry_road)
         self.roads_layer.set_cell(0, middle - 1, exit_road)
 
         for i in range(0, 2 * middle):
-            my_normal_road = element.Element(self.roads_layer,globalVar.LAYER4, 1, "normal")
+            my_normal_road = element.Element(self.roads_layer,globalVar.LAYER4, "normal")
             self.roads_layer.set_cell_constrained_to_bottom_layer([self.hills_layer, self.trees_layer],
                                                                   i, middle, my_normal_road)
 
@@ -125,12 +125,12 @@ class MapLogic:
         self.buildings_layer = overlay.Layer(globalVar.LAYER5)
 
         for i in range(0, 10):
-            my_dwelling = building.Dwelling(self.buildings_layer, globalVar.LAYER5, 1, 0, 10)
+            my_dwelling = building.Dwelling(self.buildings_layer, globalVar.LAYER5, 0, 10)
             self.buildings_layer.set_cell_constrained_to_bottom_layer([self.hills_layer, self.trees_layer,
                                                                        self.roads_layer], globalVar.TILE_COUNT - 3,
                                                                       2 + i, my_dwelling)
         for i in range(0, 20, 4):
-            my_luxious_dwelling = building.Dwelling(self.buildings_layer, globalVar.LAYER5, 2, 0, 100, version="dwelling5")
+            my_luxious_dwelling = building.Dwelling(self.buildings_layer, globalVar.LAYER5, 0, 100, version="dwelling5")
             self.buildings_layer.set_cell_constrained_to_bottom_layer([self.hills_layer, self.trees_layer,
                                                                        self.roads_layer], 3, i, my_luxious_dwelling)
 

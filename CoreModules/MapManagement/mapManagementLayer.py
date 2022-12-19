@@ -1,4 +1,5 @@
 import Services.servicesGlobalVariables as globalVar
+import Services.servicesmMapSpriteToFile as mapping
 import CoreModules.TileManagement.tileManagementElement as Element
 
 from  CoreModules.BuildingsManagement.buildingsManagementBuilding import Building
@@ -68,13 +69,17 @@ class Layer:
 
     def setup(self):
         # Initialise chaque case du layer à un Element de version null
-        self.completely_fill_layer("null", 0)
+        self.completely_fill_layer("null")
 
-    def completely_fill_layer(self, version, cells_number):
+    def completely_fill_layer(self, version):
         """
         Cette fonction remplit le layer d'Elements de même type que le Layer.On set l'id de chaque Element de
         manière incrémentale
+        NB: Vu qu'on remplit le layer avec le même élément ,c'est plus efficace de modifier seulement les éléments déja
+        présents que d'en créer de nouveaux
         """
+        # on récupère le cells_number directement depuis la fonction mapping Services
+        file_path, cells_number = mapping.mapping_function(self.type, version)
         element_class = None
         # La classe des elements à créer: Element ou Building pour le moment
         if self.type in [globalVar.LAYER1, globalVar.LAYER2, globalVar.LAYER3, globalVar.LAYER4]:
@@ -84,7 +89,7 @@ class Layer:
 
         if cells_number <= 1:
             # On remplit toutes les cases du layer avec des Elements de taille 1 avec la version passée en paramètre
-            self.array = [[element_class(self, self.type, cells_number, version) for j in
+            self.array = [[element_class(self, self.type, version) for j in
                            range(0, globalVar.TILE_COUNT)] for i in range(0, globalVar.TILE_COUNT)]
 
             # On set l'id de chaque case de manière incrémentale si les éléments sont non nuls
@@ -102,7 +107,7 @@ class Layer:
             """
             for line in range(0, globalVar.TILE_COUNT):
                 for column in range(0, globalVar.TILE_COUNT):
-                    self.set_cell(line, column, Element.Element(self, self.type, cells_number, version), False)
+                    self.set_cell(line, column, element_class(self, self.type, version))
 
     def custom_fill_layer(self, config_list):
         """
@@ -177,6 +182,7 @@ class Layer:
                     # Les id des cellules supplémentaires sont set à l'id de l'Element ajouté
                     self.array[line + i][column + j].id = self.array[line][column].id
                     self.array[line + i][column + j].position = (line, column)
+        # print(f"New elemenet added: {self.type} -- {element.dic['version']} at {(line, column)}")
         return True
 
     def set_cell_constrained_to_bottom_layer(self, bottom_layers_list, line, column, element,
@@ -188,7 +194,6 @@ class Layer:
         count = len(bottom_layers_list)
         for i in range(count):
             if bottom_layers_list[i].array[line][column].dic["version"] != "null":
-                print("I'm here"f"{element}")
                 return False
         return self.set_cell(line, column, element, can_replace)
 

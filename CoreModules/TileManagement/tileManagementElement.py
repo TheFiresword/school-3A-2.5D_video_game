@@ -1,3 +1,4 @@
+from Services import servicesmMapSpriteToFile as mapping
 
 """
 Un Element va être un objet contenu dans un layer
@@ -11,11 +12,16 @@ class Element:
     # _type est le type de l'Element-- Ex: walker, grass,...
     # cells_number est le nombre de cases horizontales/verticales que l'Element occupe
     # version est la version du _type de l'Element-- Ex: yellow pour grass
-    def __init__(self, layer, _type, cells_number, version="normal"):
+    def __init__(self, layer, _type, version="normal"):
         self.type = _type
         # L'id et la position vont être calculés directement à partir du layer auquel l'Element appartient
         self.id = None
         self.position = (None, None)
-
+        self.file_path = None
         self.layer = layer
-        self.dic = {"version": version, "cells_number": cells_number}
+        self.dic = {"version": version, "cells_number": 0}
+
+        self.set_file_infos()
+
+    def set_file_infos(self):
+        self.file_path, self.dic['cells_number'] = mapping.mapping_function(self.type, self.dic['version'])
