@@ -1,5 +1,5 @@
 import ctypes
-
+import math
 user32 = ctypes.windll.user32
 
 DEFAULT_SCREEN_WIDTH = user32.GetSystemMetrics(0)
@@ -15,5 +15,12 @@ SCALE_MIN = SPRITE_SCALING / 2
 SCALE_MAX = 1.5 * SPRITE_SCALING
 TILE_COUNT = 40
 
+
 TILE_WIDTH = 58
 TILE_HEIGHT = 29
+
+LAYER1 = "grass"
+LAYER2 = "hills"
+LAYER3 = "trees"
+LAYER4 = "roads"
+LAYER5 = "buildings"

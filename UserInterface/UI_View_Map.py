@@ -1,3 +1,5 @@
+import math
+
 import arcade
 import arcade.gui
 
@@ -5,12 +7,14 @@ from Services import servicesGlobalVariables as constantes
 from Services import servicesmMapSpriteToFile as map_sprite
 from Services import Service_Game_Data as gdata
 
-from CoreModules.MapManagement.mapManagementMap import LAYER1, LAYER2, LAYER3, LAYER4, LAYER5
 from pyglet.math import Vec2
 
 from UserInterface import UI_Section as uis
 from UserInterface import UI_buttons
 from UserInterface import UI_HUD_Build as hudb
+
+# a retirer
+import CoreModules.TileManagement.tileManagementElement as element
 
 MAP_CAMERA_SPEED = 0.5
 """
@@ -21,9 +25,9 @@ MAP_CAMERA_SPEED = 0.5
 
 
 class MapView(arcade.View):
-    # Notes: Rescale function
+    # red_sprite est un sprite qui va permettre de détecter la sprite la plus proche d'une position de clic de souris
+    # de l'utilisateur
     red_sprite = arcade.Sprite()
-    tmp = False
 
     def __init__(self, logic_map):
         super().__init__()
@@ -55,8 +59,9 @@ class MapView(arcade.View):
         self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed = False, False, False, False
 
         self.setup()
-
-        self.convert_map_cartesian_to_isometric()
+        # self.convert_map_cartesian_to_isometric()
+        # Afficher les sprites du haut vers le bas
+        self.draw_sprites_from_top()
 
         # a camera to travel through the map
         # set up the camera and centre it
@@ -89,9 +94,12 @@ class MapView(arcade.View):
         arcade.set_background_color(arcade.color.BLACK)
         self.builder_mode = False
 
+        # La red sprite est cachée au début
+        self.red_sprite.visible = False
+
     def setup(self):
         # On crée les SpriteList pour chaque layer
-        self.grass_layer = arcade.SpriteList()
+        self.grass_layer = arcade.SpriteList(use_spatial_hash=True)
         self.hills_layer = arcade.SpriteList()
         self.trees_layer = arcade.SpriteList()
         self.roads_layer = arcade.SpriteList()
@@ -105,36 +113,70 @@ class MapView(arcade.View):
         self.buildings_array = self.logic_map.buildings_layer.array
 
         # On remplit les SpriteList de chaque layer
-        self.create_sprite_list(self.grass_layer, LAYER1, self.grass_array)
-        self.create_sprite_list(self.hills_layer, LAYER2, self.hills_array)
-        self.create_sprite_list(self.trees_layer, LAYER3, self.trees_array)
-        self.create_sprite_list(self.roads_layer, LAYER4, self.roads_array)
-        self.create_sprite_list(self.buildings_layer, LAYER5, self.buildings_array)
+        self.create_sprite_list(self.grass_layer, constantes.LAYER1, self.grass_array)
+        self.create_sprite_list(self.hills_layer, constantes.LAYER2, self.hills_array)
+        self.create_sprite_list(self.trees_layer, constantes.LAYER3, self.trees_array)
+        self.create_sprite_list(self.roads_layer, constantes.LAYER4, self.roads_array)
+        self.create_sprite_list(self.buildings_layer, constantes.LAYER5, self.buildings_array)
 
         self.walkers_list = arcade.SpriteList()
 
     def create_sprite_list(self, layer, layer_name, array):
+        k = 0
         for i in range(0, len(array)):  # I=On parcout le tableau logique du bas vers le haut
             line = array[i]
             for j in range(0, len(line)):
-                file_name = map_sprite.mapping_function(layer_name, array[i][j].dic['version'])
+                file_name = array[i][j].file_path
                 if file_name != "":
                     _sprite = arcade.Sprite(file_name, self.map_scaling)
                 else:
                     _sprite = arcade.Sprite()
                 # Les coordonnées de départ sont en cartésien
                 count = array[i][j].dic['cells_number']
-                overflowing_width = (_sprite.width - constantes.TILE_WIDTH * self.map_scaling * count) / 2
-                overflowing_height = (_sprite.height - constantes.TILE_HEIGHT * self.map_scaling * count) / 2
 
-                _sprite.center_x = constantes.TILE_WIDTH * self.map_scaling * (j + 1 / 2 + (count - 1) / 2) + \
-                                   overflowing_width
-                _sprite.center_y = constantes.TILE_HEIGHT * self.map_scaling * (i + 1 / 2 + (count - 1) / 2) + \
-                                   overflowing_height
+                """
+                La taille des sprites peut déborder, donc il faut calculer ce débordement et l'ajouter comme offset
+                pour que le coin inférieur gauche soit bien aligné avec sa case
+                Ensuite, les coordonnées des sprites sont calculés en cartésien
+                Puis transformés en isométriques
+                Puis on ajoute l'offset
+                """
+                overflowing_height = (_sprite.height - constantes.TILE_HEIGHT * self.map_scaling * count) / 2
+                overflowing_width = (_sprite.width - constantes.TILE_WIDTH * self.map_scaling * count) / 2
+
+                if _sprite.width != 0:
+                    scale_factor = (_sprite.width - 2 * overflowing_width) / _sprite.width
+                    _sprite.rescale_relative_to_point((_sprite.center_x, _sprite.center_y),
+                                                      scale_factor)
+
+                # Calcul des coordonnées du sprite en cartésien --
+                _sprite.center_x = constantes.TILE_WIDTH * self.map_scaling * j - overflowing_width
+                _sprite.center_y = (constantes.TILE_HEIGHT * self.map_scaling * (
+                        i + (count - 1) / 2)) + 1 * overflowing_height
+
+                # Conversion en isométrique des coordonnées
+                _isometric_x = (_sprite.center_x + _sprite.center_y) - (constantes.TILE_WIDTH * self.map_scaling *
+                                                                        k / 2)
+                _isometric_y = (-_sprite.center_x + _sprite.center_y) / 2 + (
+                        constantes.TILE_HEIGHT * self.map_scaling * k / 2)
+
+                _sprite.center_x, _sprite.center_y = _isometric_x, _isometric_y
+
+                k += 1
+                k = k % constantes.TILE_COUNT
+
+                # On ajoute le sprite au layer (spriteList)
                 layer.append(_sprite)
 
     def on_show_view(self):
         self.secmanager.enable()
+
+    def draw_sprites_from_top(self):
+        self.trees_layer.reverse()
+        self.grass_layer.reverse()
+        self.roads_layer.reverse()
+        self.hills_layer.reverse()
+        self.buildings_layer.reverse()
 
     def on_draw(self):
         self.clear()
@@ -147,7 +189,9 @@ class MapView(arcade.View):
             self.trees_layer.draw()
             self.roads_layer.draw()
             self.buildings_layer.draw()
-            if self.tmp: self.red_sprite.draw_hit_box(color=(255, 0, 0), line_thickness=1)
+
+            # Testing
+            if self.red_sprite.visible: self.red_sprite.draw_hit_box(color=(255, 0, 0), line_thickness=1)
 
         if self.builder_mode:
             sprite = hudb.hollow_build(self.mouse_pos[0], self.mouse_pos[1], gdata.building_dico["Dwell"])
@@ -166,16 +210,25 @@ class MapView(arcade.View):
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
         """
-        Quand on clique un sprite orange se dessine sur le sprite le plus proche du point cliqué
+        Quand on clique un sprite rouge se dessine sur le sprite le plus proche du point cliqué
+
         """
         (x, y) = Vec2(x, y) + self.map_camera.position
-        self.tmp = True
+
         self.red_sprite = arcade.Sprite("./Assets/sprites/C3/Land/LandOverlay/Land2a_00037.png",
                                         scale=self.map_scaling, center_x=x,
                                         center_y=y, hit_box_algorithm="Detailed")
 
-        (nearest_sprite, d) = arcade.get_closest_sprite(self.red_sprite, self.grass_layer)
-        self.red_sprite.center_x, self.red_sprite.center_y = nearest_sprite.center_x, nearest_sprite.center_y
+        if button == arcade.MOUSE_BUTTON_LEFT:
+            self.red_sprite.visible = True
+            (nearest_sprite, d) = arcade.get_closest_sprite(self.red_sprite, self.grass_layer)
+            self.red_sprite.center_x, self.red_sprite.center_y = nearest_sprite.center_x, nearest_sprite.center_y
+
+        # For testing
+        elif button == arcade.MOUSE_BUTTON_RIGHT:
+            # On ajoute une route
+            self.red_sprite.visible = False
+            self.add_road()
 
     def on_mouse_motion(self, x: int, y: int, dx: int, dy: int):
         self.mouse_pos = Vec2(x, y) + self.map_camera.position
@@ -186,6 +239,14 @@ class MapView(arcade.View):
         self.trees_layer.update()
         self.roads_layer.update()
         self.buildings_layer.update()
+
+        # On update les logic arrays pour synchroniser la logique et le visuel
+        # On récupère le tableau logique associé à chaque layer
+        self.grass_array = self.logic_map.grass_layer.array
+        self.hills_array = self.logic_map.hills_layer.array
+        self.trees_array = self.logic_map.trees_layer.array
+        self.roads_array = self.logic_map.roads_layer.array
+        self.buildings_array = self.logic_map.buildings_layer.array
 
         self.move_map_camera_with_keys()
 
@@ -287,7 +348,8 @@ class MapView(arcade.View):
         self.map_scaling = new_scale
         self.clear()
         self.setup()
-        self.convert_map_cartesian_to_isometric()
+        # self.convert_map_cartesian_to_isometric()
+        self.draw_sprites_from_top()
         self.center_map()
 
     def convert_map_cartesian_to_isometric(self):
@@ -314,11 +376,14 @@ class MapView(arcade.View):
         isometric_y = (-cartesian_x + cartesian_y) / 2 + (constantes.TILE_HEIGHT * self.map_scaling * offset / 2)
         return isometric_x, isometric_y
 
-    def check_sprite_at_screen_coordinates(self, x, y):
+    def get_sprite_at_screen_coordinates(self, x, y):
         """
         Cette fonction va retourner la position du sprite qui se trouve aux coordonnées x,y en px des
         """
-        pass
+        (x, y) = Vec2(x, y) + self.map_camera.position
+        tmp = arcade.Sprite("./Assets/sprites/C3/Land/LandOverlay/Land2a_00037.png", center_x=x, center_y=y)
+        (nearest_sprite, d) = arcade.get_closest_sprite(tmp, self.grass_layer)
+        return nearest_sprite.center_x, nearest_sprite.center_y
 
     def get_map_center(self):
         center_tile = self.grass_layer[int(len(self.grass_layer) // 2 + constantes.TILE_COUNT // 2)]
@@ -351,3 +416,30 @@ class MapView(arcade.View):
             return self.roads_layer[index]
         elif layer == self.logic_map.buildings_layer:
             return self.buildings_layer[index]
+
+    def convert_sprite_list_index_to_logic_position(self, sprite_list_index):
+        """
+        Il faut tenir compte du fait que les spritesList sont inversées pour l'affichage et donc que l'ordre est inversé
+        Par exemple, la sprite (0,0) sera la dernière dans une liste et non la première.
+        """
+        line = constantes.TILE_COUNT - 1 - sprite_list_index // constantes.TILE_COUNT
+        column = constantes.TILE_COUNT - 1 - sprite_list_index % constantes.TILE_COUNT
+        return line, column
+
+    def add_road(self):
+
+        (nearest_sprite, d) = arcade.get_closest_sprite(self.red_sprite, self.grass_layer)
+
+        index = self.grass_layer.index(nearest_sprite)
+
+        line, column = self.convert_sprite_list_index_to_logic_position(index)
+
+        my_road = element.Element(self.roads_layer, constantes.LAYER4, "normal")
+
+        if self.logic_map.roads_layer.set_cell_constrained_to_bottom_layer([self.logic_map.buildings_layer,
+                                                                            self.logic_map.hills_layer,
+                                                                            self.logic_map.trees_layer], line,
+                                                                           column,
+                                                                           my_road):
+            # si la route a été bien ajoutée on update la spritelist en la recréant
+            self.create_sprite_list(self.roads_layer, constantes.LAYER4, self.roads_array)

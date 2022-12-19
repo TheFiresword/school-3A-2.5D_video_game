@@ -245,7 +245,7 @@ class MyGame(arcade.Window):
         for i in range(TILE_COUNT):
             for j in range(TILE_COUNT):
                 grass = arcade.Sprite("Land1a_00002.png", scale=self.sprite_scaling)
-
+                tests = arcade.Sprite("Land1a_00014.png", scale=self.sprite_scaling)
                 # Set up the isometric coordinates directly with the indices
                 # But I did not do it this way
 
@@ -255,8 +255,12 @@ class MyGame(arcade.Window):
                 # Generate the cartesian map
                 grass.center_x = grass.width * (j + 1 / 2)
                 grass.center_y = grass.height * (i + 1 / 2)
+                tests.center_x = grass.width * (j + 1 / 2)
+                tests.center_y = grass.height * (i + 1 / 2)
+
 
                 self.grass_list.append(grass)
+
                 self.sprites_positions.append((i, j))
         print(self.grass_list[0].scale)
 
@@ -272,6 +276,7 @@ class MyGame(arcade.Window):
             grass.center_x = (cart_x + cart_y) - (grass.width * j / 2)
             grass.center_y = (-cart_x + cart_y)/2 + (grass.height * j / 2)
             k += 1
+
 
     def convert_sprite_isometric_to_cartesian(self):
         """"

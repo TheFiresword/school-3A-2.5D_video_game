@@ -1,6 +1,8 @@
 import Services.servicesGlobalVariables as globalVar
+import Services.servicesmMapSpriteToFile as mapping
 import CoreModules.TileManagement.tileManagementElement as Element
 
+from  CoreModules.BuildingsManagement.buildingsManagementBuilding import Building
 # PROBLEME Les lignes et les colonnes sont inversées je ne sais pas pourquoi
 """
 ++++Un layer va être un tableau à 2 dimensions d'Elements
@@ -67,16 +69,27 @@ class Layer:
 
     def setup(self):
         # Initialise chaque case du layer à un Element de version null
-        self.completely_fill_layer("null", 0)
+        self.completely_fill_layer("null")
 
-    def completely_fill_layer(self, version, cells_number):
+    def completely_fill_layer(self, version):
         """
         Cette fonction remplit le layer d'Elements de même type que le Layer.On set l'id de chaque Element de
         manière incrémentale
+        NB: Vu qu'on remplit le layer avec le même élément ,c'est plus efficace de modifier seulement les éléments déja
+        présents que d'en créer de nouveaux
         """
+        # on récupère le cells_number directement depuis la fonction mapping Services
+        file_path, cells_number = mapping.mapping_function(self.type, version)
+        element_class = None
+        # La classe des elements à créer: Element ou Building pour le moment
+        if self.type in [globalVar.LAYER1, globalVar.LAYER2, globalVar.LAYER3, globalVar.LAYER4]:
+            element_class = Element.Element
+        elif self.type == globalVar.LAYER5:
+            element_class = Building
+
         if cells_number <= 1:
             # On remplit toutes les cases du layer avec des Elements de taille 1 avec la version passée en paramètre
-            self.array = [[Element.Element(self, self.type, cells_number, version) for j in
+            self.array = [[element_class(self, self.type, version) for j in
                            range(0, globalVar.TILE_COUNT)] for i in range(0, globalVar.TILE_COUNT)]
 
             # On set l'id de chaque case de manière incrémentale si les éléments sont non nuls
@@ -94,7 +107,7 @@ class Layer:
             """
             for line in range(0, globalVar.TILE_COUNT):
                 for column in range(0, globalVar.TILE_COUNT):
-                    self.set_cell(line, column, Element.Element(self, self.type, cells_number, version), False)
+                    self.set_cell(line, column, element_class(self, self.type, version))
 
     def custom_fill_layer(self, config_list):
         """
@@ -117,13 +130,21 @@ class Layer:
                 self.remove_cell(i, j)
 
     def remove_cell(self, line, column):
+        """
+        Cette fonction enlève l'élément présent à la position (line, column) du layer auquel il appartient.
+        En fait, on va remplacer l'élément présent à cette position par un élément null
+        Faire attention à récupérer la position de départ d'un élément qui occupe plus d'une case
+        Dans le cas où l'Element est un Building il faut pouvoir remplacer ce building par un building null
+        """
         (origin_x, origin_y) = self.array[line][column].position
         origin_version = self.array[origin_x][origin_y].dic['version']
         size = self.array[origin_x][origin_y].dic['cells_number']
+        element_class = type(self.array[origin_x][origin_y])
+
         if origin_version != "null":
             for i in range(0, size):
                 for j in range(0, size):
-                    e = Element.Element(self, self.type, 0, "null")
+                    e = element_class(self, self.type, 0, "null")
                     self.array[origin_x + i][origin_y + j] = e
                     self.array[origin_x + i][origin_y + j].position = (origin_x + i, origin_y + j)
                     self.array[origin_x + i][origin_y + j].id = VOID_CELL_ID
@@ -161,6 +182,7 @@ class Layer:
                     # Les id des cellules supplémentaires sont set à l'id de l'Element ajouté
                     self.array[line + i][column + j].id = self.array[line][column].id
                     self.array[line + i][column + j].position = (line, column)
+        # print(f"New elemenet added: {self.type} -- {element.dic['version']} at {(line, column)}")
         return True
 
     def set_cell_constrained_to_bottom_layer(self, bottom_layers_list, line, column, element,
@@ -170,7 +192,7 @@ class Layer:
         (line, column) des layers contenus dans la liste bottom_layers_list, sont "null"
         """
         count = len(bottom_layers_list)
-        for i in range(0, count):
+        for i in range(count):
             if bottom_layers_list[i].array[line][column].dic["version"] != "null":
                 return False
         return self.set_cell(line, column, element, can_replace)
@@ -211,7 +233,12 @@ class Layer:
             for column in range(0, globalVar.TILE_COUNT):
                 if self.array[line][column].dic['version'] != "null" and \
                         self.array[line][column].dic['version'] != "occupied":
-                    print(f"{self.array[line][column].dic} -- {self.array[line][column].id} -- "
+                    # Un bout de code pour afficher la classe exacte d'un Element
+                    chaine = "".join(reversed(str(type(self.array[line][column]))))
+                    start = len(chaine) - chaine.index('.') - 1
+                    chaine = ("".join(reversed(chaine)))[start+1: len(chaine)-2]
+
+                    print(f"{chaine} --{self.array[line][column].dic} -- {self.array[line][column].id} -- "
                           f"{self.array[line][column].position} ")
                     count += 1
         print(f"{count} elements")
