@@ -248,8 +248,8 @@ class MapView(arcade.View):
             self.mouse_left_pressed = False
 
     def on_mouse_motion(self, x: int, y: int, dx: int, dy: int):
+        tmp_end_pos = Vec2(x, y) + self.map_camera.position
         if self.mouse_right_pressed:
-            tmp_end_pos = Vec2(x, y) + self.map_camera.position
             if self.mouse_right_maintained:
                 self.add_roads_serie(self.mouse_pos, tmp_end_pos, True)
             else:
@@ -423,12 +423,14 @@ class MapView(arcade.View):
     def add_road(self, pos) -> bool:
         """
         Fonction d'ajout de route
+        va probablement être transformée en fonction plus générale d'ajout d'élément
         """
         line, column = self.get_sprite_at_screen_coordinates(pos)
 
         if self.logic_map.roads_layer.set_cell_constrained_to_bottom_layer([self.logic_map.buildings_layer,
                                                                             self.logic_map.hills_layer,
-                                                                            self.logic_map.trees_layer], line,
+                                                                            self.logic_map.trees_layer,
+                                                                            self.logic_map.roads_layer], line,
                                                                            column):
             # si la route a été bien ajoutée on update la spritelist en la recréant
             self.create_sprite_list(self.roads_layer, self.roads_array)
@@ -444,7 +446,7 @@ class MapView(arcade.View):
 
         if self.logic_map.roads_layer.add_roads_serie((line1, column1), (line2, column2),
                                                       [self.logic_map.buildings_layer, self.logic_map.trees_layer,
-                                                       self.logic_map.hills_layer],
+                                                       self.logic_map.hills_layer, self.logic_map.roads_layer],
                                                       memorize=dynamically):
             self.create_sprite_list(self.roads_layer, self.roads_array)
             return True
@@ -467,6 +469,7 @@ class MapView(arcade.View):
     def remove_elements_serie(self, start_pos, end_pos) -> bool:
         """
         Pour clean une surface de la carte
+        Cette fonction doit être associée au bouton pelle
         """
         line1, column1 = self.get_sprite_at_screen_coordinates(start_pos)
         line2, column2 = self.get_sprite_at_screen_coordinates(end_pos)
