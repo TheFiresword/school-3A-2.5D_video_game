@@ -119,15 +119,15 @@ class MapView(arcade.View):
         self.buildings_array = self.logic_map.buildings_layer.array
 
         # On remplit les SpriteList de chaque layer
-        self.create_sprite_list(self.grass_layer, constantes.LAYER1, self.grass_array)
-        self.create_sprite_list(self.hills_layer, constantes.LAYER2, self.hills_array)
-        self.create_sprite_list(self.trees_layer, constantes.LAYER3, self.trees_array)
-        self.create_sprite_list(self.roads_layer, constantes.LAYER4, self.roads_array)
-        self.create_sprite_list(self.buildings_layer, constantes.LAYER5, self.buildings_array)
+        self.create_sprite_list(self.grass_layer, self.grass_array)
+        self.create_sprite_list(self.hills_layer, self.hills_array)
+        self.create_sprite_list(self.trees_layer, self.trees_array)
+        self.create_sprite_list(self.roads_layer, self.roads_array)
+        self.create_sprite_list(self.buildings_layer, self.buildings_array)
 
         self.walkers_list = arcade.SpriteList()
 
-    def create_sprite_list(self, layer, layer_name, array):
+    def create_sprite_list(self, layer, array):
         # On vide le layer avant de le recréer
         layer.clear()
 
@@ -372,31 +372,7 @@ class MapView(arcade.View):
         self.map_scaling = new_scale
         self.clear()
         self.setup()
-        # self.center_map()
-
-    def convert_map_cartesian_to_isometric(self):
-        """"
-        Convert a cartesian map to an isometric map
-        """
-        self.convert_layer_cartesian_to_isometric(self.grass_layer)
-        self.convert_layer_cartesian_to_isometric(self.hills_layer)
-        self.convert_layer_cartesian_to_isometric(self.trees_layer)
-        self.convert_layer_cartesian_to_isometric(self.roads_layer)
-        self.convert_layer_cartesian_to_isometric(self.buildings_layer)
-
-    def convert_layer_cartesian_to_isometric(self, layer):
-        k = 0
-        for sprite in layer:
-            if sprite is not None:
-                cart_x, cart_y = sprite.center_x, sprite.center_y
-                sprite.center_x, sprite.center_y = self.convert_cartesian_px_to_isometric_px(cart_x, cart_y, k)
-                k += 1
-                k = k % constantes.TILE_COUNT
-
-    def convert_cartesian_px_to_isometric_px(self, cartesian_x, cartesian_y, offset):
-        isometric_x = (cartesian_x + cartesian_y) - (constantes.TILE_WIDTH * self.map_scaling * offset / 2)
-        isometric_y = (-cartesian_x + cartesian_y) / 2 + (constantes.TILE_HEIGHT * self.map_scaling * offset / 2)
-        return isometric_x, isometric_y
+        self.center_map()
 
     def get_sprite_at_screen_coordinates(self, pos):
         """
@@ -455,7 +431,7 @@ class MapView(arcade.View):
                                                                             self.logic_map.trees_layer], line,
                                                                            column):
             # si la route a été bien ajoutée on update la spritelist en la recréant
-            self.create_sprite_list(self.roads_layer, constantes.LAYER4, self.roads_array)
+            self.create_sprite_list(self.roads_layer, self.roads_array)
             return True
 
     def add_roads_serie(self, start_pos, end_pos, dynamically=False) -> bool:
@@ -470,7 +446,7 @@ class MapView(arcade.View):
                                                       [self.logic_map.buildings_layer, self.logic_map.trees_layer,
                                                        self.logic_map.hills_layer],
                                                       memorize=dynamically):
-            self.create_sprite_list(self.roads_layer, constantes.LAYER4, self.roads_array)
+            self.create_sprite_list(self.roads_layer, self.roads_array)
             return True
         return False
 
@@ -478,13 +454,13 @@ class MapView(arcade.View):
         line, column = self.get_sprite_at_screen_coordinates(pos)
         what_is_removed = self.logic_map.remove_element((line, column))
         if what_is_removed == constantes.LAYER4:
-            self.create_sprite_list(self.roads_layer, constantes.LAYER4, self.roads_array)
+            self.create_sprite_list(self.roads_layer, self.roads_array)
             return True
         elif what_is_removed == constantes.LAYER5:
-            self.create_sprite_list(self.buildings_layer, constantes.LAYER5, self.buildings_array)
+            self.create_sprite_list(self.buildings_layer, self.buildings_array)
             return True
         elif what_is_removed == constantes.LAYER3:
-            self.create_sprite_list(self.trees_layer, constantes.LAYER3, self.trees_array)
+            self.create_sprite_list(self.trees_layer, self.trees_array)
             return True
         return False
 
@@ -496,12 +472,12 @@ class MapView(arcade.View):
         line2, column2 = self.get_sprite_at_screen_coordinates(end_pos)
         modified_layers = self.logic_map.remove_elements_serie((line1, column1), (line2, column2))
         if constantes.LAYER5 in modified_layers:
-            self.create_sprite_list(self.buildings_layer, constantes.LAYER5, self.buildings_array)
+            self.create_sprite_list(self.buildings_layer, self.buildings_array)
             return True
         if constantes.LAYER3 in modified_layers:
-            self.create_sprite_list(self.trees_layer, constantes.LAYER3, self.trees_array)
+            self.create_sprite_list(self.trees_layer, self.trees_array)
             return True
         if constantes.LAYER4 in modified_layers:
-            self.create_sprite_list(self.roads_layer, constantes.LAYER4, self.roads_array)
+            self.create_sprite_list(self.roads_layer, self.roads_array)
             return True
         return False
