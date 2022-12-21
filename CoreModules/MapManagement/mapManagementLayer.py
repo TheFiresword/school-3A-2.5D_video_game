@@ -2,8 +2,7 @@ import Services.servicesGlobalVariables as globalVar
 import Services.servicesmMapSpriteToFile as mapping
 import CoreModules.TileManagement.tileManagementElement as Element
 
-from CoreModules.BuildingsManagement.buildingsManagementBuilding import Building
-
+from  CoreModules.BuildingsManagement.buildingsManagementBuilding import Building
 # PROBLEME Les lignes et les colonnes sont inversées je ne sais pas pourquoi
 """
 ++++Un layer va être un tableau à 2 dimensions d'Elements
@@ -158,7 +157,7 @@ class Layer:
             return True
         else:
             return False
-
+    
     def get_cell(self, line, column):
         if position_is_valid(line, column):
             return self.array[line][column]
@@ -166,6 +165,7 @@ class Layer:
 
     def set_cell(self, line, column, element, can_replace=False) -> bool:
         """
+        _dic: Un dictionnaire avec une version et un nombre de cellules
         can_replace: Un booléen qui dit si on peut remplacer une cellule existante
         Cette fonction assigne un Element à la cellule (line,column) du layer.
         Il faut que cette cellule soit vide
@@ -181,7 +181,7 @@ class Layer:
             return False
 
         # Toutes les conditions sont remplies
-        # On copie les informations de l'Element dans la case correspondante
+        # On copie les informations de l'Element dans la case correspondante--On garde l'id de la case
         self.array[line][column] = element
         self.array[line][column].id = next(self.id_iterator)
         self.array[line][column].position = (line, column)
