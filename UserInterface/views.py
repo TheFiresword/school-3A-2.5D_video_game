@@ -1,12 +1,9 @@
-import time
+
 import arcade
 import arcade.gui
 from Services import servicesGlobalVariables as constantes
 import CoreModules.MapManagement.mapManagementMap as map
-from UserInterface import buttons as but
-from Infrastructure import settings as sets
 from UserInterface import UI_View_Welcome as wv
-from UserInterface import  UI_View_Map as gv
 from UserInterface import UI_View_Game as rgv
 
 from UserInterface import UI_View_Settings as sv
