@@ -17,10 +17,10 @@ class Building(element.Element):
 
 
 class Dwelling(Building):
-    def __init__(self, buildings_layer, _type, init_population, max_population, version="dwelling1"):
+    def __init__(self, buildings_layer, _type, version="dwelling1"):
         super().__init__(buildings_layer, _type, version)
-        self.current_population = init_population
-        self.max_population = max_population
+        self.current_population = None
+        self.max_population = None
 
 
 

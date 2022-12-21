@@ -10,7 +10,6 @@ from UserInterface import UI_Section as uis
 from UserInterface import UI_buttons
 from UserInterface import UI_HUD_Build as hudb
 
-
 MAP_CAMERA_SPEED = 0.5
 """
  A map is constituted by the grass layer, the hills layer and the trees layer.
@@ -65,6 +64,8 @@ class MapView(arcade.View):
 
         self.mouse_left_pressed, self.mouse_right_pressed = False, False
         self.mouse_right_maintained = False
+
+        self.pre_remove = None
 
         self.setup()
 
@@ -176,7 +177,7 @@ class MapView(arcade.View):
                 # On ajoute le sprite au layer (spriteList)
                 layer.append(_sprite)
         layer.reverse()
-        assert len(layer) == constantes.TILE_COUNT**2
+        assert len(layer) == constantes.TILE_COUNT ** 2
 
     def on_show_view(self):
         self.secmanager.enable()
@@ -227,6 +228,10 @@ class MapView(arcade.View):
             self.mouse_right_pressed = True
             self.mouse_right_maintained = False
 
+        elif button == arcade.MOUSE_BUTTON_LEFT:
+            ### Testing removing
+            self.mouse_left_pressed = True
+
     def on_mouse_release(self, x: int, y: int, button: int, modifiers: int):
         if button == arcade.MOUSE_BUTTON_RIGHT:
             self.mouse_right_pressed = False
@@ -235,6 +240,12 @@ class MapView(arcade.View):
 
             self.mouse_right_maintained = False
             # self.red_sprite.visible = False
+
+        elif button == arcade.MOUSE_BUTTON_LEFT:
+            # ## Testing
+            if self.mouse_left_pressed and self.pre_remove:
+                self.remove_sprite(self.mouse_pos)
+            self.mouse_left_pressed = False
 
     def on_mouse_motion(self, x: int, y: int, dx: int, dy: int):
         if self.mouse_right_pressed:
@@ -293,6 +304,10 @@ class MapView(arcade.View):
         elif symbol == arcade.key.N:
             self.builder_mode = False
 
+        ### Testing removing
+        elif symbol == arcade.key.D:
+            self.pre_remove = True
+
     def on_key_release(self, _symbol: int, _modifiers: int):
         if _symbol == arcade.key.UP:
             self.up_pressed = False
@@ -302,6 +317,10 @@ class MapView(arcade.View):
             self.left_pressed = False
         elif _symbol == arcade.key.RIGHT:
             self.right_pressed = False
+
+        # ## Testing removing
+        elif _symbol == arcade.key.D:
+            self.pre_remove = False
 
     def move_map_camera_with_keys(self):
 
@@ -379,14 +398,19 @@ class MapView(arcade.View):
         isometric_y = (-cartesian_x + cartesian_y) / 2 + (constantes.TILE_HEIGHT * self.map_scaling * offset / 2)
         return isometric_x, isometric_y
 
-    def get_sprite_at_screen_coordinates(self, x, y):
+    def get_sprite_at_screen_coordinates(self, pos):
         """
-        Cette fonction va retourner la position du sprite qui se trouve aux coordonnées x,y en px des
+        Cette fonction va retourner la position logique (line, column) du sprite qui se trouve aux coordonnées x,y
+        en px
         """
-        (x, y) = Vec2(x, y) + self.map_camera.position
-        tmp = arcade.Sprite("./Assets/sprites/C3/Land/LandOverlay/Land2a_00037.png", center_x=x, center_y=y)
-        (nearest_sprite, d) = arcade.get_closest_sprite(tmp, self.grass_layer)
-        return nearest_sprite.center_x, nearest_sprite.center_y
+        self.red_sprite.center_x, self.red_sprite.center_y = pos
+        (nearest_sprite, d) = arcade.get_closest_sprite(self.red_sprite, self.grass_layer)
+        self.red_sprite.center_x, self.red_sprite.center_y = nearest_sprite.center_x, nearest_sprite.center_y
+
+        index = self.grass_layer.index(nearest_sprite)
+
+        line, column = convert_sprite_list_index_to_logic_position(index)
+        return line, column
 
     def get_map_center(self):
         center_tile = self.grass_layer[int(len(self.grass_layer) // 2 + constantes.TILE_COUNT // 2)]
@@ -424,14 +448,7 @@ class MapView(arcade.View):
         """
         Fonction d'ajout de route
         """
-
-        self.red_sprite.center_x, self.red_sprite.center_y = pos
-        (nearest_sprite, d) = arcade.get_closest_sprite(self.red_sprite, self.grass_layer)
-        self.red_sprite.center_x, self.red_sprite.center_y = nearest_sprite.center_x, nearest_sprite.center_y
-
-        index = self.grass_layer.index(nearest_sprite)
-
-        line, column = convert_sprite_list_index_to_logic_position(index)
+        line, column = self.get_sprite_at_screen_coordinates(pos)
 
         if self.logic_map.roads_layer.set_cell_constrained_to_bottom_layer([self.logic_map.buildings_layer,
                                                                             self.logic_map.hills_layer,
@@ -446,29 +463,45 @@ class MapView(arcade.View):
         Fonction qui permet d'ajouter une série de routes
         Prend en paramètre 2 positions de souris sous forme de tuple
         """
-        # On calcule la position (ligne, colonne) associée à la position de début et à la position de fin
-        self.red_sprite.center_x, self.red_sprite.center_y = start_pos
-        (nearest_sprite, d) = arcade.get_closest_sprite(self.red_sprite, self.grass_layer)
-        self.red_sprite.center_x, self.red_sprite.center_y = nearest_sprite.center_x, nearest_sprite.center_y
-
-        index = self.grass_layer.index(nearest_sprite)
-
-        # Plus important
-        line1, column1 = convert_sprite_list_index_to_logic_position(index)
-
-        self.red_sprite.center_x, self.red_sprite.center_y = end_pos
-        (nearest_sprite, d) = arcade.get_closest_sprite(self.red_sprite, self.grass_layer)
-        self.red_sprite.center_x, self.red_sprite.center_y = nearest_sprite.center_x, nearest_sprite.center_y
-
-        index = self.grass_layer.index(nearest_sprite)
-
-        # Plus important
-        line2, column2 = convert_sprite_list_index_to_logic_position(index)
+        line1, column1 = self.get_sprite_at_screen_coordinates(start_pos)
+        line2, column2 = self.get_sprite_at_screen_coordinates(end_pos)
 
         if self.logic_map.roads_layer.add_roads_serie((line1, column1), (line2, column2),
                                                       [self.logic_map.buildings_layer, self.logic_map.trees_layer,
                                                        self.logic_map.hills_layer],
                                                       memorize=dynamically):
+            self.create_sprite_list(self.roads_layer, constantes.LAYER4, self.roads_array)
+            return True
+        return False
+
+    def remove_sprite(self, pos) -> bool:
+        line, column = self.get_sprite_at_screen_coordinates(pos)
+        what_is_removed = self.logic_map.remove_element((line, column))
+        if what_is_removed == constantes.LAYER4:
+            self.create_sprite_list(self.roads_layer, constantes.LAYER4, self.roads_array)
+            return True
+        elif what_is_removed == constantes.LAYER5:
+            self.create_sprite_list(self.buildings_layer, constantes.LAYER5, self.buildings_array)
+            return True
+        elif what_is_removed == constantes.LAYER3:
+            self.create_sprite_list(self.trees_layer, constantes.LAYER3, self.trees_array)
+            return True
+        return False
+
+    def remove_elements_serie(self, start_pos, end_pos) -> bool:
+        """
+        Pour clean une surface de la carte
+        """
+        line1, column1 = self.get_sprite_at_screen_coordinates(start_pos)
+        line2, column2 = self.get_sprite_at_screen_coordinates(end_pos)
+        modified_layers = self.logic_map.remove_elements_serie((line1, column1), (line2, column2))
+        if constantes.LAYER5 in modified_layers:
+            self.create_sprite_list(self.buildings_layer, constantes.LAYER5, self.buildings_array)
+            return True
+        if constantes.LAYER3 in modified_layers:
+            self.create_sprite_list(self.trees_layer, constantes.LAYER3, self.trees_array)
+            return True
+        if constantes.LAYER4 in modified_layers:
             self.create_sprite_list(self.roads_layer, constantes.LAYER4, self.roads_array)
             return True
         return False
