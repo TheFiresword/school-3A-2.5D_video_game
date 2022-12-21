@@ -2,6 +2,7 @@ import random
 
 from CoreModules.MapManagement import mapManagementLayer as overlay
 import CoreModules.BuildingsManagement.buildingsManagementBuilding as building
+import CoreModules.BuildingsManagement.buildingsManagementRoad as roadoverlay
 import CoreModules.TileManagement.tileManagementElement as element
 import Services.servicesGlobalVariables as globalVar
 
@@ -107,30 +108,22 @@ class MapLogic:
 
         # -------------------------------------------------------------------------------------------------------------#
         # ROADS
-        self.roads_layer = overlay.Layer(globalVar.LAYER4)
-
-        entry_road = element.Element(self.roads_layer, globalVar.LAYER4, "entry")
-        exit_road = element.Element(self.roads_layer, globalVar.LAYER4, "exit")
+        self.roads_layer = roadoverlay.RoadLayer()
         middle = int(globalVar.TILE_COUNT * 1 / 2)
-        self.roads_layer.set_cell(2 * middle - 1, middle - 1, entry_road)
-        self.roads_layer.set_cell(0, middle - 1, exit_road)
-
         for i in range(0, 2 * middle):
-            my_normal_road = element.Element(self.roads_layer,globalVar.LAYER4, "normal")
             self.roads_layer.set_cell_constrained_to_bottom_layer([self.hills_layer, self.trees_layer],
-                                                                  i, middle, my_normal_road)
-
+                                                                  i, middle)
         # -------------------------------------------------------------------------------------------------------------#
         # BUILDINGS
         self.buildings_layer = overlay.Layer(globalVar.LAYER5)
 
         for i in range(0, 10):
-            my_dwelling = building.Dwelling(self.buildings_layer, globalVar.LAYER5, 0, 10)
+            my_dwelling = building.Dwelling(self.buildings_layer, globalVar.LAYER5)
             self.buildings_layer.set_cell_constrained_to_bottom_layer([self.hills_layer, self.trees_layer,
                                                                        self.roads_layer], globalVar.TILE_COUNT - 3,
                                                                       2 + i, my_dwelling)
         for i in range(0, 20, 4):
-            my_luxious_dwelling = building.Dwelling(self.buildings_layer, globalVar.LAYER5, 0, 100, version="dwelling5")
+            my_luxious_dwelling = building.Dwelling(self.buildings_layer, globalVar.LAYER5, version="dwelling5")
             self.buildings_layer.set_cell_constrained_to_bottom_layer([self.hills_layer, self.trees_layer,
                                                                        self.roads_layer], 3, i, my_luxious_dwelling)
 
@@ -140,3 +133,51 @@ class MapLogic:
         # -------------------------------------------------------------------------------------------------------------#
         # Test logiques
         # self.buildings_layer.print_currents_elements()
+
+    def remove_element(self, pos):
+        """
+        Cette fonction permet d'enlever un element de la map à une position donnée
+        On ne peut pas retirer de l'herbe ou une montagne
+        """
+        line, column = pos[0], pos[1]
+        if self.roads_layer.remove_cell(line, column):
+            return globalVar.LAYER4
+        elif self.trees_layer.remove_cell(line, column):
+            return globalVar.LAYER3
+        elif self.buildings_layer.remove_cell(line, column):
+            return globalVar.LAYER5
+        return None
+
+    def remove_elements_serie(self, start_pos, end_pos):
+        """
+        Pour clean une surface de la carte
+        Elle va renvoyer un ensemble set qui contient les layers qui ont été modifiés
+        """
+        line1, column1 = start_pos[0], start_pos[1]
+        line2, column2 = end_pos[0], end_pos[1]
+
+        # 2 ranges qui vont servir à délimiter la surface de la map à clean
+        vrange, hrange = None, None
+
+        # le set
+        _set = set()
+
+        if line1 >= line2:
+            vrange = range(line1, line2 - 1, -1)
+        else:
+            vrange = range(line2, line1 - 1, -1)
+
+        if column1 <= column2:
+            hrange = range(column2, column1 - 1, -1)
+        else:
+            hrange = range(column1, column2 - 1, -1)
+
+        for i in vrange:
+            for j in hrange:
+                if self.roads_layer.remove_cell(i, j):
+                    _set.add(globalVar.LAYER4)
+                elif self.trees_layer.remove_cell(i, j):
+                    _set.add(globalVar.LAYER3)
+                elif self.buildings_layer.remove_cell(i, j):
+                    _set.add(globalVar.LAYER5)
+        return _set

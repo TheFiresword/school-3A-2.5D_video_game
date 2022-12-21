@@ -1,19 +1,13 @@
 import arcade
 from Services import servicesGlobalVariables as constantes
 
-b1 = (constantes.DEFAULT_SCREEN_WIDTH - 155,
-      constantes.DEFAULT_SCREEN_HEIGHT - 200,
-      arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel13/paneling_00079.png"),
-      arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel13/paneling_00080.png"),
-      arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel13/paneling_00081.png"))
-
 tuples_buttons = [(155,240,13,"000",79),(78,240,14,"000",82),
-                  (117,274,16,"000",88),(78,274,17,"000",91),(40,274,18,"000",94),
-                  (155,200,24,"00",119),(155,200,25,"00",123),(155,200,26,"00",127),
-                  (155,200,27,"00",131),(155,200,28,"00",135),(155,200,29,"00",139),
-                  (155,200,30,"00",143),(155,200,31,"00",147),(155,200,32,"00",151),
-                  (155,200,33,"00",155),(155,200,34,"00",159),(155,200,35,"00",163),
-                  (155,200,23,"00",115),(155,200,36,"00",167),(155,200,37,"00",171)
+                  (116,267,16,"000",88),(78,267,17,"000",91),(39,267,18,"000",94),
+                  (149,362,25,"00",123),(99,362,27,"00",131),(49,362,28,"00",135),
+                  (149,396,26,"00",127),(99,396,35,"00",163),(49,396,32,"00",151),
+                  (149,429,31,"00",147),(99,429,30,"00",143),(49,429,29,"00",139),
+                  (149,464,36,"00",167),(99,464,34,"00",159),(49,464,33,"00",155),
+                  (149,494,37,"00",171),(99,494,23,"00",115),(49,494,24,"00",119)
 
 
                  ]
@@ -24,3 +18,55 @@ buttons = [(constantes.DEFAULT_SCREEN_WIDTH - x,
             arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel" + str(folder)+"/paneling_" +zero+ str(number+1) +".png"),
             arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel" + str(folder)+"/paneling_" +zero+ str(number+2) +".png"))
             for (x,y,folder,zero,number) in tuples_buttons]
+
+
+def button_click_house():
+    pass
+
+def button_click_shovel():
+    pass
+
+def button_click_road():
+    pass
+
+def button_click_water():
+    pass
+
+def button_click_health():
+    pass
+
+def button_click_lightning():
+    pass
+
+def button_click_paper():
+    pass
+
+def button_click_entertainement():
+    pass
+
+def button_click_education():
+    pass
+
+def button_click_hammer():
+    pass
+
+def button_click_sword():
+    pass
+
+def button_click_supply():
+    pass
+
+def button_click_cross():
+    pass
+
+def button_click_list():
+    pass
+
+def button_click_bell():
+    pass
+
+
+
+
+
+

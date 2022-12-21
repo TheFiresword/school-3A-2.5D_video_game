@@ -129,25 +129,39 @@ class Layer:
             for j in range(0, globalVar.TILE_COUNT):
                 self.remove_cell(i, j)
 
-    def remove_cell(self, line, column):
+    def remove_cell(self, line, column) -> bool:
         """
         Cette fonction enlève l'élément présent à la position (line, column) du layer auquel il appartient.
         En fait, on va remplacer l'élément présent à cette position par un élément null
         Faire attention à récupérer la position de départ d'un élément qui occupe plus d'une case
         Dans le cas où l'Element est un Building il faut pouvoir remplacer ce building par un building null
         """
+        if not position_is_valid(line, column):
+            return False
         (origin_x, origin_y) = self.array[line][column].position
         origin_version = self.array[origin_x][origin_y].dic['version']
         size = self.array[origin_x][origin_y].dic['cells_number']
         element_class = type(self.array[origin_x][origin_y])
 
+        # Si c'est le layer route et que l'élément correspond au panneau d'entrée ou de sortie on ne peut pas le retirer
+        if self.type == globalVar.LAYER4 and origin_version in ["entry", "exit"]:
+            return False
+
         if origin_version != "null":
             for i in range(0, size):
                 for j in range(0, size):
-                    e = element_class(self, self.type, 0, "null")
+                    e = element_class(self, self.type, "null")
                     self.array[origin_x + i][origin_y + j] = e
                     self.array[origin_x + i][origin_y + j].position = (origin_x + i, origin_y + j)
                     self.array[origin_x + i][origin_y + j].id = VOID_CELL_ID
+            return True
+        else:
+            return False
+    
+    def get_cell(self, line, column):
+        if position_is_valid(line, column):
+            return self.array[line][column]
+        return None
 
     def set_cell(self, line, column, element, can_replace=False) -> bool:
         """

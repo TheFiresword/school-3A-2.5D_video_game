@@ -7,6 +7,7 @@ from UserInterface import buttons as but
 from Infrastructure import settings as sets
 from UserInterface import UI_View_Welcome as wv
 from UserInterface import  UI_View_Map as gv
+from UserInterface import UI_View_Game as rgv
 
 from UserInterface import UI_View_Settings as sv
 from UserInterface import UI_View_Load as lv
@@ -22,8 +23,8 @@ class MainWindow(arcade.Window):
         self.settingscreen = sv.SettingScreen()
         self.loadscreen = lv.LoadScreen()
         map1 = map.MapLogic()
-        self.gamescreen = gv.MapView(map1)
-
+        #self.gamescreen = gv.MapView(map1)
+        self.gamescreen = rgv.GameView(game=None)
 
     # Lancement
     def setup(self):
