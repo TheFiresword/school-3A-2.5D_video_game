@@ -4,8 +4,8 @@ from Services import Service_Static_functions as fct
 from pyglet.math import Vec2
 
 
-class VisualMap():
-    
+class VisualMap:
+
     def __init__(self):
         self.grass_layer = None
         self.hills_layer = None
@@ -20,7 +20,7 @@ class VisualMap():
         self.red_sprite.visible = False
         pass
 
-    def setup(self,game):
+    def setup(self, game):
         self.grass_layer = arcade.SpriteList(use_spatial_hash=True)
         self.hills_layer = arcade.SpriteList()
         self.trees_layer = arcade.SpriteList()
@@ -34,7 +34,7 @@ class VisualMap():
         self.update_sprite_list(self.trees_layer, game.map.trees_layer.array)
         self.update_sprite_list(self.roads_layer, game.map.roads_layer.array)
         self.update_sprite_list(self.buildings_layer, game.map.buildings_layer.array)
-        self.update_walker_list(self.walker_to_render,game.walkersOut)     
+        self.update_walker_list(self.walker_to_render, game.walkersOut)
         pass
 
     def update_sprite_list(self, layer, array):
@@ -86,19 +86,19 @@ class VisualMap():
                 layer.append(_sprite)
         layer.reverse()
 
-    def update_walker_list(self,walker_to_render,walkersout):
+    def update_walker_list(self, walker_to_render, walkersout):
         for k in walkersout:
             print("walker")
         pass
 
-    def draw_layers(self,game):
-        layers = [(self.grass_layer,game.map.grass_layer.activate),(self.roads_layer,game.map.roads_layer.activate),
-                  (self.hills_layer,game.map.hills_layer.activate),(self.trees_layer,game.map.trees_layer.activate),
-                  (self.buildings_layer,game.map.buildings_layer.activate)]
+    def draw_layers(self, game):
+        layers = [(self.grass_layer, game.map.grass_layer.activate), (self.roads_layer, game.map.roads_layer.activate),
+                  (self.hills_layer, game.map.hills_layer.activate), (self.trees_layer, game.map.trees_layer.activate),
+                  (self.buildings_layer, game.map.buildings_layer.activate)]
         for k in layers:
             if k[1]: k[0].draw()
-    
-    def rescale_the_map(self, new_scale,game):
+
+    def rescale_the_map(self, new_scale, game):
         """
         There is an arcade function that might be useful: arcade.SpriteList().rescale()
         This function rescales all the sprites of a spriteList.
@@ -113,35 +113,11 @@ class VisualMap():
         self.setup(game)
         # self.convert_map_cartesian_to_isometric()
         pass
-    
-    def convert_map_cartesian_to_isometric(self):
-        """"
-        Convert a cartesian map to an isometric map
-        """
-        self.convert_layer_cartesian_to_isometric(self.grass_layer)
-        self.convert_layer_cartesian_to_isometric(self.hills_layer)
-        self.convert_layer_cartesian_to_isometric(self.trees_layer)
-        self.convert_layer_cartesian_to_isometric(self.roads_layer)
-        self.convert_layer_cartesian_to_isometric(self.buildings_layer)
 
-    def convert_layer_cartesian_to_isometric(self, layer):
-        k = 0
-        for sprite in layer:
-            if sprite is not None:
-                cart_x, cart_y = sprite.center_x, sprite.center_y
-                sprite.center_x, sprite.center_y = self.convert_cartesian_px_to_isometric_px(cart_x, cart_y, k)
-                k += 1
-                k = k % constantes.TILE_COUNT
-
-    def convert_cartesian_px_to_isometric_px(self, cartesian_x, cartesian_y, offset):
-        isometric_x = (cartesian_x + cartesian_y) - (constantes.TILE_WIDTH * self.map_scaling * offset / 2)
-        isometric_y = (-cartesian_x + cartesian_y) / 2 + (constantes.TILE_HEIGHT * self.map_scaling * offset / 2)
-        return isometric_x, isometric_y
-    
     def get_map_center(self):
         center_tile = self.grass_layer[int(len(self.grass_layer) // 2 + constantes.TILE_COUNT // 2)]
         return Vec2(center_tile.center_x, center_tile.center_y)
-    
+
     def get_sprite_at_screen_coordinates(self, pos):
         """
         Cette fonction va retourner la position logique (line, column) du sprite qui se trouve aux coordonnées x,y

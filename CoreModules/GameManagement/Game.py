@@ -2,7 +2,7 @@ from CoreModules import *
 from Services import Service_Game_Data, servicesGlobalVariables, servicesmMapSpriteToFile
 
 
-class Game():
+class Game:
     def __init__(self, map):
         self.map = map
         self.money = 0
