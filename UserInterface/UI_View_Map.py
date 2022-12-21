@@ -24,6 +24,16 @@ MAP_CAMERA_SPEED = 0.5
 """
 
 
+def convert_sprite_list_index_to_logic_position(sprite_list_index):
+    """
+    Il faut tenir compte du fait que les spritesList sont inversées pour l'affichage et donc que l'ordre est inversé
+    Par exemple, la sprite (0,0) sera la dernière dans une liste et non la première.
+    """
+    line = constantes.TILE_COUNT - 1 - sprite_list_index // constantes.TILE_COUNT
+    column = constantes.TILE_COUNT - 1 - sprite_list_index % constantes.TILE_COUNT
+    return line, column
+
+
 class MapView(arcade.View):
     # red_sprite est un sprite qui va permettre de détecter la sprite la plus proche d'une position de clic de souris
     # de l'utilisateur
@@ -57,6 +67,9 @@ class MapView(arcade.View):
 
         # 4 booleans to check the key pressed
         self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed = False, False, False, False
+
+        self.mouse_left_pressed, self.mouse_right_pressed = False, False
+        self.mouse_right_maintained = False
 
         self.setup()
         # self.convert_map_cartesian_to_isometric()
@@ -122,6 +135,9 @@ class MapView(arcade.View):
         self.walkers_list = arcade.SpriteList()
 
     def create_sprite_list(self, layer, layer_name, array):
+        # On vide le layer avant de le recréer
+        layer.clear()
+
         k = 0
         for i in range(0, len(array)):  # I=On parcout le tableau logique du bas vers le haut
             line = array[i]
@@ -167,6 +183,7 @@ class MapView(arcade.View):
 
                 # On ajoute le sprite au layer (spriteList)
                 layer.append(_sprite)
+        assert len(layer) == constantes.TILE_COUNT**2
 
     def on_show_view(self):
         self.secmanager.enable()
@@ -185,9 +202,9 @@ class MapView(arcade.View):
         # On draw la map que si elle est activée
         if self.logic_map.active:
             self.grass_layer.draw()
+            self.roads_layer.draw()
             self.hills_layer.draw()
             self.trees_layer.draw()
-            self.roads_layer.draw()
             self.buildings_layer.draw()
 
             # Testing
@@ -211,27 +228,37 @@ class MapView(arcade.View):
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
         """
         Quand on clique un sprite rouge se dessine sur le sprite le plus proche du point cliqué
-
         """
-        (x, y) = Vec2(x, y) + self.map_camera.position
 
+        # Tuple position à envoyer à on_mouse_release
+        self.mouse_pos = Vec2(x, y) + self.map_camera.position
         self.red_sprite = arcade.Sprite("./Assets/sprites/C3/Land/LandOverlay/Land2a_00037.png",
-                                        scale=self.map_scaling, center_x=x,
-                                        center_y=y, hit_box_algorithm="Detailed")
+                                        scale=self.map_scaling, center_x=self.mouse_pos[0],
+                                        center_y=self.mouse_pos[1], hit_box_algorithm="Detailed")
+        # self.red_sprite.visible = True
 
-        if button == arcade.MOUSE_BUTTON_LEFT:
-            self.red_sprite.visible = True
-            (nearest_sprite, d) = arcade.get_closest_sprite(self.red_sprite, self.grass_layer)
-            self.red_sprite.center_x, self.red_sprite.center_y = nearest_sprite.center_x, nearest_sprite.center_y
+        if button == arcade.MOUSE_BUTTON_RIGHT:
+            self.mouse_right_pressed = True
+            self.mouse_right_maintained = False
 
-        # For testing
-        elif button == arcade.MOUSE_BUTTON_RIGHT:
-            # On ajoute une route
-            self.red_sprite.visible = False
-            self.add_road()
+    def on_mouse_release(self, x: int, y: int, button: int, modifiers: int):
+        if button == arcade.MOUSE_BUTTON_RIGHT:
+            self.mouse_right_pressed = False
+            if not self.mouse_right_maintained:
+                self.add_road(self.mouse_pos)
+
+            self.mouse_right_maintained = False
+            # self.red_sprite.visible = False
 
     def on_mouse_motion(self, x: int, y: int, dx: int, dy: int):
-        self.mouse_pos = Vec2(x, y) + self.map_camera.position
+        if self.mouse_right_pressed:
+            tmp_end_pos = Vec2(x, y) + self.map_camera.position
+            if self.mouse_right_maintained:
+                self.add_roads_serie(self.mouse_pos, tmp_end_pos, True)
+            else:
+                self.add_roads_serie(self.mouse_pos, tmp_end_pos)
+            self.mouse_right_maintained = True
+        # self.red_sprite.visible = False
 
     def on_update(self, delta_time: float):
         self.grass_layer.update()
@@ -239,14 +266,6 @@ class MapView(arcade.View):
         self.trees_layer.update()
         self.roads_layer.update()
         self.buildings_layer.update()
-
-        # On update les logic arrays pour synchroniser la logique et le visuel
-        # On récupère le tableau logique associé à chaque layer
-        self.grass_array = self.logic_map.grass_layer.array
-        self.hills_array = self.logic_map.hills_layer.array
-        self.trees_array = self.logic_map.trees_layer.array
-        self.roads_array = self.logic_map.roads_layer.array
-        self.buildings_array = self.logic_map.buildings_layer.array
 
         self.move_map_camera_with_keys()
 
@@ -417,29 +436,55 @@ class MapView(arcade.View):
         elif layer == self.logic_map.buildings_layer:
             return self.buildings_layer[index]
 
-    def convert_sprite_list_index_to_logic_position(self, sprite_list_index):
+    def add_road(self, pos) -> bool:
         """
-        Il faut tenir compte du fait que les spritesList sont inversées pour l'affichage et donc que l'ordre est inversé
-        Par exemple, la sprite (0,0) sera la dernière dans une liste et non la première.
+        Fonction d'ajout de route
         """
-        line = constantes.TILE_COUNT - 1 - sprite_list_index // constantes.TILE_COUNT
-        column = constantes.TILE_COUNT - 1 - sprite_list_index % constantes.TILE_COUNT
-        return line, column
 
-    def add_road(self):
-
+        self.red_sprite.center_x, self.red_sprite.center_y = pos
         (nearest_sprite, d) = arcade.get_closest_sprite(self.red_sprite, self.grass_layer)
+        self.red_sprite.center_x, self.red_sprite.center_y = nearest_sprite.center_x, nearest_sprite.center_y
 
         index = self.grass_layer.index(nearest_sprite)
 
-        line, column = self.convert_sprite_list_index_to_logic_position(index)
-
-        my_road = element.Element(self.roads_layer, constantes.LAYER4, "normal")
+        line, column = convert_sprite_list_index_to_logic_position(index)
 
         if self.logic_map.roads_layer.set_cell_constrained_to_bottom_layer([self.logic_map.buildings_layer,
                                                                             self.logic_map.hills_layer,
                                                                             self.logic_map.trees_layer], line,
-                                                                           column,
-                                                                           my_road):
+                                                                           column):
             # si la route a été bien ajoutée on update la spritelist en la recréant
             self.create_sprite_list(self.roads_layer, constantes.LAYER4, self.roads_array)
+            return True
+
+    def add_roads_serie(self, start_pos, end_pos, dynamically=False) -> bool:
+        """
+        Fonction qui permet d'ajouter une série de routes
+        Prend en paramètre 2 positions de souris sous forme de tuple
+        """
+        # On calcule la position (ligne, colonne) associée à la position de début et à la position de fin
+        self.red_sprite.center_x, self.red_sprite.center_y = start_pos
+        (nearest_sprite, d) = arcade.get_closest_sprite(self.red_sprite, self.grass_layer)
+        self.red_sprite.center_x, self.red_sprite.center_y = nearest_sprite.center_x, nearest_sprite.center_y
+
+        index = self.grass_layer.index(nearest_sprite)
+
+        # Plus important
+        line1, column1 = convert_sprite_list_index_to_logic_position(index)
+
+        self.red_sprite.center_x, self.red_sprite.center_y = end_pos
+        (nearest_sprite, d) = arcade.get_closest_sprite(self.red_sprite, self.grass_layer)
+        self.red_sprite.center_x, self.red_sprite.center_y = nearest_sprite.center_x, nearest_sprite.center_y
+
+        index = self.grass_layer.index(nearest_sprite)
+
+        # Plus important
+        line2, column2 = convert_sprite_list_index_to_logic_position(index)
+
+        if self.logic_map.roads_layer.add_roads_serie((line1, column1), (line2, column2),
+                                                      [self.logic_map.buildings_layer, self.logic_map.trees_layer,
+                                                       self.logic_map.hills_layer],
+                                                      memorize=dynamically):
+            self.create_sprite_list(self.roads_layer, constantes.LAYER4, self.roads_array)
+            return True
+        return False

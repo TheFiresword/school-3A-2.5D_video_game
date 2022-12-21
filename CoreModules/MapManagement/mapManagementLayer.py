@@ -144,14 +144,18 @@ class Layer:
         if origin_version != "null":
             for i in range(0, size):
                 for j in range(0, size):
-                    e = element_class(self, self.type, 0, "null")
+                    e = element_class(self, self.type, "null")
                     self.array[origin_x + i][origin_y + j] = e
                     self.array[origin_x + i][origin_y + j].position = (origin_x + i, origin_y + j)
                     self.array[origin_x + i][origin_y + j].id = VOID_CELL_ID
 
+    def get_cell(self, line, column):
+        if position_is_valid(line, column):
+            return self.array[line][column]
+        return None
+
     def set_cell(self, line, column, element, can_replace=False) -> bool:
         """
-        _dic: Un dictionnaire avec une version et un nombre de cellules
         can_replace: Un booléen qui dit si on peut remplacer une cellule existante
         Cette fonction assigne un Element à la cellule (line,column) du layer.
         Il faut que cette cellule soit vide
@@ -167,7 +171,7 @@ class Layer:
             return False
 
         # Toutes les conditions sont remplies
-        # On copie les informations de l'Element dans la case correspondante--On garde l'id de la case
+        # On copie les informations de l'Element dans la case correspondante
         self.array[line][column] = element
         self.array[line][column].id = next(self.id_iterator)
         self.array[line][column].position = (line, column)

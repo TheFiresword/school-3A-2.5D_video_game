@@ -68,8 +68,8 @@ def mapping_function(element_type, type_version) -> (str, int):
             return "./Assets/sprites/C3/Land/Land3/Land3a_00089.png", 1
         elif type_version == "exit":
             return "./Assets/sprites/C3/Land/Land3/Land3a_00087.png", 1
-        elif int(type_version) >= 0 and type_version < "00011":
-            return "./Assets/sprites/C3/Land/Land3/Land3a_" + type_version + ".png", 1
+        elif int(type_version) >= 0 and type_version < "00111":
+            return "./Assets/sprites/C3/Land/LandOverlay/Land2a_" + type_version + ".png", 1
         else:
             return "", 0
 

@@ -2,10 +2,9 @@ import random
 
 from CoreModules.MapManagement import mapManagementLayer as overlay
 import CoreModules.BuildingsManagement.buildingsManagementBuilding as building
+import CoreModules.BuildingsManagement.buildingsManagementRoad as roadoverlay
 import CoreModules.TileManagement.tileManagementElement as element
 import Services.servicesGlobalVariables as globalVar
-
-
 
 
 class MapLogic:
@@ -107,19 +106,11 @@ class MapLogic:
 
         # -------------------------------------------------------------------------------------------------------------#
         # ROADS
-        self.roads_layer = overlay.Layer(globalVar.LAYER4)
-
-        entry_road = element.Element(self.roads_layer, globalVar.LAYER4, "entry")
-        exit_road = element.Element(self.roads_layer, globalVar.LAYER4, "exit")
+        self.roads_layer = roadoverlay.RoadLayer()
         middle = int(globalVar.TILE_COUNT * 1 / 2)
-        self.roads_layer.set_cell(2 * middle - 1, middle - 1, entry_road)
-        self.roads_layer.set_cell(0, middle - 1, exit_road)
-
         for i in range(0, 2 * middle):
-            my_normal_road = element.Element(self.roads_layer,globalVar.LAYER4, "normal")
             self.roads_layer.set_cell_constrained_to_bottom_layer([self.hills_layer, self.trees_layer],
-                                                                  i, middle, my_normal_road)
-
+                                                                  i, middle)
         # -------------------------------------------------------------------------------------------------------------#
         # BUILDINGS
         self.buildings_layer = overlay.Layer(globalVar.LAYER5)
