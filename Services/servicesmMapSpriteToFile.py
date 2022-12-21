@@ -1,4 +1,4 @@
-def mapping_function(element_type, type_version) -> (str, int):
+def mapping_function(element_type, type_version) -> (str,int):
     """
     Fonction de mapping version d'un élément -> chemin de fichier
     """
