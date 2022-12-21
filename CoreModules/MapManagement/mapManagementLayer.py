@@ -2,7 +2,8 @@ import Services.servicesGlobalVariables as globalVar
 import Services.servicesmMapSpriteToFile as mapping
 import CoreModules.TileManagement.tileManagementElement as Element
 
-from  CoreModules.BuildingsManagement.buildingsManagementBuilding import Building
+from CoreModules.BuildingsManagement.buildingsManagementBuilding import Building
+
 # PROBLEME Les lignes et les colonnes sont inversées je ne sais pas pourquoi
 """
 ++++Un layer va être un tableau à 2 dimensions d'Elements
@@ -157,7 +158,7 @@ class Layer:
             return True
         else:
             return False
-    
+
     def get_cell(self, line, column):
         if position_is_valid(line, column):
             return self.array[line][column]
@@ -250,7 +251,7 @@ class Layer:
                     # Un bout de code pour afficher la classe exacte d'un Element
                     chaine = "".join(reversed(str(type(self.array[line][column]))))
                     start = len(chaine) - chaine.index('.') - 1
-                    chaine = ("".join(reversed(chaine)))[start+1: len(chaine)-2]
+                    chaine = ("".join(reversed(chaine)))[start + 1: len(chaine) - 2]
 
                     print(f"{chaine} --{self.array[line][column].dic} -- {self.array[line][column].id} -- "
                           f"{self.array[line][column].position} ")
