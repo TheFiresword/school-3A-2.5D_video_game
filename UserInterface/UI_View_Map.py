@@ -1,10 +1,7 @@
-import math
-
 import arcade
 import arcade.gui
 
 from Services import servicesGlobalVariables as constantes
-from Services import servicesmMapSpriteToFile as map_sprite
 from Services import Service_Game_Data as gdata
 
 from pyglet.math import Vec2
@@ -13,8 +10,6 @@ from UserInterface import UI_Section as uis
 from UserInterface import UI_buttons
 from UserInterface import UI_HUD_Build as hudb
 
-# a retirer
-import CoreModules.TileManagement.tileManagementElement as element
 
 MAP_CAMERA_SPEED = 0.5
 """
@@ -72,9 +67,6 @@ class MapView(arcade.View):
         self.mouse_right_maintained = False
 
         self.setup()
-        # self.convert_map_cartesian_to_isometric()
-        # Afficher les sprites du haut vers le bas
-        self.draw_sprites_from_top()
 
         # a camera to travel through the map
         # set up the camera and centre it
@@ -183,17 +175,11 @@ class MapView(arcade.View):
 
                 # On ajoute le sprite au layer (spriteList)
                 layer.append(_sprite)
+        layer.reverse()
         assert len(layer) == constantes.TILE_COUNT**2
 
     def on_show_view(self):
         self.secmanager.enable()
-
-    def draw_sprites_from_top(self):
-        self.trees_layer.reverse()
-        self.grass_layer.reverse()
-        self.roads_layer.reverse()
-        self.hills_layer.reverse()
-        self.buildings_layer.reverse()
 
     def on_draw(self):
         self.clear()
@@ -367,9 +353,7 @@ class MapView(arcade.View):
         self.map_scaling = new_scale
         self.clear()
         self.setup()
-        # self.convert_map_cartesian_to_isometric()
-        self.draw_sprites_from_top()
-        self.center_map()
+        # self.center_map()
 
     def convert_map_cartesian_to_isometric(self):
         """"

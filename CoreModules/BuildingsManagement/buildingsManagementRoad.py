@@ -12,7 +12,7 @@ class RoadLayer(layer.Layer):
         super().__init__(globalVar.LAYER4)
         # une variable qui sera passée à la fonction cancel_roads_serie() et qui sera remplie dans la fonction
         # add_roads_serie()
-        self.original_roads = {'versions': [], 'positions': []}
+        self.original_roads = {'elements': [], 'positions': []}
 
     def setup(self):
         super().setup()
@@ -53,8 +53,11 @@ class RoadLayer(layer.Layer):
         values = {'raw_value': -1, 'column_value': -1, 'hside': None, 'vside': None}
 
         if memorize:
-            self.original_roads['versions'].append(self.get_cell(line, column).dic['version'])
-            self.original_roads['positions'].append((line, column))
+            # Etant donné que la fonction est appelée de manière récursive il faut de mémoriser 2 états d'une même
+            # position sinon après le reset c'est le dernier état qui sera remis
+            if (line, column) not in self.original_roads['positions']:
+                self.original_roads['elements'].append(self.get_cell(line, column))
+                self.original_roads['positions'].append((line, column))
 
         # On appelle la fonction d'évaluation
         self.evaluate_order(line, column, values)
@@ -111,10 +114,10 @@ class RoadLayer(layer.Layer):
         self.array[line][column].position = (line, column)
 
         if recursively:
-            self.set_cell(line, column - 1, can_replace=True, recursively=False, memorize=False)
-            self.set_cell(line, column + 1, can_replace=True, recursively=False, memorize=False)
-            self.set_cell(line-1, column,  can_replace=True, recursively=False, memorize=False)
-            self.set_cell(line+1, column, can_replace=True, recursively=False, memorize=False)
+            self.set_cell(line, column - 1, can_replace=True, recursively=False, memorize=memorize)
+            self.set_cell(line, column + 1, can_replace=True, recursively=False, memorize=memorize)
+            self.set_cell(line-1, column,  can_replace=True, recursively=False, memorize=memorize)
+            self.set_cell(line+1, column, can_replace=True, recursively=False, memorize=memorize)
 
         return True
 
@@ -174,6 +177,21 @@ class RoadLayer(layer.Layer):
             values['column_value'] += 1
             return
 
+        # le cas des routes du milieu qui sont à côté d'un panneau
+        signal_only_neigboor = (left_version in ["entry", "exit"] and right_version==top_version=="null" and not
+        bottom_version) or (left_version in ["entry", "exit"] and right_version==bottom_version=="null" and not
+        top_version) or (right_version in ["entry", "exit"] and left_version==top_version=="null" and not
+        bottom_version) or (right_version in ["entry", "exit"] and left_version==bottom_version=="null" and not
+        top_version) or (bottom_version in ["entry", "exit"] and left_version==top_version=="null" and not
+        right_version) or (top_version in ["entry", "exit"] and left_version==bottom_version=="null" and not
+        right_version) or (bottom_version in ["entry", "exit"] and right_version==top_version=="null" and not
+        left_version) or (top_version in ["entry", "exit"] and right_version==bottom_version=="null" and not
+        left_version)
+
+        if signal_only_neigboor:
+            values['column_value'] += 1
+            return
+
         if left_version not in ["null", "entry", "exit", None]:
             values['hside'] = 'LEFT'
             if left_version == "00106":
@@ -199,7 +217,7 @@ class RoadLayer(layer.Layer):
             values['column_value'] += 1
 
     def reinitialize_buffer(self):
-        self.original_roads['versions'].clear()
+        self.original_roads['elements'].clear()
         self.original_roads['positions'].clear()
 
     def cancel_roads_serie(self):
@@ -211,8 +229,9 @@ class RoadLayer(layer.Layer):
         count = 0
         for position in self.original_roads['positions']:
             self.remove_cell(position[0], position[1])
-            previous_road = Element.Element(self, self.type, (self.original_roads['versions'])[count])
-            assert self.forced_set_cell(position[0], position[1], previous_road), "A problem occured"
+            previous_road = self.original_roads['elements'][count]
+            assert self.forced_set_cell(position[0], position[1], previous_road), "A problem occured while " \
+                                                                                  "resetting a road"
             count += 1
         self.reinitialize_buffer()
 
@@ -230,6 +249,9 @@ class RoadLayer(layer.Layer):
 
         # une variable qui dit si au moins une route a été ajoutée
         added = False
+
+        # une variable qui dit si la série de routes est valide, c'est à dire qu'il n'y a aucun obstacle entre les 2
+        valid = True
 
         if line1 >= line2:
             vrange = range(line1, line2 - 1, -1)
@@ -250,12 +272,15 @@ class RoadLayer(layer.Layer):
         for i in vrange:
             if self.set_cell_constrained_to_bottom_layer(collision_list, i, column1, memorize=memorize):
                 added = True
-
+            else:
+                valid = False
         # On dessine une ligne horizontale de routes de la colonne de départ jusqu'à celle de fin à partir de la fin de
         # la ligne de routes précédente.
         for j in hrange:
             if self.set_cell_constrained_to_bottom_layer(collision_list, line2, j, memorize=memorize):
                 added = True
+            else:
+                valid = False
 
         if added:
             return True
