@@ -161,7 +161,6 @@ class GameView(arcade.View):
         if x < constantes.DEFAULT_SCREEN_WIDTH -165:
             if button == arcade.MOUSE_BUTTON_LEFT:
                 if self.remove_mode:
-                    print("remove")
                     if self.mouse_left_maintained:
                         self.remove_elements_serie(self.init_mouse_pos,(Vec2(x,y)+ self.map_camera.position))
                     else:
@@ -239,9 +238,6 @@ class GameView(arcade.View):
             self.visualmap.red_sprite.visible = False
         elif symbol == arcade.key.N:
             self.builder_mode = False
-        # ## Testing removing
-        elif symbol == arcade.key.D:
-            self.pre_remove = True
 
     def on_key_release(self, _symbol: int, _modifiers: int):
         if _symbol == arcade.key.UP:
@@ -252,9 +248,6 @@ class GameView(arcade.View):
             self.left_pressed = False
         elif _symbol == arcade.key.RIGHT:
             self.right_pressed = False
-        # ## Testing removing
-        elif _symbol == arcade.key.D:
-            self.pre_remove = False
 
     def move_map_camera_with_keys(self):
 
