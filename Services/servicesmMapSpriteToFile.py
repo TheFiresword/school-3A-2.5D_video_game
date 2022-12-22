@@ -74,9 +74,9 @@ def mapping_function(element_type, type_version, building_level=0) -> (str,int):
             return "", 0
 
     elif element_type == "buildings":
-        if type_version == "dwelling":
+        if type_version == "dwell":
             if building_level == 0:
-                return "./Assets/sprites/C3/Land/housng/Housng1a_00001.png", 1
+                return "./Assets/sprites/C3/Land/housng/Housng1a_00045.png", 1
 
         elif type_version == "dwelling5":
             return "./Assets/sprites/C3/Land/housng/Housng1a_00034.png", 2

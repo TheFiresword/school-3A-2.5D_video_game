@@ -1,7 +1,7 @@
 import Services.servicesGlobalVariables as globalVar
 import Services.servicesmMapSpriteToFile as mapping
+from Services.Service_Game_Data import building_dico
 import CoreModules.TileManagement.tileManagementElement as Element
-
 from CoreModules.BuildingsManagement.buildingsManagementBuilding import Building
 
 # PROBLEME Les lignes et les colonnes sont inversées je ne sais pas pourquoi
@@ -164,7 +164,7 @@ class Layer:
             return self.array[line][column]
         return None
 
-    def set_cell(self, line, column, element, can_replace=False) -> bool:
+    def set_cell(self, line, column, element: Element, can_replace: bool = False, available_money: int = 50) -> bool:
         """
         _dic: Un dictionnaire avec une version et un nombre de cellules
         can_replace: Un booléen qui dit si on peut remplacer une cellule existante
@@ -173,15 +173,21 @@ class Layer:
         Si l'attribut cells_number de l'Element > 1 alors il faut vérifier que toutes les cellules sur lesquelles il
         empiète sont vides
         """
-        # Pré-conditions: La position doit être valide et la case doit contenir un Element de version "null" si can't
-        # replace
 
+        # Preconditions: the element has to occupy at least 1 case and the position (line, column) has to be valid
         cells_number = element.dic['cells_number']
         assert cells_number > 0
+
+        # Precondition: the current cell can be modified
         if not self.changeable(line, column, cells_number, can_replace):
             return False
 
-        # Toutes les conditions sont remplies
+        # Precondition: we must have enough money for adding a building
+        if self.type == globalVar.LAYER5:
+            version = element.dic['version']
+            if available_money < building_dico[version].cost:
+                return False
+
         # On copie les informations de l'Element dans la case correspondante--On garde l'id de la case
         self.array[line][column] = element
         self.array[line][column].id = next(self.id_iterator)
@@ -201,7 +207,7 @@ class Layer:
         return True
 
     def set_cell_constrained_to_bottom_layer(self, bottom_layers_list, line, column, element,
-                                             can_replace=False) -> bool:
+                                             can_replace=False, available_money: int = 50) -> bool:
         """
         Cette fonction insère un Element dans un layer à la position (line, column)  si et seulement si les cellules
         (line, column) des layers contenus dans la liste bottom_layers_list, sont "null"
@@ -210,7 +216,7 @@ class Layer:
         for i in range(count):
             if bottom_layers_list[i].array[line][column].dic["version"] != "null":
                 return False
-        return self.set_cell(line, column, element, can_replace)
+        return self.set_cell(line, column, element, can_replace, available_money)
 
     def changeable(self, line, column, cells_number, can_replace):
         """
