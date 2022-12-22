@@ -21,7 +21,7 @@ class MainWindow(arcade.Window):
         self.loadscreen = lv.LoadScreen()
         map1 = map.MapLogic()
         #self.gamescreen = gv.MapView(map1)
-        self.gamescreen = rgv.GameView(None)
+        self.gamescreen = rgv.GameView(_game=None)
 
     # Lancement
     def setup(self):

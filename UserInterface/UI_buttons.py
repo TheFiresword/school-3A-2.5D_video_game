@@ -13,7 +13,7 @@ tuples_buttons = [(155,240,13,"000",79),(78,240,14,"000",82),
                  ]
 
 buttons = [(constantes.DEFAULT_SCREEN_WIDTH - x,
-            constantes.DEFAULT_SCREEN_HEIGHT - y,
+            constantes.DEFAULT_SCREEN_HEIGHT - y +28 ,
             arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel" + str(folder)+"/paneling_" +zero+ str(number) +".png"),
             arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel" + str(folder)+"/paneling_" +zero+ str(number+1) +".png"),
             arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel" + str(folder)+"/paneling_" +zero+ str(number+2) +".png"))
