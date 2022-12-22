@@ -17,6 +17,7 @@ from pyglet.math import Vec2
 MAP_CAMERA_SPEED = 0.5
 
 
+
 class GameView(arcade.View):
 
     def __init__(self, _game):
