@@ -3,7 +3,7 @@ from uuid import uuid4
 import arcade
 import math
 from pyglet.math import Vec2
-
+import pathfinding
 
 SPRITE_SCALING = 2
 SCALE_MIN = SPRITE_SCALING / 2

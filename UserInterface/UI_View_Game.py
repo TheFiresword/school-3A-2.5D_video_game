@@ -386,10 +386,10 @@ class GameView(arcade.View):
     # Side tab buttons functions (too hard to place anywhere else)
     #===============================================
 
-    def button_click_house(self):
+    def button_click_house(self, event):
         pass
     
-    def button_click_shovel(self,event):
+    def button_click_shovel(self, event):
         self.builder_mode = False
         window = arcade.get_window()
         #window.set_mouse_visible(False)
@@ -397,7 +397,7 @@ class GameView(arcade.View):
         print("shovel")
         pass    
 
-    def button_click_road(self,event):
+    def button_click_road(self, event):
         print("button road")
         self.remove_mode = False
         window = arcade.get_window()
@@ -406,39 +406,39 @@ class GameView(arcade.View):
         self.builder_content = "road"
         pass
     
-    def button_click_water():
+    def button_click_water(self, event):
         pass
 
-    def button_click_health():
+    def button_click_health(self, event):
         pass
 
-    def button_click_lightning():
+    def button_click_lightning(self, event):
         pass
 
-    def button_click_paper():
+    def button_click_paper(self, event):
         pass
 
-    def button_click_entertainement():
+    def button_click_entertainement(self, event):
         pass
 
-    def button_click_education():
+    def button_click_education(self, event):
         pass
 
-    def button_click_hammer():
+    def button_click_hammer(self, event):
         pass
 
-    def button_click_sword():
+    def button_click_sword(self, event):
         pass
 
-    def button_click_supply():
+    def button_click_supply(self, event):
         pass
 
-    def button_click_cross():
+    def button_click_cross(self, event):
         pass
 
-    def button_click_list():
+    def button_click_list(self, event):
         pass
 
-    def button_click_bell():
+    def button_click_bell(self, event):
         pass
 
