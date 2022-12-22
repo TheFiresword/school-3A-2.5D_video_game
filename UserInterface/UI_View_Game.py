@@ -17,7 +17,6 @@ from pyglet.math import Vec2
 MAP_CAMERA_SPEED = 0.5
 
 
-
 class GameView(arcade.View):
 
     def __init__(self, _game):
@@ -27,17 +26,17 @@ class GameView(arcade.View):
             self.game = _game
         # =======================================
         # Intels about the current player action
-        #=======================================
-        self.mouse_pos = (0,0)
-        self.init_mouse_pos = (0,0)
+        # =======================================
+        self.mouse_pos = (0, 0)
+        self.init_mouse_pos = (0, 0)
         self.mouse_left_pressed, self.mouse_right_pressed = False, False
-        self.mouse_left_maintained ,self.mouse_right_maintained = False ,False
+        self.mouse_left_maintained, self.mouse_right_maintained = False, False
         self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed = False, False, False, False
-        
+
         self.builder_mode = False
         self.builder_content = ""
         self.remove_mode = None
-        #=======================================
+        # =======================================
         # Arcade stuff
         # =======================================
         arcade.set_background_color(arcade.color.BLACK)
@@ -53,15 +52,16 @@ class GameView(arcade.View):
         self.tab = arcade.load_texture(constantes.SPRITE_PATH + "PanelsOther/paneling_00017.png")
         self.bar = arcade.load_texture(constantes.SPRITE_PATH + "Panel\Panel2\paneling_00010.png")
         buttons_render = UI_buttons.buttons
-        self.buttons = [arcade.gui.UITextureButton(x=b0, y=b1, texture=b2, texture_hovered=b3, texture_pressed=b4,scale= constantes.SPRITE_SCALING) for
+        self.buttons = [arcade.gui.UITextureButton(x=b0, y=b1, texture=b2, texture_hovered=b3, texture_pressed=b4,
+                                                   scale=constantes.SPRITE_SCALING) for
                         (b0, b1, b2, b3, b4) in buttons_render]
         self.buttons[6].on_click = self.button_click_shovel
         self.buttons[7].on_click = self.button_click_road
-        
+
         for k in self.buttons:
             self.manager.add(k)
-        
-        #=======================================
+
+        # =======================================
         # Map related Visuals elements 
         # =======================================
         self.visualmap = uivm.VisualMap()
@@ -77,7 +77,7 @@ class GameView(arcade.View):
             self.game = game.Game(map.MapLogic())
         self.visualmap.setup(self.game)
         self.center_map()
-        self.builder_content = "Dwell"
+        self.builder_content = "dwell"
 
     # =======================================
     #  View Related Fuctions
@@ -96,17 +96,18 @@ class GameView(arcade.View):
         self.map_camera.use()  # select camera linked to map
         if self.game.map.active:  # if map displayed
             self.visualmap.draw_layers(self.game)
-            #Test click on map
-            if self.visualmap.red_sprite.visible: 
-                #self.visualmap.red_sprite.draw_hit_box(color=(255, 0, 0), line_thickness=1)
+            # Test click on map
+            if self.visualmap.red_sprite.visible:
+                # self.visualmap.red_sprite.draw_hit_box(color=(255, 0, 0), line_thickness=1)
                 self.visualmap.red_sprite.alpha = 80
-                self.visualmap.red_sprite.color= (255, 0, 0)
+                self.visualmap.red_sprite.color = (255, 0, 0)
                 self.visualmap.red_sprite.draw()
 
-            if self.builder_mode and self.builder_content != "road":
-                hollow = hudb.hollow_build(self.mouse_pos[0], self.mouse_pos[1], gdata.building_dico[self.builder_content],self.visualmap)
+            if self.builder_mode and self.builder_content not in ["road"]:
+                hollow = hudb.hollow_build(self.mouse_pos[0], self.mouse_pos[1],
+                                           gdata.building_dico[self.builder_content], self.visualmap)
                 hollow.draw()
-            
+
             if self.remove_mode:
                 hollow = hudb.hollow(self.mouse_pos[0], self.mouse_pos[1])
                 hollow.draw()
@@ -114,10 +115,11 @@ class GameView(arcade.View):
         # Display Menu related content
         # =======================================
         self.menu_camera.use()
-        arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH/2,center_y=constantes.DEFAULT_SCREEN_HEIGHT-20,
-                                     width=constantes.DEFAULT_SCREEN_WIDTH,height=40,texture=self.bar)
+        arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH / 2,
+                                      center_y=constantes.DEFAULT_SCREEN_HEIGHT - 20,
+                                      width=constantes.DEFAULT_SCREEN_WIDTH, height=40, texture=self.bar)
         arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH - 81,
-                                      center_y=constantes.DEFAULT_SCREEN_HEIGHT - 285 +28,
+                                      center_y=constantes.DEFAULT_SCREEN_HEIGHT - 285 + 28,
                                       width=162, height=constantes.DEFAULT_SCREEN_HEIGHT / 2,
                                       texture=self.tab
                                       )
@@ -131,23 +133,25 @@ class GameView(arcade.View):
     # =======================================
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
-        #===================================
-        #Left click Draw red rectangle around closest sprite to mouse
-        #===================================
-        
-        (map_pos_x,map_pos_y) = Vec2(x, y) + self.map_camera.position
-        self.init_mouse_pos = (map_pos_x,map_pos_y)
-        if x < constantes.DEFAULT_SCREEN_WIDTH -165:
+        # ===================================
+        # Left click Draw red rectangle around closest sprite to mouse
+        # ===================================
+
+        (map_pos_x, map_pos_y) = Vec2(x, y) + self.map_camera.position
+        self.init_mouse_pos = (map_pos_x, map_pos_y)
+        if x < constantes.DEFAULT_SCREEN_WIDTH - 165:
             if button == arcade.MOUSE_BUTTON_LEFT:
                 self.visualmap.red_sprite = arcade.Sprite(constantes.SPRITE_PATH + "Land/LandOverlay/Land2a_00037.png",
-                                        scale=self.visualmap.map_scaling, center_x=map_pos_x,
-                                        center_y=map_pos_y, hit_box_algorithm="Detailed")
+                                                          scale=self.visualmap.map_scaling, center_x=map_pos_x,
+                                                          center_y=map_pos_y, hit_box_algorithm="Detailed")
                 self.visualmap.red_sprite.visible = True
                 if not self.builder_mode and not self.builder_content == "road":
-                    (nearest_sprite, d) = arcade.get_closest_sprite(self.visualmap.red_sprite, self.visualmap.buildings_layer)
+                    (nearest_sprite, d) = arcade.get_closest_sprite(self.visualmap.red_sprite,
+                                                                    self.visualmap.buildings_layer)
                     self.visualmap.red_sprite.texture = nearest_sprite.texture
                 else:
-                    (nearest_sprite, d) = arcade.get_closest_sprite(self.visualmap.red_sprite, self.visualmap.grass_layer)
+                    (nearest_sprite, d) = arcade.get_closest_sprite(self.visualmap.red_sprite,
+                                                                    self.visualmap.grass_layer)
                 self.visualmap.red_sprite.center_x, self.visualmap.red_sprite.center_y = nearest_sprite.center_x, nearest_sprite.center_y
                 self.mouse_left_pressed = True
             # For testing
@@ -158,28 +162,27 @@ class GameView(arcade.View):
                 self.visualmap.red_sprite.visible = False
 
     def on_mouse_release(self, x: int, y: int, button: int, modifiers: int):
-        if x < constantes.DEFAULT_SCREEN_WIDTH -165:
+        if x < constantes.DEFAULT_SCREEN_WIDTH - 165:
             if button == arcade.MOUSE_BUTTON_LEFT:
                 if self.remove_mode:
                     if self.mouse_left_maintained:
-                        self.remove_elements_serie(self.init_mouse_pos,(Vec2(x,y)+ self.map_camera.position))
+                        self.remove_elements_serie(self.init_mouse_pos, (Vec2(x, y) + self.map_camera.position))
                     else:
-                        self.remove_sprite(self.mouse_pos)               
+                        self.remove_sprite(self.mouse_pos)
                 if self.builder_mode:
-                    if self.builder_content != "road":
+                    if self.builder_content == "dwell":
                         print("add building")
-                    else:
+                    elif self.builder_content == "road":
                         if not self.mouse_left_maintained:
                             self.add_road(self.mouse_pos)
                 self.mouse_left_pressed = False
                 self.mouse_left_maintained = False
-       
+
             if button == arcade.MOUSE_BUTTON_RIGHT:
                 self.mouse_right_pressed = False
                 self.mouse_right_maintained = False
                 # self.red_sprite.visible = False
 
-        
     def on_mouse_motion(self, x: int, y: int, dx: int, dy: int):
         self.mouse_pos = Vec2(x, y) + self.map_camera.position
         tmp_end_pos = Vec2(x, y) + self.map_camera.position
@@ -192,7 +195,7 @@ class GameView(arcade.View):
             self.mouse_left_maintained = True
         if self.mouse_right_pressed:
             self.mouse_right_maintained = True
-    
+
         # self.red_sprite.visible = False
 
     def on_mouse_scroll(self, x: int, y: int, scroll_x: int, scroll_y: int):
@@ -377,31 +380,37 @@ class GameView(arcade.View):
             self.visualmap.update_sprite_list(self.visualmap.roads_layer, self.game.map.roads_layer.array)
             return True
         return False
-    
-    #===============================================
+
+    # ===============================================
     # Side tab buttons functions (too hard to place anywhere else)
-    #===============================================
+    # ===============================================
 
     def button_click_house(self, event):
-        pass
-    
+        print("button dwell")
+        self.remove_mode = False
+        window = arcade.get_window()
+        # window.set_mouse_visible(True)
+        self.builder_mode = True
+        self.builder_content = "dwell"
+
+
     def button_click_shovel(self, event):
         self.builder_mode = False
         window = arcade.get_window()
-        #window.set_mouse_visible(False)
+        # window.set_mouse_visible(False)
         self.remove_mode = True
         print("shovel")
-        pass    
+        pass
 
     def button_click_road(self, event):
         print("button road")
         self.remove_mode = False
         window = arcade.get_window()
-        #window.set_mouse_visible(True)
+        # window.set_mouse_visible(True)
         self.builder_mode = True
         self.builder_content = "road"
         pass
-    
+
     def button_click_water(self, event):
         pass
 
@@ -437,4 +446,3 @@ class GameView(arcade.View):
 
     def button_click_bell(self, event):
         pass
-
