@@ -51,6 +51,7 @@ class GameView(arcade.View):
         # Visuals elements excepts ones Map related 
         # =======================================
         self.tab = arcade.load_texture(constantes.SPRITE_PATH + "PanelsOther/paneling_00017.png")
+        self.bar = arcade.load_texture(constantes.SPRITE_PATH + "Panel\Panel2\paneling_00010.png")
         buttons_render = UI_buttons.buttons
         self.buttons = [arcade.gui.UITextureButton(x=b0, y=b1, texture=b2, texture_hovered=b3, texture_pressed=b4,scale= constantes.SPRITE_SCALING) for
                         (b0, b1, b2, b3, b4) in buttons_render]
@@ -113,8 +114,10 @@ class GameView(arcade.View):
         # Display Menu related content
         # =======================================
         self.menu_camera.use()
+        arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH/2,center_y=constantes.DEFAULT_SCREEN_HEIGHT-20,
+                                     width=constantes.DEFAULT_SCREEN_WIDTH,height=40,texture=self.bar)
         arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH - 81,
-                                      center_y=constantes.DEFAULT_SCREEN_HEIGHT - 285,
+                                      center_y=constantes.DEFAULT_SCREEN_HEIGHT - 285 +28,
                                       width=162, height=constantes.DEFAULT_SCREEN_HEIGHT / 2,
                                       texture=self.tab
                                       )
