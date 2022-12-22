@@ -1,7 +1,6 @@
 import CoreModules.MapManagement.mapManagementLayer as layer
 import Services.servicesGlobalVariables as globalVar
 import CoreModules.TileManagement.tileManagementElement as Element
-from Services.Service_Game_Data import road_dico
 
 def position_is_valid(i, j):
     return (0 <= i < globalVar.TILE_COUNT) and (0 <= j < globalVar.TILE_COUNT)
@@ -31,7 +30,7 @@ class RoadLayer(layer.Layer):
         self.array[0][middle - 1].id = next(self.id_iterator)
         self.array[0][middle - 1].position = (0, middle - 1)
 
-    def set_cell(self, line, column, recursively=True, can_replace=False, memorize=False, available_money: int = 50) \
+    def set_cell(self, line, column, recursively=True, can_replace=False, memorize=False) \
             -> bool:
         """
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -44,9 +43,6 @@ class RoadLayer(layer.Layer):
         if not self.changeable(line, column, 1, can_replace):
             return False
 
-        # Precondition: we must have enough money for adding a road
-        if available_money < road_dico['cost']:
-            return False
         current_version = self.array[line][column].dic['version']
         # Si la route (line, column) est la route d'entrée ou de sortie ou que la route est vide mais que ce n'est pas
         # la position de départ à laquelle on voulait ajouter on ne fait rien
@@ -127,7 +123,7 @@ class RoadLayer(layer.Layer):
 
 
     def set_cell_constrained_to_bottom_layer(self, bottom_layers_list, line, column, can_replace=False,
-                                             memorize = False, available_money: int = 50) -> bool:
+                                             memorize = False) -> bool:
         """
         Cette fonction insère une route dans un layer à la position (line, column)  si et seulement si les cellules
         (line, column) des layers contenus dans la liste bottom_layers_list, sont "null"
@@ -136,8 +132,7 @@ class RoadLayer(layer.Layer):
         for i in range(count):
             if bottom_layers_list[i].array[line][column].dic["version"] != "null":
                 return False
-        return self.set_cell(line, column, can_replace= can_replace, memorize=memorize, recursively=True,
-                             available_money=available_money)
+        return self.set_cell(line, column, can_replace= can_replace, memorize=memorize, recursively=True)
 
     def forced_set_cell(self, line, column, road):
         # On peut forcer l'ajout d'une route précise
@@ -240,10 +235,14 @@ class RoadLayer(layer.Layer):
             count += 1
         self.reinitialize_buffer()
 
-    def add_roads_serie(self, start_pos, end_pos, collision_list, memorize=False) -> bool:
+    def add_roads_serie(self, start_pos, end_pos, collision_list, memorize=False) -> (bool, int):
         """
         Fonction qui permet d'ajouter une série de routes
         Prend en paramètre 2 couples positions d'indexes
+        Une liste pour vérifier les collisions
+        un booléen qui permet de dire s'il faut mémoriser les routes actuelles
+        Renvoie un booléen qui dit si au moins une route a été ajoutée
+        Renvoie le nombre de routes ajoutées
         """
 
         line1, column1 = start_pos[0], start_pos[1]
@@ -273,10 +272,13 @@ class RoadLayer(layer.Layer):
         else:
             self.reinitialize_buffer()
 
+        # a counter that will be returned as the number of roads added
+        count = 0
         # On dessine une ligne verticale de routes de la ligne de départ jusqu'à la ligne de fin
         for i in vrange:
             if self.set_cell_constrained_to_bottom_layer(collision_list, i, column1, memorize=memorize):
                 added = True
+                count += 1
             else:
                 valid = False
         # On dessine une ligne horizontale de routes de la colonne de départ jusqu'à celle de fin à partir de la fin de
@@ -284,9 +286,10 @@ class RoadLayer(layer.Layer):
         for j in hrange:
             if self.set_cell_constrained_to_bottom_layer(collision_list, line2, j, memorize=memorize):
                 added = True
+                count += 1
             else:
                 valid = False
 
         if added:
-            return True
-        return False
+            return True, count
+        return False, count

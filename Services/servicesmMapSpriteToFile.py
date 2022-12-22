@@ -1,6 +1,7 @@
 from Services import servicesGlobalVariables as const
 
-def mapping_function(element_type, type_version, building_level=0) -> (str,int):
+
+def mapping_function(element_type, type_version, building_level=0) -> (str, int):
     """
     Fonction de mapping version d'un élément -> chemin de fichier
     """
@@ -103,7 +104,103 @@ def mapping_function(element_type, type_version, building_level=0) -> (str,int):
         elif int(type_version) >= 0 and type_version == "00048":
             return const.SPRITE_PATH + "Land/housng/Housng1a_" + type_version + ".png", 5
 
-        if type_version == "wheat_farm":
-            return ""
+        elif type_version == "forum":
+            return const.SPRITE_PATH + "Land\Govt\Govt_00010.png"
+        elif type_version == "senate":
+            return const.SPRITE_PATH + "Land\Govt\Govt_00003.png"
+        elif type_version == "gov_housing_house":
+            return const.SPRITE_PATH + ""
+        elif type_version == "gov_housing_villa":
+            return const.SPRITE_PATH + ""
+        elif type_version == "gov_housing_palace":
+            return const.SPRITE_PATH + ""
+        elif type_version == "academy":
+            return const.SPRITE_PATH + ""
+        elif type_version == "library":
+            return const.SPRITE_PATH + ""
+        elif type_version == "school":
+            return const.SPRITE_PATH + ""
+        elif type_version == "garden":
+            return const.SPRITE_PATH + ""
+        elif type_version == "plaza":
+            return const.SPRITE_PATH + ""
+        elif type_version == "engineer's_post":
+            return const.SPRITE_PATH + ""
+        elif type_version == "dock":
+            return const.SPRITE_PATH + ""
+        elif type_version == "theatre":
+            return const.SPRITE_PATH + ""
+        elif type_version == "amphitheatre":
+            return const.SPRITE_PATH + ""
+        elif type_version == "colosseum":
+            return const.SPRITE_PATH + ""
+        elif type_version == "actor_colony":
+            return const.SPRITE_PATH + ""
+        elif type_version == "gladiator_school":
+            return const.SPRITE_PATH + ""
+        elif type_version == "lion_house":
+            return const.SPRITE_PATH + ""
+        elif type_version == "barber":
+            return const.SPRITE_PATH + ""
+        elif type_version == "baths":
+            return const.SPRITE_PATH + ""
+        elif type_version == "doctor":
+            return const.SPRITE_PATH + ""
+        elif type_version == "hospital":
+            return const.SPRITE_PATH + ""
+        elif type_version == "fruit_farm":
+            return const.SPRITE_PATH + ""
+        elif type_version == "olive_farm":
+            return const.SPRITE_PATH + ""
+        elif type_version == "pig_farm":
+            return const.SPRITE_PATH + ""
+        elif type_version == "vegetable_farm":
+            return const.SPRITE_PATH + ""
+        elif type_version == "vine_farm":
+            return const.SPRITE_PATH + ""
+        elif type_version == "wheat_farm":
+            return const.SPRITE_PATH + ""
+        elif type_version == "iron_mine":
+            return const.SPRITE_PATH + ""
+        elif type_version == "timber_yard":
+            return const.SPRITE_PATH + ""
+        elif type_version == "marble_quarry":
+            return const.SPRITE_PATH + ""
+        elif type_version == "clay_pit":
+            return const.SPRITE_PATH + ""
+        elif type_version == "furniture_workshop":
+            return const.SPRITE_PATH + ""
+        elif type_version == "oil_workshop":
+            return const.SPRITE_PATH + ""
+        elif type_version == "pottery_workshop":
+            return const.SPRITE_PATH + ""
+        elif type_version == "weapons_workshop":
+            return const.SPRITE_PATH + ""
+        elif type_version == "wine_workshop":
+            return const.SPRITE_PATH + ""
+        elif type_version == "market":
+            return const.SPRITE_PATH + ""
+        elif type_version == "granary":
+            return const.SPRITE_PATH + ""
+        elif type_version == "warehouse":
+            return const.SPRITE_PATH + ""
+        elif type_version == "wall":
+            return const.SPRITE_PATH + ""
+        elif type_version == "tower":
+            return const.SPRITE_PATH + ""
+        elif type_version == "gatehouse":
+            return const.SPRITE_PATH + ""
+        elif type_version == "prefecture":
+            return const.SPRITE_PATH + ""
+        elif type_version == "fort":
+            return const.SPRITE_PATH + ""
+        elif type_version == "military_academy":
+            return const.SPRITE_PATH + ""
+        elif type_version == "reservoir":
+            return const.SPRITE_PATH + ""
+        elif type_version == "aqueduct":
+            return const.SPRITE_PATH + ""
+        elif type_version == "well":
+            return const.SPRITE_PATH + ""
         else:
             return "", 0
