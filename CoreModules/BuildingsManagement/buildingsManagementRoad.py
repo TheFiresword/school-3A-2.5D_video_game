@@ -1,7 +1,7 @@
 import CoreModules.MapManagement.mapManagementLayer as layer
 import Services.servicesGlobalVariables as globalVar
 import CoreModules.TileManagement.tileManagementElement as Element
-
+from Services.Service_Game_Data import road_dico
 
 def position_is_valid(i, j):
     return (0 <= i < globalVar.TILE_COUNT) and (0 <= j < globalVar.TILE_COUNT)
@@ -31,7 +31,8 @@ class RoadLayer(layer.Layer):
         self.array[0][middle - 1].id = next(self.id_iterator)
         self.array[0][middle - 1].position = (0, middle - 1)
 
-    def set_cell(self, line, column, recursively=True, can_replace=False, memorize=False) -> bool:
+    def set_cell(self, line, column, recursively=True, can_replace=False, memorize=False, available_money: int = 50) \
+            -> bool:
         """
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         ;                                                                                    ;;;;
@@ -43,6 +44,9 @@ class RoadLayer(layer.Layer):
         if not self.changeable(line, column, 1, can_replace):
             return False
 
+        # Precondition: we must have enough money for adding a road
+        if available_money < road_dico['cost']:
+            return False
         current_version = self.array[line][column].dic['version']
         # Si la route (line, column) est la route d'entrée ou de sortie ou que la route est vide mais que ce n'est pas
         # la position de départ à laquelle on voulait ajouter on ne fait rien
@@ -123,7 +127,7 @@ class RoadLayer(layer.Layer):
 
 
     def set_cell_constrained_to_bottom_layer(self, bottom_layers_list, line, column, can_replace=False,
-                                             memorize = False) -> bool:
+                                             memorize = False, available_money: int = 50) -> bool:
         """
         Cette fonction insère une route dans un layer à la position (line, column)  si et seulement si les cellules
         (line, column) des layers contenus dans la liste bottom_layers_list, sont "null"
@@ -132,7 +136,8 @@ class RoadLayer(layer.Layer):
         for i in range(count):
             if bottom_layers_list[i].array[line][column].dic["version"] != "null":
                 return False
-        return self.set_cell(line, column, can_replace= can_replace, memorize=memorize, recursively=True)
+        return self.set_cell(line, column, can_replace= can_replace, memorize=memorize, recursively=True,
+                             available_money=available_money)
 
     def forced_set_cell(self, line, column, road):
         # On peut forcer l'ajout d'une route précise

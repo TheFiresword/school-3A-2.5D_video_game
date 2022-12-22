@@ -1,66 +1,66 @@
-from Services import servicesGlobalVariables as cst
+class Building_info:
 
-class Building_info():
-
-    def __init__(self,cost,size,employs,sprite,road_dependency,water_dependency):
+    def __init__(self, cost, size, max_employs, sprite, road_dependency, water_dependency):
         self.cost = cost
         self.size = size
-        self.employs = employs
+        self.max_employs = max_employs
         self.spritepath = sprite
         self.road_dependency = road_dependency
         self.water_dependency = water_dependency
-        pass
 
-#Some data are not accurate, only copy paste name and fill some building
+
+# Some data are not accurate, only copy paste name and fill some building
 building_dico = {
-        "Forum" : Building_info(75,4,6,"",False,False),
-        "Senate" : Building_info(400,20,30,"",False,False),
-        "Gov Housing house" : Building_info(150,-1,0,"",False,False),
-        "Gov Housing villa" : Building_info(400,-1,0,"",False,False),
-        "Gov Housing palace" : Building_info(700,-1,0,"",False,False),
-        "Academy" : Building_info(100,-1,30,"",False,False),
-        "Library" : Building_info(75,-1,20,"",False,False),
-        "School" : Building_info(50,-1,10,"",False,False),
-        "Garden" : Building_info(12,-1,0,"",False,False),
-        "Plaza" : Building_info(15,-1,0,"",False,False),
-        "Engineer's Post" : Building_info(30,1,6,"",False,False),
-        "Dock" : Building_info(100,-1,12,"",False,False),
-        "Theatre" : Building_info(50,-1,8,"",False,False),
-        "Amphitheatre" : Building_info(100,-1,12,"",False,False),
-        "Colosseum" : Building_info(500,-1,25,"",False,False),
-        "Actor Colony" : Building_info(50,-1,5,"",False,False),
-        "Gladiator School" : Building_info(75,-1,8,"",False,False),
-        "Lion House" : Building_info(75,-1,8,"",False,False),
-        "Barber" : Building_info(25,-1,2,"",True,False),
-        "Baths" : Building_info(50,-1,10,"",False,True),
-        "Doctor" : Building_info(30,-1,5,"",True,False),
-        "Hospital" : Building_info(300,-1,30,"",True,False),
-        "Fruit Farm" : Building_info(40,-1,10,"",True,False),
-        "Olive Farm" : Building_info(40,-1,10,"",True,False),
-        "Pig Farm" : Building_info(40,-1,10,"",True,False),
-        "Vegetable Farm" : Building_info(40,-1,10,"",True,False),
-        "Vine Farm" : Building_info(40,-1,10,"",True,False),
-        "Wheat Farm" : Building_info(40,-1,10,"",True,False),
-        "Iron Mine" : Building_info(40,-1,10,"",True,False),
-        "Timber Yard" : Building_info(40,-1,10,"",True,False),
-        "Marble Quarry" : Building_info(40,-1,10,"",True,False),
-        "Clay Pit" : Building_info(40,-1,10,"",True,False),
-        "Furniture Workshop" : Building_info(40,-1,10,"",True,False),
-        "Oil Workshop" : Building_info(40,-1,10,"",True,False),
-        "Pottery Workshop" : Building_info(40,-1,10,"",True,False),
-        "Weapons Workshop" : Building_info(40,-1,10,"",True,False),
-        "Wine Workshop" : Building_info(40,-1,10,"",True,False),
-        "Market" : Building_info(40,-1,10,"",True,False),
-        "Granary" : Building_info(40,-1,10,"",True,False),
-        "Warehouse" : Building_info(40,-1,10,"",True,False),
-        "Wall" : Building_info(40,-1,10,"",True,False),
-        "Tower" : Building_info(40,-1,10,"",True,False),
-        "Gatehouse" : Building_info(40,-1,10,"",True,False),
-        "Prefecture" : Building_info(40,-1,10,"",True,False),
-        "Fort" : Building_info(40,-1,10,"",True,False),
-        "Military Academy" : Building_info(40,-1,10,"",True,False),
-        "Reservoir" : Building_info(40,-1,10,"",True,False),
-        "Aqueduct" : Building_info(40,-1,10,"",True,False),
-        "Well" : Building_info(40,-1,10,"",True,False),
-        "Dwell" : Building_info(0,1,0,cst.SPRITE_PATH + "Land\housng\Housng1a_00001.png",False,False)
-    }
+    "forum": Building_info(75, 4, 6, "", False, False),
+    "senate": Building_info(400, 20, 30, "", False, False),
+    "gov Housing house": Building_info(150, -1, 0, "", False, False),
+    "gov Housing villa": Building_info(400, -1, 0, "", False, False),
+    "gov Housing palace": Building_info(700, -1, 0, "", False, False),
+    "academy": Building_info(100, -1, 30, "", False, False),
+    "library": Building_info(75, -1, 20, "", False, False),
+    "school": Building_info(50, -1, 10, "", False, False),
+    "garden": Building_info(12, -1, 0, "", False, False),
+    "plaza": Building_info(15, -1, 0, "", False, False),
+    "engineer's Post": Building_info(30, 1, 6, "", False, False),
+    "dock": Building_info(100, -1, 12, "", False, False),
+    "theatre": Building_info(50, -1, 8, "", False, False),
+    "amphitheatre": Building_info(100, -1, 12, "", False, False),
+    "colosseum": Building_info(500, -1, 25, "", False, False),
+    "actor Colony": Building_info(50, -1, 5, "", False, False),
+    "gladiator School": Building_info(75, -1, 8, "", False, False),
+    "lion House": Building_info(75, -1, 8, "", False, False),
+    "barber": Building_info(25, -1, 2, "", True, False),
+    "baths": Building_info(50, -1, 10, "", False, True),
+    "doctor": Building_info(30, -1, 5, "", True, False),
+    "hospital": Building_info(300, -1, 30, "", True, False),
+    "fruit Farm": Building_info(40, -1, 10, "", True, False),
+    "olive Farm": Building_info(40, -1, 10, "", True, False),
+    "pig Farm": Building_info(40, -1, 10, "", True, False),
+    "vegetable Farm": Building_info(40, -1, 10, "", True, False),
+    "vine Farm": Building_info(40, -1, 10, "", True, False),
+    "wheat Farm": Building_info(40, -1, 10, "", True, False),
+    "iron Mine": Building_info(40, -1, 10, "", True, False),
+    "timber Yard": Building_info(40, -1, 10, "", True, False),
+    "marble Quarry": Building_info(40, -1, 10, "", True, False),
+    "clay Pit": Building_info(40, -1, 10, "", True, False),
+    "furniture Workshop": Building_info(40, -1, 10, "", True, False),
+    "oil Workshop": Building_info(40, -1, 10, "", True, False),
+    "pottery Workshop": Building_info(40, -1, 10, "", True, False),
+    "weapons Workshop": Building_info(40, -1, 10, "", True, False),
+    "wine Workshop": Building_info(40, -1, 10, "", True, False),
+    "market": Building_info(40, -1, 10, "", True, False),
+    "granary": Building_info(40, -1, 10, "", True, False),
+    "warehouse": Building_info(40, -1, 10, "", True, False),
+    "wall": Building_info(40, -1, 10, "", True, False),
+    "tower": Building_info(40, -1, 10, "", True, False),
+    "gatehouse": Building_info(40, -1, 10, "", True, False),
+    "prefecture": Building_info(40, -1, 10, "", True, False),
+    "fort": Building_info(40, -1, 10, "", True, False),
+    "military Academy": Building_info(40, -1, 10, "", True, False),
+    "reservoir": Building_info(40, -1, 10, "", True, False),
+    "aqueduct": Building_info(40, -1, 10, "", True, False),
+    "well": Building_info(40, -1, 10, "", True, False),
+    "dwell": Building_info(10, 1, 0, ".\Assets\sprites\C3\Land\housng\Housng1a_00001.png", False, False)
+}
+
+road_dico = {'cost': 4}
