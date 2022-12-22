@@ -308,11 +308,7 @@ class GameView(arcade.View):
         """
         line, column = self.visualmap.get_sprite_at_screen_coordinates(pos)
 
-        if self.game.map.roads_layer.set_cell_constrained_to_bottom_layer([self.game.map.buildings_layer,
-                                                                           self.game.map.hills_layer,
-                                                                           self.game.map.trees_layer,
-                                                                           self.game.map.roads_layer], line,
-                                                                          column):
+        if self.game.add_road(line, column):
             # si la route a été bien ajoutée on update la spritelist en la recréant
             self.visualmap.update_sprite_list(self.visualmap.roads_layer, self.game.map.roads_layer.array)
             return True
@@ -325,17 +321,14 @@ class GameView(arcade.View):
         line1, column1 = self.visualmap.get_sprite_at_screen_coordinates(start_pos)
         line2, column2 = self.visualmap.get_sprite_at_screen_coordinates(end_pos)
 
-        if self.game.map.roads_layer.add_roads_serie((line1, column1), (line2, column2),
-                                                     [self.game.map.buildings_layer, self.game.map.trees_layer,
-                                                      self.game.map.hills_layer, self.game.map.roads_layer],
-                                                     memorize=dynamically):
+        if self.game.add_roads_serie((line1, column1), (line2, column2), dynamically):
             self.visualmap.update_sprite_list(self.visualmap.roads_layer, self.game.map.roads_layer.array)
             return True
         return False
 
     def remove_sprite(self, pos) -> bool:
         line, column = self.visualmap.get_sprite_at_screen_coordinates(pos)
-        what_is_removed = self.game.map.remove_element((line, column))
+        what_is_removed = self.game.remove_element((line, column))
         if what_is_removed == constantes.LAYER4:
             self.visualmap.update_sprite_list(self.visualmap.roads_layer, self.game.map.roads_layer.array)
             return True
@@ -354,7 +347,7 @@ class GameView(arcade.View):
         """
         line1, column1 = self.visualmap.get_sprite_at_screen_coordinates(start_pos)
         line2, column2 = self.visualmap.get_sprite_at_screen_coordinates(end_pos)
-        modified_layers = self.game.map.remove_elements_serie((line1, column1), (line2, column2))
+        modified_layers = self.game.remove_elements_serie((line1, column1), (line2, column2))
         if constantes.LAYER5 in modified_layers:
             self.visualmap.update_sprite_list(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
             return True

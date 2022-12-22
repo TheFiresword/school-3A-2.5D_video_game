@@ -1,4 +1,4 @@
-def mapping_function(element_type, type_version) -> (str,int):
+def mapping_function(element_type, type_version, building_level=0) -> (str,int):
     """
     Fonction de mapping version d'un élément -> chemin de fichier
     """
@@ -74,8 +74,9 @@ def mapping_function(element_type, type_version) -> (str,int):
             return "", 0
 
     elif element_type == "buildings":
-        if type_version == "dwelling1":
-            return "./Assets/sprites/C3/Land/housng/Housng1a_00001.png", 1
+        if type_version == "dwelling":
+            if building_level == 0:
+                return "./Assets/sprites/C3/Land/housng/Housng1a_00001.png", 1
 
         elif type_version == "dwelling5":
             return "./Assets/sprites/C3/Land/housng/Housng1a_00034.png", 2
@@ -99,5 +100,8 @@ def mapping_function(element_type, type_version) -> (str,int):
 
         elif int(type_version) >= 0 and type_version == "00048":
             return "./Assets/sprites/C3/Land/housng/Housng1a_" + type_version + ".png", 5
+
+        if type_version == "wheat_farm":
+            return ""
         else:
             return "", 0
