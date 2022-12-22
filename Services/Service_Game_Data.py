@@ -1,3 +1,4 @@
+from Services import servicesGlobalVariables as cst
 
 class Building_info():
 
@@ -61,5 +62,5 @@ building_dico = {
         "Reservoir" : Building_info(40,-1,10,"",True,False),
         "Aqueduct" : Building_info(40,-1,10,"",True,False),
         "Well" : Building_info(40,-1,10,"",True,False),
-        "Dwell" : Building_info(0,1,0,".\Assets\sprites\C3\Land\housng\Housng1a_00001.png",False,False)
+        "Dwell" : Building_info(0,1,0,cst.SPRITE_PATH + "Land\housng\Housng1a_00001.png",False,False)
     }

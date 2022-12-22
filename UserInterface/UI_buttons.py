@@ -20,50 +20,7 @@ buttons = [(constantes.DEFAULT_SCREEN_WIDTH - x,
             for (x,y,folder,zero,number) in tuples_buttons]
 
 
-def button_click_house():
-    pass
 
-def button_click_shovel():
-    pass
-
-def button_click_road():
-    pass
-
-def button_click_water():
-    pass
-
-def button_click_health():
-    pass
-
-def button_click_lightning():
-    pass
-
-def button_click_paper():
-    pass
-
-def button_click_entertainement():
-    pass
-
-def button_click_education():
-    pass
-
-def button_click_hammer():
-    pass
-
-def button_click_sword():
-    pass
-
-def button_click_supply():
-    pass
-
-def button_click_cross():
-    pass
-
-def button_click_list():
-    pass
-
-def button_click_bell():
-    pass
 
 
 

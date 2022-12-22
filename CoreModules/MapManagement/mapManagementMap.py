@@ -7,8 +7,6 @@ import CoreModules.TileManagement.tileManagementElement as element
 import Services.servicesGlobalVariables as globalVar
 
 
-
-
 class MapLogic:
     def __init__(self):
         # Booléen qui dit si la map est affichée ou pas
