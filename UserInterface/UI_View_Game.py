@@ -211,11 +211,16 @@ class GameView(arcade.View):
         self.mouse_pos = Vec2(x, y) + self.map_camera.position
         tmp_end_pos = Vec2(x, y) + self.map_camera.position
         if self.mouse_left_pressed:
-            if self.builder_mode and self.builder_content == "road":
-                if self.mouse_left_maintained:
-                    self.add_roads_serie(self.init_mouse_pos, tmp_end_pos, True)
-                else:
-                    self.add_roads_serie(self.init_mouse_pos, tmp_end_pos)
+            if self.builder_mode:
+                if self.builder_content == "road":
+                    if self.mouse_left_maintained:
+                        self.add_roads_serie(self.init_mouse_pos, tmp_end_pos, True)
+                    else:
+                        self.add_roads_serie(self.init_mouse_pos, tmp_end_pos)
+
+                elif self.builder_content == "dwell":
+                    self.add_multiple_dwell(self.init_mouse_pos, tmp_end_pos)
+
             self.mouse_left_maintained = True
         # self.red_sprite.visible = False
 
@@ -377,6 +382,19 @@ class GameView(arcade.View):
         line, column = self.visualmap.get_sprite_at_screen_coordinates(pos)
         if self.game.add_building(line, column, "dwell"):
             # si la route a été bien ajoutée on update la spritelist en la recréant
+            self.visualmap.update_sprite_list(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
+            return True
+        return False
+
+    def add_multiple_dwell(self, start_pos, end_pos):
+        """
+            Fonction qui permet d'ajouter une série de routes
+            Prend en paramètre 2 positions de souris sous forme de tuple
+        """
+        line1, column1 = self.visualmap.get_sprite_at_screen_coordinates(start_pos)
+        line2, column2 = self.visualmap.get_sprite_at_screen_coordinates(end_pos)
+
+        if self.game.add_multiple_buildings((line1, column1), (line2, column2), "dwell"):
             self.visualmap.update_sprite_list(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
             return True
         return False

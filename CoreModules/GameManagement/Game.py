@@ -136,3 +136,17 @@ class Game:
         if status:
             self.money -= building_dico[version].cost
         return status
+
+    def add_multiple_buildings(self, start_pos, end_pos, version) -> bool:
+        # Here we can't precisely calculate the money that will be needed to construct all the roads. we'll estimate
+        # that
+        estimated_counter_buildings = (abs(start_pos[0] - end_pos[0]) + 1) * (abs(start_pos[1] - end_pos[1]) + 1)
+        if self.money < estimated_counter_buildings * building_dico[version].cost:
+            print("Not enough money")
+            return False
+        building = Building(self.map.buildings_layer, globalVar.LAYER5, version)
+        status, count = self.map.buildings_layer.add_elements_serie(start_pos, end_pos, building,
+                                                                    self.map.collisions_layers)
+        if status:
+            self.money -= building_dico[version].cost * count
+        return status
