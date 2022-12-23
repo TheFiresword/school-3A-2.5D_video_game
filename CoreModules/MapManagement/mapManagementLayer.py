@@ -211,6 +211,54 @@ class Layer:
                 return False
         return self.set_cell(line, column, element, can_replace)
 
+    def add_elements_serie(self, start_pos, end_pos, element, collision_list) -> (bool, int):
+        """
+        Fonction qui permet d'ajouter une série de buildings notamment
+        Prend en paramètre 2 couples positions d'indexes
+        Une liste pour vérifier les collisions
+        un booléen qui permet de dire s'il faut mémoriser les buildings actuelles
+        Renvoie un booléen qui dit si au moins une route a été ajoutée
+        Renvoie le nombre de routes ajoutées
+        """
+
+        line1, column1 = start_pos[0], start_pos[1]
+        line2, column2 = end_pos[0], end_pos[1]
+
+        # Un range pour l'ajout de la ligne verticale de routes, et un autre pour la ligne horizontale
+        vrange, hrange = None, None
+
+        # une variable qui dit si au moins une route a été ajoutée
+        added = False
+
+        # une variable qui dit si la série de routes est valide, c'est à dire qu'il n'y a aucun obstacle entre les 2
+        valid = True
+
+        if line1 >= line2:
+            vrange = range(line1, line2 - 1, -1)
+        else:
+            vrange = range(line2, line1 - 1, -1)
+
+        if column1 <= column2:
+            hrange = range(column2, column1 - 1, -1)
+        else:
+            hrange = range(column1, column2 - 1, -1)
+
+
+        # a counter that will be returned as the number of roads added
+        count = 0
+        # On dessine une ligne verticale de routes de la ligne de départ jusqu'à la ligne de fin
+        for i in vrange:
+            for j in hrange:
+                if self.set_cell_constrained_to_bottom_layer(collision_list, i, j, element):
+                    added = True
+                    count += 1
+                else:
+                    valid = False
+
+        if added:
+            return True, count
+        return False, count
+
     def changeable(self, line, column, cells_number, can_replace):
         """
         Cette fonction permet de rajouter les conditions version!="null" dans la fonction set_cell uniquement quand
