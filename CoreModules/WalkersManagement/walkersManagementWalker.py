@@ -23,13 +23,15 @@ class Walker:
         u = (self.cell_i + 1, self.cell_j)
         d = (self.cell_i - 1, self.cell_j)
 
-        if (road_layer.array[r[0]][r[1]]).dic["version"] != "null":
-            rr = True
+        if r[1] != 41:
+            if (road_layer.array[r[0]][r[1]]).dic["version"] != "null":
+                rr = True
         if le[1] != -1:
             if (road_layer.array[le[0]][le[1]]).dic["version"] != "null":
                 ll = True
-        if (road_layer.array[u[0]][u[1]]).dic["version"] != "null":
-            uu = True
+        if u[0] != 41:
+            if (road_layer.array[u[0]][u[1]]).dic["version"] != "null":
+                uu = True
         if d[0] != -1:
             if (road_layer.array[d[0]][d[1]]).dic["version"] != "null":
                 dd = True
