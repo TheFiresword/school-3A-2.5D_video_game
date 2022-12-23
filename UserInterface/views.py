@@ -1,4 +1,3 @@
-
 import arcade
 import arcade.gui
 from Services import servicesGlobalVariables as constantes
@@ -19,9 +18,10 @@ class MainWindow(arcade.Window):
         self.welcomescreen = wv.WelcomeScreen()
         self.settingscreen = sv.SettingScreen()
         self.loadscreen = lv.LoadScreen()
-        map1 = map.MapLogic()
+        #map1 = map.MapLogic()
         #self.gamescreen = gv.MapView(map1)
         self.gamescreen = rgv.GameView(_game=None)
+        self.loadedgame = None
 
     # Lancement
     def setup(self):

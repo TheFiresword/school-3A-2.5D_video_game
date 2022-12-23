@@ -40,12 +40,18 @@ VOID_CELL_ID = -1
 
 # an id generator
 
+class IdIterator:
+    def __init__(self):
+        self.id = 0
+        pass
+    def __next__(self):
+        id = self.id
+        if id < MAX_NUMBER_ID:
+            self.id += 1
+        else:
+            self.id = 0
+        return  id
 
-def get_available_id():
-    start = 0
-    while start < MAX_NUMBER_ID:
-        yield start
-        start += 1
 
 
 class Layer:
@@ -62,7 +68,7 @@ class Layer:
         self.type = _type
 
         # Un générateur d'id
-        self.id_iterator = get_available_id()
+        self.id_iterator = IdIterator()
 
         # Initialisation du layer; chaque case contient un Element de version null
         self.setup()
@@ -304,3 +310,21 @@ class Layer:
                           f"{self.array[line][column].position} ")
                     count += 1
         print(f"{count} elements")
+    
+    def parse_layer(self,action_on_element):
+        for i in range(0, globalVar.TILE_COUNT):
+            for j in range(0, globalVar.TILE_COUNT):
+                if self.type == globalVar.LAYER5:
+                    print(self.array[i][j].dic['version'])    
+                    if not (self.array[i][j].dic['version'] in ["occupied", "null"]):
+                        action_on_element(self.array[i][j])
+        return True
+                
+                
+            
+
+
+
+        
+        
+       

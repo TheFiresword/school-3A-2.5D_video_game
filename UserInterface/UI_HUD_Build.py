@@ -2,13 +2,18 @@ import arcade
 import pyglet.window
 
 from Services import servicesGlobalVariables as const
+from Services import servicesmMapSpriteToFile as mapping
 from UserInterface import UI_Visual_Map
 
 
-def hollow_build(x, y, building, visualmap: UI_Visual_Map.VisualMap):
+def hollow_build(x, y, visualmap: UI_Visual_Map.VisualMap, building=None):
     (a, b) = visualmap.get_visual_sprite((x, y))
-    size = building.size
-    spritepath = building.spritepath
+    spritepath = None
+    if building:
+        spritepath = building.spritepath
+    else:
+        # If it's not a building then it's a road
+        spritepath, size = mapping.mapping_function(const.LAYER4, "00044")
     sprite = arcade.Sprite(center_x=a, center_y=b)
     sprite.alpha = 180
     sprite.texture = arcade.load_texture(spritepath)
