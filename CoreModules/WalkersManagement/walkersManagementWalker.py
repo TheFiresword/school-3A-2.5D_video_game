@@ -14,6 +14,7 @@ class Walker:
         left = "left"
         up = "up"
         down = "down"
+        rr, ll, uu, dd = False, False, False, False
         ran = 0
         self.direction.clear()
 
@@ -24,12 +25,14 @@ class Walker:
 
         if (road_layer.array[r[0]][r[1]]).dic["version"] != "null":
             rr = True
-        if (road_layer.array[le[0]][le[1]]).dic["version"] != "null":
-           ll = True
+        if le[1] != -1:
+            if (road_layer.array[le[0]][le[1]]).dic["version"] != "null":
+                ll = True
         if (road_layer.array[u[0]][u[1]]).dic["version"] != "null":
             uu = True
-        if (road_layer.array[d[0]][d[1]]).dic["version"] != "null":
-            dd = True
+        if d[0] != -1:
+            if (road_layer.array[d[0]][d[1]]).dic["version"] != "null":
+                dd = True
 
         if self.head == right:
             if not (rr or dd or uu):
