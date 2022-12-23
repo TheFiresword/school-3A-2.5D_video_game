@@ -26,13 +26,6 @@ def draw_normal_cursor():
     window.set_mouse_visible(True)
 
 
-def draw_custom_cursor(image_path):
-    window = arcade.get_window()
-    image = pyglet.image.load(image_path)
-    fish_cursor = pyglet.window.ImageMouseCursor(image)
-    window.set_mouse_cursor(fish_cursor)
-
-
 class GameView(arcade.View):
 
     def __init__(self, _game):
@@ -126,7 +119,7 @@ class GameView(arcade.View):
                 hollow.draw()
 
             if self.remove_mode:
-                hollow = hudb.hollow(self.mouse_pos[0], self.mouse_pos[1])
+                hollow = hudb.hollow(self.mouse_pos[0], self.mouse_pos[1], self.visualmap)
                 hollow.draw()
         # =======================================
         # Display Menu related content
@@ -447,7 +440,7 @@ class GameView(arcade.View):
     def button_click_shovel(self, event):
         self.builder_mode = False
         # We replace the cursor with a shovel image
-        draw_custom_cursor(constantes.SPRITE_PATH + "PanelsOther\paneling_00333.png")
+        arcade.get_window().set_mouse_visible(False)
         self.remove_mode = True
         print("shovel")
 
