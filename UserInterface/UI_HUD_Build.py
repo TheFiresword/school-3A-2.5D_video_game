@@ -16,10 +16,12 @@ def hollow_build(x, y, building, visualmap: UI_Visual_Map.VisualMap):
     return sprite
 
 
-def hollow(x, y):
-    # La souris poisson
-    sprite = arcade.Sprite(center_x=x, center_y=y)
-    sprite.texture = arcade.load_texture(const.SPRITE_PATH + "PanelsOther\paneling_00333.png")
-    sprite.scale = const.SPRITE_SCALING
+def hollow(x, y, visualmap: UI_Visual_Map.VisualMap):
+    # Le curseur pelle
+    sprite = arcade.Sprite()
+    sprite.texture = arcade.load_texture(const.SPRITE_PATH + "ColoredCursors\Shovel_150.png")
+    sprite.scale = visualmap.map_scaling
+    sprite.center_x = x + sprite.width/2
+    sprite.center_y = y + sprite.height/2 - 2
     return sprite
 
