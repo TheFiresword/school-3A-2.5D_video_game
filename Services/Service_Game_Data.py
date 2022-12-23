@@ -63,7 +63,7 @@ building_dico = {
     "reservoir": Building_info(40, -1, 10, "", True, False),
     "aqueduct": Building_info(40, -1, 10, "", True, False),
     "well": Building_info(40, -1, 10, "", True, False),
-    "dwell": Building_info(10, 1, 0, const.SPRITE_PATH + "Land\housng\Housng1a_00001.png", False, False)
+    "dwell": Building_info(10, 1, 0, const.SPRITE_PATH + "Land\housng\Housng1a_00000.png", False, False)
 }
 
 road_dico = {'cost': 4}
