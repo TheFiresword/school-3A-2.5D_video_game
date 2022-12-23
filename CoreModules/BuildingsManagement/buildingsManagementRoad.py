@@ -2,7 +2,6 @@ import CoreModules.MapManagement.mapManagementLayer as layer
 import Services.servicesGlobalVariables as globalVar
 import CoreModules.TileManagement.tileManagementElement as Element
 
-
 def position_is_valid(i, j):
     return (0 <= i < globalVar.TILE_COUNT) and (0 <= j < globalVar.TILE_COUNT)
 
@@ -31,7 +30,8 @@ class RoadLayer(layer.Layer):
         self.array[0][middle - 1].id = next(self.id_iterator)
         self.array[0][middle - 1].position = (0, middle - 1)
 
-    def set_cell(self, line, column, recursively=True, can_replace=False, memorize=False) -> bool:
+    def set_cell(self, line, column, recursively=True, can_replace=False, memorize=False) \
+            -> bool:
         """
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         ;                                                                                    ;;;;
@@ -235,10 +235,14 @@ class RoadLayer(layer.Layer):
             count += 1
         self.reinitialize_buffer()
 
-    def add_roads_serie(self, start_pos, end_pos, collision_list, memorize=False) -> bool:
+    def add_roads_serie(self, start_pos, end_pos, collision_list, memorize=False) -> (bool, int):
         """
         Fonction qui permet d'ajouter une série de routes
         Prend en paramètre 2 couples positions d'indexes
+        Une liste pour vérifier les collisions
+        un booléen qui permet de dire s'il faut mémoriser les routes actuelles
+        Renvoie un booléen qui dit si au moins une route a été ajoutée
+        Renvoie le nombre de routes ajoutées
         """
 
         line1, column1 = start_pos[0], start_pos[1]
@@ -268,10 +272,13 @@ class RoadLayer(layer.Layer):
         else:
             self.reinitialize_buffer()
 
+        # a counter that will be returned as the number of roads added
+        count = 0
         # On dessine une ligne verticale de routes de la ligne de départ jusqu'à la ligne de fin
         for i in vrange:
             if self.set_cell_constrained_to_bottom_layer(collision_list, i, column1, memorize=memorize):
                 added = True
+                count += 1
             else:
                 valid = False
         # On dessine une ligne horizontale de routes de la colonne de départ jusqu'à celle de fin à partir de la fin de
@@ -279,9 +286,10 @@ class RoadLayer(layer.Layer):
         for j in hrange:
             if self.set_cell_constrained_to_bottom_layer(collision_list, line2, j, memorize=memorize):
                 added = True
+                count += 1
             else:
                 valid = False
 
         if added:
-            return True
-        return False
+            return True, count
+        return False, count

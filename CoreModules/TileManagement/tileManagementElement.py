@@ -20,7 +20,6 @@ class Element:
         self.file_path = None
         self.layer = layer
         self.dic = {"version": version, "cells_number": 0}
-
         self.set_file_infos()
 
     def set_file_infos(self):

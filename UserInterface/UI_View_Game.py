@@ -1,3 +1,5 @@
+import pyglet
+
 from UserInterface import UI_Section as uis
 from UserInterface import UI_buttons
 from UserInterface import UI_HUD_Build as hudb
@@ -17,6 +19,12 @@ from pyglet.math import Vec2
 MAP_CAMERA_SPEED = 0.5
 
 
+def draw_normal_cursor():
+    window = arcade.get_window()
+    cursor = window.get_system_mouse_cursor(window.CURSOR_DEFAULT)
+    window.set_mouse_cursor(cursor)
+    window.set_mouse_visible(True)
+
 
 class GameView(arcade.View):
 
@@ -27,17 +35,17 @@ class GameView(arcade.View):
             self.game = _game
         # =======================================
         # Intels about the current player action
-        #=======================================
-        self.mouse_pos = (0,0)
-        self.init_mouse_pos = (0,0)
+        # =======================================
+        self.mouse_pos = (0, 0)
+        self.init_mouse_pos = (0, 0)
         self.mouse_left_pressed, self.mouse_right_pressed = False, False
-        self.mouse_left_maintained ,self.mouse_right_maintained = False ,False
+        self.mouse_left_maintained, self.mouse_right_maintained = False, False
         self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed = False, False, False, False
-        
+
         self.builder_mode = False
         self.builder_content = ""
         self.remove_mode = None
-        #=======================================
+        # =======================================
         # Arcade stuff
         # =======================================
         arcade.set_background_color(arcade.color.BLACK)
@@ -51,16 +59,19 @@ class GameView(arcade.View):
         # Visuals elements excepts ones Map related 
         # =======================================
         self.tab = arcade.load_texture(constantes.SPRITE_PATH + "PanelsOther/paneling_00017.png")
+        self.bar = arcade.load_texture(constantes.SPRITE_PATH + "Panel\Panel2\paneling_00010.png")
         buttons_render = UI_buttons.buttons
-        self.buttons = [arcade.gui.UITextureButton(x=b0, y=b1, texture=b2, texture_hovered=b3, texture_pressed=b4,scale= constantes.SPRITE_SCALING) for
+        self.buttons = [arcade.gui.UITextureButton(x=b0, y=b1, texture=b2, texture_hovered=b3, texture_pressed=b4,
+                                                   scale=constantes.SPRITE_SCALING) for
                         (b0, b1, b2, b3, b4) in buttons_render]
+        self.buttons[5].on_click = self.button_click_house
         self.buttons[6].on_click = self.button_click_shovel
         self.buttons[7].on_click = self.button_click_road
-        
+
         for k in self.buttons:
             self.manager.add(k)
-        
-        #=======================================
+
+        # =======================================
         # Map related Visuals elements 
         # =======================================
         self.visualmap = uivm.VisualMap()
@@ -76,7 +87,7 @@ class GameView(arcade.View):
             self.game = game.Game(map.MapLogic())
         self.visualmap.setup(self.game)
         self.center_map()
-        self.builder_content = "Dwell"
+        self.builder_content = ""
 
     # =======================================
     #  View Related Fuctions
@@ -95,26 +106,30 @@ class GameView(arcade.View):
         self.map_camera.use()  # select camera linked to map
         if self.game.map.active:  # if map displayed
             self.visualmap.draw_layers(self.game)
-            #Test click on map
-            if self.visualmap.red_sprite.visible: 
-                #self.visualmap.red_sprite.draw_hit_box(color=(255, 0, 0), line_thickness=1)
+            # Test click on map
+            if self.visualmap.red_sprite.visible:
+                # self.visualmap.red_sprite.draw_hit_box(color=(255, 0, 0), line_thickness=1)
                 self.visualmap.red_sprite.alpha = 80
-                self.visualmap.red_sprite.color= (255, 0, 0)
+                self.visualmap.red_sprite.color = (255, 0, 0)
                 self.visualmap.red_sprite.draw()
 
-            if self.builder_mode and self.builder_content != "road":
-                hollow = hudb.hollow_build(self.mouse_pos[0], self.mouse_pos[1], gdata.building_dico[self.builder_content],self.visualmap)
+            if self.builder_mode and self.builder_content not in ["road"]:
+                hollow = hudb.hollow_build(self.mouse_pos[0], self.mouse_pos[1],
+                                           gdata.building_dico[self.builder_content], self.visualmap)
                 hollow.draw()
-            
+
             if self.remove_mode:
-                hollow = hudb.hollow(self.mouse_pos[0], self.mouse_pos[1])
+                hollow = hudb.hollow(self.mouse_pos[0], self.mouse_pos[1], self.visualmap)
                 hollow.draw()
         # =======================================
         # Display Menu related content
         # =======================================
         self.menu_camera.use()
+        arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH / 2,
+                                      center_y=constantes.DEFAULT_SCREEN_HEIGHT - 20,
+                                      width=constantes.DEFAULT_SCREEN_WIDTH, height=40, texture=self.bar)
         arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH - 81,
-                                      center_y=constantes.DEFAULT_SCREEN_HEIGHT - 285,
+                                      center_y=constantes.DEFAULT_SCREEN_HEIGHT - 285 + 28,
                                       width=162, height=constantes.DEFAULT_SCREEN_HEIGHT / 2,
                                       texture=self.tab
                                       )
@@ -128,69 +143,78 @@ class GameView(arcade.View):
     # =======================================
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
-        #===================================
-        #Left click Draw red rectangle around closest sprite to mouse
-        #===================================
-        
-        (map_pos_x,map_pos_y) = Vec2(x, y) + self.map_camera.position
-        self.init_mouse_pos = (map_pos_x,map_pos_y)
-        if x < constantes.DEFAULT_SCREEN_WIDTH -165:
+        # ===================================
+        # Left click Draw red rectangle around closest sprite to mouse
+        # ===================================
+
+        (map_pos_x, map_pos_y) = Vec2(x, y) + self.map_camera.position
+        self.init_mouse_pos = (map_pos_x, map_pos_y)
+        if x < constantes.DEFAULT_SCREEN_WIDTH - 165:
             if button == arcade.MOUSE_BUTTON_LEFT:
                 self.visualmap.red_sprite = arcade.Sprite(constantes.SPRITE_PATH + "Land/LandOverlay/Land2a_00037.png",
-                                        scale=self.visualmap.map_scaling, center_x=map_pos_x,
-                                        center_y=map_pos_y, hit_box_algorithm="Detailed")
+                                                          scale=self.visualmap.map_scaling, center_x=map_pos_x,
+                                                          center_y=map_pos_y, hit_box_algorithm="Detailed")
                 self.visualmap.red_sprite.visible = True
                 if not self.builder_mode and not self.builder_content == "road":
-                    (nearest_sprite, d) = arcade.get_closest_sprite(self.visualmap.red_sprite, self.visualmap.buildings_layer)
-                    self.visualmap.red_sprite.texture = nearest_sprite.texture
+                    (nearest_sprite, d) = arcade.get_closest_sprite(self.visualmap.red_sprite,
+                                                                    self.visualmap.buildings_layer)
+                    # self.visualmap.red_sprite.texture = nearest_sprite.texture
                 else:
-                    (nearest_sprite, d) = arcade.get_closest_sprite(self.visualmap.red_sprite, self.visualmap.grass_layer)
+                    (nearest_sprite, d) = arcade.get_closest_sprite(self.visualmap.red_sprite,
+                                                                    self.visualmap.grass_layer)
                 self.visualmap.red_sprite.center_x, self.visualmap.red_sprite.center_y = nearest_sprite.center_x, nearest_sprite.center_y
                 self.mouse_left_pressed = True
             # For testing
             if button == arcade.MOUSE_BUTTON_RIGHT:
-                # Add a road
+                # A right clic cancel whatever mode (remove or build) is activated
                 self.mouse_right_pressed = True
-                self.mouse_right_maintained = False
+                self.builder_mode = False
+                self.remove_mode = False
                 self.visualmap.red_sprite.visible = False
 
     def on_mouse_release(self, x: int, y: int, button: int, modifiers: int):
-        if x < constantes.DEFAULT_SCREEN_WIDTH -165:
+        if x < constantes.DEFAULT_SCREEN_WIDTH - 165:
             if button == arcade.MOUSE_BUTTON_LEFT:
                 if self.remove_mode:
-                    print("remove")
                     if self.mouse_left_maintained:
-                        self.remove_elements_serie(self.init_mouse_pos,(Vec2(x,y)+ self.map_camera.position))
+                        self.remove_elements_serie(self.init_mouse_pos, (Vec2(x, y) + self.map_camera.position))
                     else:
-                        self.remove_sprite(self.mouse_pos)               
+                        self.remove_sprite(self.mouse_pos)
+                else:
+                    # If the remove_mode is not set the normal cursor is drawn
+                    draw_normal_cursor()
+
                 if self.builder_mode:
-                    if self.builder_content != "road":
-                        print("add building")
-                    else:
+                    if self.builder_content == "dwell":
+                        self.add_dwell(self.mouse_pos)
+                    elif self.builder_content == "road":
                         if not self.mouse_left_maintained:
                             self.add_road(self.mouse_pos)
                 self.mouse_left_pressed = False
                 self.mouse_left_maintained = False
-       
+
             if button == arcade.MOUSE_BUTTON_RIGHT:
                 self.mouse_right_pressed = False
                 self.mouse_right_maintained = False
                 # self.red_sprite.visible = False
+                # If the remove_mode is not set the normal cursor is drawn
+                draw_normal_cursor()
 
-        
     def on_mouse_motion(self, x: int, y: int, dx: int, dy: int):
         self.mouse_pos = Vec2(x, y) + self.map_camera.position
         tmp_end_pos = Vec2(x, y) + self.map_camera.position
         if self.mouse_left_pressed:
-            if self.builder_mode and self.builder_content == "road":
-                if self.mouse_left_maintained:
-                    self.add_roads_serie(self.init_mouse_pos, tmp_end_pos, True)
-                else:
-                    self.add_roads_serie(self.init_mouse_pos, tmp_end_pos)
+            if self.builder_mode:
+                if self.builder_content == "road":
+                    if self.mouse_left_maintained:
+                        self.add_roads_serie(self.init_mouse_pos, tmp_end_pos, True)
+                    else:
+                        self.add_roads_serie(self.init_mouse_pos, tmp_end_pos)
+
+                elif self.builder_content == "dwell":
+                    self.add_multiple_dwell(self.init_mouse_pos, tmp_end_pos)
+
             self.mouse_left_maintained = True
-        if self.mouse_right_pressed:
-            self.mouse_right_maintained = True
-    
         # self.red_sprite.visible = False
 
     def on_mouse_scroll(self, x: int, y: int, scroll_x: int, scroll_y: int):
@@ -236,9 +260,6 @@ class GameView(arcade.View):
             self.visualmap.red_sprite.visible = False
         elif symbol == arcade.key.N:
             self.builder_mode = False
-        # ## Testing removing
-        elif symbol == arcade.key.D:
-            self.pre_remove = True
 
     def on_key_release(self, _symbol: int, _modifiers: int):
         if _symbol == arcade.key.UP:
@@ -249,9 +270,6 @@ class GameView(arcade.View):
             self.left_pressed = False
         elif _symbol == arcade.key.RIGHT:
             self.right_pressed = False
-        # ## Testing removing
-        elif _symbol == arcade.key.D:
-            self.pre_remove = False
 
     def move_map_camera_with_keys(self):
 
@@ -331,14 +349,11 @@ class GameView(arcade.View):
         """
         line, column = self.visualmap.get_sprite_at_screen_coordinates(pos)
 
-        if self.game.map.roads_layer.set_cell_constrained_to_bottom_layer([self.game.map.buildings_layer,
-                                                                           self.game.map.hills_layer,
-                                                                           self.game.map.trees_layer,
-                                                                           self.game.map.roads_layer], line,
-                                                                          column):
+        if self.game.add_road(line, column):
             # si la route a été bien ajoutée on update la spritelist en la recréant
             self.visualmap.update_sprite_list(self.visualmap.roads_layer, self.game.map.roads_layer.array)
             return True
+        return False
 
     def add_roads_serie(self, start_pos, end_pos, dynamically=False) -> bool:
         """
@@ -348,17 +363,38 @@ class GameView(arcade.View):
         line1, column1 = self.visualmap.get_sprite_at_screen_coordinates(start_pos)
         line2, column2 = self.visualmap.get_sprite_at_screen_coordinates(end_pos)
 
-        if self.game.map.roads_layer.add_roads_serie((line1, column1), (line2, column2),
-                                                     [self.game.map.buildings_layer, self.game.map.trees_layer,
-                                                      self.game.map.hills_layer, self.game.map.roads_layer],
-                                                     memorize=dynamically):
+        if self.game.add_roads_serie((line1, column1), (line2, column2), dynamically):
             self.visualmap.update_sprite_list(self.visualmap.roads_layer, self.game.map.roads_layer.array)
+            return True
+        return False
+
+    def add_dwell(self, pos) -> bool:
+        """
+            Adding house function
+        """
+        line, column = self.visualmap.get_sprite_at_screen_coordinates(pos)
+        if self.game.add_building(line, column, "dwell"):
+            # si la route a été bien ajoutée on update la spritelist en la recréant
+            self.visualmap.update_sprite_list(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
+            return True
+        return False
+
+    def add_multiple_dwell(self, start_pos, end_pos):
+        """
+            Fonction qui permet d'ajouter une série de routes
+            Prend en paramètre 2 positions de souris sous forme de tuple
+        """
+        line1, column1 = self.visualmap.get_sprite_at_screen_coordinates(start_pos)
+        line2, column2 = self.visualmap.get_sprite_at_screen_coordinates(end_pos)
+
+        if self.game.add_multiple_buildings((line1, column1), (line2, column2), "dwell"):
+            self.visualmap.update_sprite_list(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
             return True
         return False
 
     def remove_sprite(self, pos) -> bool:
         line, column = self.visualmap.get_sprite_at_screen_coordinates(pos)
-        what_is_removed = self.game.map.remove_element((line, column))
+        what_is_removed = self.game.remove_element((line, column))
         if what_is_removed == constantes.LAYER4:
             self.visualmap.update_sprite_list(self.visualmap.roads_layer, self.game.map.roads_layer.array)
             return True
@@ -377,7 +413,7 @@ class GameView(arcade.View):
         """
         line1, column1 = self.visualmap.get_sprite_at_screen_coordinates(start_pos)
         line2, column2 = self.visualmap.get_sprite_at_screen_coordinates(end_pos)
-        modified_layers = self.game.map.remove_elements_serie((line1, column1), (line2, column2))
+        modified_layers = self.game.remove_elements_serie((line1, column1), (line2, column2))
         if constantes.LAYER5 in modified_layers:
             self.visualmap.update_sprite_list(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
             return True
@@ -388,64 +424,67 @@ class GameView(arcade.View):
             self.visualmap.update_sprite_list(self.visualmap.roads_layer, self.game.map.roads_layer.array)
             return True
         return False
-    
-    #===============================================
-    # Side tab buttons functions (too hard to place anywhere else)
-    #===============================================
 
-    def button_click_house(self):
-        pass
-    
-    def button_click_shovel(self,event):
-        self.builder_mode = False
+    # ===============================================
+    # Side tab buttons functions (too hard to place anywhere else)
+    # ===============================================
+
+    def button_click_house(self, event):
+        print("button dwell")
+        self.remove_mode = False
         window = arcade.get_window()
-        #window.set_mouse_visible(False)
+        # window.set_mouse_visible(True)
+        self.builder_mode = True
+        self.builder_content = "dwell"
+
+    def button_click_shovel(self, event):
+        self.builder_mode = False
+        # We replace the cursor with a shovel image
+        arcade.get_window().set_mouse_visible(False)
         self.remove_mode = True
         print("shovel")
-        pass    
 
-    def button_click_road(self,event):
+    def button_click_road(self, event):
         print("button road")
         self.remove_mode = False
         window = arcade.get_window()
-        #window.set_mouse_visible(True)
+        # window.set_mouse_visible(True)
         self.builder_mode = True
         self.builder_content = "road"
         pass
-    
-    def button_click_water():
+
+    def button_click_water(self, event):
         pass
 
-    def button_click_health():
+    def button_click_health(self, event):
         pass
 
-    def button_click_lightning():
+    def button_click_lightning(self, event):
         pass
 
-    def button_click_paper():
+    def button_click_paper(self, event):
         pass
 
-    def button_click_entertainement():
+    def button_click_entertainement(self, event):
         pass
 
-    def button_click_education():
+    def button_click_education(self, event):
         pass
 
-    def button_click_hammer():
+    def button_click_hammer(self, event):
         pass
 
-    def button_click_sword():
+    def button_click_sword(self, event):
         pass
 
-    def button_click_supply():
+    def button_click_supply(self, event):
         pass
 
-    def button_click_cross():
+    def button_click_cross(self, event):
         pass
 
-    def button_click_list():
+    def button_click_list(self, event):
         pass
 
-    def button_click_bell():
+    def button_click_bell(self, event):
         pass
-

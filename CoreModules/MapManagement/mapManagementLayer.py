@@ -1,7 +1,6 @@
 import Services.servicesGlobalVariables as globalVar
 import Services.servicesmMapSpriteToFile as mapping
 import CoreModules.TileManagement.tileManagementElement as Element
-
 from CoreModules.BuildingsManagement.buildingsManagementBuilding import Building
 
 # PROBLEME Les lignes et les colonnes sont inversées je ne sais pas pourquoi
@@ -164,7 +163,7 @@ class Layer:
             return self.array[line][column]
         return None
 
-    def set_cell(self, line, column, element, can_replace=False) -> bool:
+    def set_cell(self, line, column, element: Element, can_replace: bool = False) -> bool:
         """
         _dic: Un dictionnaire avec une version et un nombre de cellules
         can_replace: Un booléen qui dit si on peut remplacer une cellule existante
@@ -173,15 +172,15 @@ class Layer:
         Si l'attribut cells_number de l'Element > 1 alors il faut vérifier que toutes les cellules sur lesquelles il
         empiète sont vides
         """
-        # Pré-conditions: La position doit être valide et la case doit contenir un Element de version "null" si can't
-        # replace
 
+        # Preconditions: the element has to occupy at least 1 case and the position (line, column) has to be valid
         cells_number = element.dic['cells_number']
         assert cells_number > 0
+
+        # Precondition: the current cell cant be modified
         if not self.changeable(line, column, cells_number, can_replace):
             return False
 
-        # Toutes les conditions sont remplies
         # On copie les informations de l'Element dans la case correspondante--On garde l'id de la case
         self.array[line][column] = element
         self.array[line][column].id = next(self.id_iterator)
@@ -211,6 +210,54 @@ class Layer:
             if bottom_layers_list[i].array[line][column].dic["version"] != "null":
                 return False
         return self.set_cell(line, column, element, can_replace)
+
+    def add_elements_serie(self, start_pos, end_pos, element, collision_list) -> (bool, int):
+        """
+        Fonction qui permet d'ajouter une série de buildings notamment
+        Prend en paramètre 2 couples positions d'indexes
+        Une liste pour vérifier les collisions
+        un booléen qui permet de dire s'il faut mémoriser les buildings actuelles
+        Renvoie un booléen qui dit si au moins une route a été ajoutée
+        Renvoie le nombre de routes ajoutées
+        """
+
+        line1, column1 = start_pos[0], start_pos[1]
+        line2, column2 = end_pos[0], end_pos[1]
+
+        # Un range pour l'ajout de la ligne verticale de routes, et un autre pour la ligne horizontale
+        vrange, hrange = None, None
+
+        # une variable qui dit si au moins une route a été ajoutée
+        added = False
+
+        # une variable qui dit si la série de routes est valide, c'est à dire qu'il n'y a aucun obstacle entre les 2
+        valid = True
+
+        if line1 >= line2:
+            vrange = range(line1, line2 - 1, -1)
+        else:
+            vrange = range(line2, line1 - 1, -1)
+
+        if column1 <= column2:
+            hrange = range(column2, column1 - 1, -1)
+        else:
+            hrange = range(column1, column2 - 1, -1)
+
+
+        # a counter that will be returned as the number of roads added
+        count = 0
+        # On dessine une ligne verticale de routes de la ligne de départ jusqu'à la ligne de fin
+        for i in vrange:
+            for j in hrange:
+                if self.set_cell_constrained_to_bottom_layer(collision_list, i, j, element):
+                    added = True
+                    count += 1
+                else:
+                    valid = False
+
+        if added:
+            return True, count
+        return False, count
 
     def changeable(self, line, column, cells_number, can_replace):
         """

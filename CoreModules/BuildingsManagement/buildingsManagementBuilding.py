@@ -17,7 +17,7 @@ class Building(element.Element):
 
 
 class Dwelling(Building):
-    def __init__(self, buildings_layer, _type, version="dwelling1"):
+    def __init__(self, buildings_layer, _type, version="dwell"):
         super().__init__(buildings_layer, _type, version)
         self.current_population = None
         self.max_population = None
