@@ -1,8 +1,9 @@
 from Services import servicesGlobalVariables as globalVar
 from Services.Service_Game_Data import building_dico, road_dico, removing_cost
 from CoreModules.BuildingsManagement.buildingsManagementBuilding import *
+from CoreModules.WalkersManagement import walkersManagementWalker as walkers
 
-INIT_MONEY = 4000
+INIT_MONEY = 4000000000
 
 
 class Game:
@@ -18,6 +19,7 @@ class Game:
         self.isPaused = False
         self.walkersAll = []
         self.walkersOut = []
+        self.framerate = globalVar.DEFAULT_FPS
 
     def print_money(self):
         print("#========You have " + str(self.money) + " left========#")
@@ -45,11 +47,16 @@ class Game:
     def updategame(self):
         # ---------------------------------#
         pass
+    
+    def create_walker(self):
+        self.walkersAll.append(walkers.Walker(21,20,None,1/self.framerate))
 
     def walkersGetOut(self):
+        for k in self.walkersAll:
+            self.walkersOut.append(k)
         pass
 
-    def walkersOutUpdates(self):
+    def walkersOutUpdates(self,fps): #fps = 1/self.framerate
         pass
 
     def remove_element(self, pos) -> str | None:
@@ -144,9 +151,31 @@ class Game:
         if self.money < estimated_counter_buildings * building_dico[version].cost:
             print("Not enough money")
             return False
-        building = Building(self.map.buildings_layer, globalVar.LAYER5, version)
-        status, count = self.map.buildings_layer.add_elements_serie(start_pos, end_pos, building,
-                                                                    self.map.collisions_layers)
-        if status:
+        # building = Building(self.map.buildings_layer, globalVar.LAYER5, version)
+        line1, column1 = start_pos[0], start_pos[1]
+        line2, column2 = end_pos[0], end_pos[1]
+
+        if line1 >= line2:
+            vrange = range(line1, line2 - 1, -1)
+        else:
+            vrange = range(line2, line1 - 1, -1)
+
+        if column1 <= column2:
+            hrange = range(column2, column1 - 1, -1)
+        else:
+            hrange = range(column1, column2 - 1, -1)
+
+
+        # a counter that will be returned as the number of roads added
+        count = 0
+        added = False
+        # On dessine une ligne verticale de routes de la ligne de départ jusqu'à la ligne de fin
+
+        for i in vrange:
+            for j in hrange:
+                if self.add_building(i, j, version):
+                    added = True
+                    count += 1
+        if added:
             self.money -= building_dico[version].cost * count
-        return status
+        return added
