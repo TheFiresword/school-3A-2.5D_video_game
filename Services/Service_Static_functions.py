@@ -1,4 +1,5 @@
 import Services.servicesGlobalVariables as constantes
+import arcade
 
 
 def convert_sprite_list_index_to_logic_position(sprite_list_index):
@@ -9,3 +10,9 @@ def convert_sprite_list_index_to_logic_position(sprite_list_index):
     line = constantes.TILE_COUNT - 1 - sprite_list_index // constantes.TILE_COUNT
     column = constantes.TILE_COUNT - 1 - sprite_list_index % constantes.TILE_COUNT
     return line, column
+
+def draw_normal_cursor():
+    window = arcade.get_window()
+    cursor = window.get_system_mouse_cursor(window.CURSOR_DEFAULT)
+    window.set_mouse_cursor(cursor)
+    window.set_mouse_visible(True)

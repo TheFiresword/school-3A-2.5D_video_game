@@ -1,8 +1,9 @@
 from Services import servicesGlobalVariables as globalVar
 from Services.Service_Game_Data import building_dico, road_dico, removing_cost
 from CoreModules.BuildingsManagement.buildingsManagementBuilding import *
+from CoreModules.WalkersManagement import walkersManagementWalker as walkers
 
-INIT_MONEY = 4000
+INIT_MONEY = 4000000000
 
 
 class Game:
@@ -18,6 +19,7 @@ class Game:
         self.isPaused = False
         self.walkersAll = []
         self.walkersOut = []
+        self.framerate = globalVar.DEFAULT_FPS
 
     def print_money(self):
         print("#========You have " + str(self.money) + " left========#")
@@ -45,11 +47,16 @@ class Game:
     def updategame(self):
         # ---------------------------------#
         pass
+    
+    def create_walker(self):
+        self.walkersAll.append(walkers.Walker(21,20,None,1/self.framerate))
 
     def walkersGetOut(self):
+        for k in self.walkersAll:
+            self.walkersOut.append(k)
         pass
 
-    def walkersOutUpdates(self):
+    def walkersOutUpdates(self,fps): #fps = 1/self.framerate
         pass
 
     def remove_element(self, pos) -> str | None:
@@ -138,7 +145,6 @@ class Game:
         return status
 
     def add_multiple_buildings(self, start_pos, end_pos, version) -> bool:
-        """
         # Here we can't precisely calculate the money that will be needed to construct all the roads. we'll estimate
         # that
         estimated_counter_buildings = (abs(start_pos[0] - end_pos[0]) + 1) * (abs(start_pos[1] - end_pos[1]) + 1)
@@ -146,8 +152,6 @@ class Game:
             print("Not enough money")
             return False
         # building = Building(self.map.buildings_layer, globalVar.LAYER5, version)
-        """
-
         line1, column1 = start_pos[0], start_pos[1]
         line2, column2 = end_pos[0], end_pos[1]
 
