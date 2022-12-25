@@ -135,7 +135,8 @@ class Walker:
                 possible.append(up_tile)
             if (road_layer.array[down_tile[0]][down_tile[1]]).dic["version"] != "null":
                 possible.append(down_tile)
-            self.dest_pos = random.choice(possible)
+            if len(possible) != 0:
+                self.dest_pos = random.choice(possible)
         else:
             if self.compteur < self.fps-1:
                 self.compteur += 1

@@ -4,6 +4,7 @@ from UserInterface import UI_Section as uis
 from UserInterface import UI_buttons
 from UserInterface import UI_HUD_Build as hudb
 from UserInterface import UI_Visual_Map as uivm
+from UserInterface import UI_Text_Display as text
 
 import CoreModules.GameManagement.Game as game
 import CoreModules.MapManagement.mapManagementMap as map
@@ -43,9 +44,47 @@ class GameView(arcade.View):
         # Arcade stuff
         # =======================================
         arcade.set_background_color(arcade.color.BLACK)
-        self.manager = arcade.gui.UIManager()
-        self.manager.enable()
-
+        self.right_panel_manager = arcade.gui.UIManager()
+        self.right_panel_manager.enable()
+        self.right_panel_manager_depth_one = {"water":arcade.gui.UIManager(),
+                                              "health":arcade.gui.UIManager(),
+                                              "religion":arcade.gui.UIManager(),
+                                              "education":arcade.gui.UIManager(),
+                                              "entertainment":arcade.gui.UIManager(),
+                                              "roll":arcade.gui.UIManager(),
+                                              "hammer":arcade.gui.UIManager(),
+                                              "sword":arcade.gui.UIManager(),
+                                              "carry":arcade.gui.UIManager()
+                                             }
+        self.right_panel_manager_depth_two = {"status":arcade.gui.UIManager(),
+                                              "tress":arcade.gui.UIManager(),
+                                              "parks":arcade.gui.UIManager(),
+                                              "paths":arcade.gui.UIManager(),
+                                              "governor":arcade.gui.UIManager(),
+                                              "small_temple":arcade.gui.UIManager(),
+                                              "farm":arcade.gui.UIManager(),
+                                              "raw_material":arcade.gui.UIManager(),
+                                              "workshop":arcade.gui.UIManager()
+                                             }
+        self.manager_state = {"water":False,
+                                              "health":False,
+                                              "religion":False,
+                                              "education":False,
+                                              "entertainment":False,
+                                              "roll":False,
+                                              "hammer":False,
+                                              "sword":False,
+                                              "carrier":False,
+                                              "status":False,
+                                              "tress":False,
+                                              "parks":False,
+                                              "paths":False,
+                                              "governor":False,
+                                              "small_temple":False,
+                                              "farm":False,
+                                              "raw_material":False,
+                                              "workshop":False
+                                              }
         self.menusect = uis.MenuSect()
         self.map_camera = arcade.Camera()
         self.menu_camera = arcade.Camera()
@@ -53,7 +92,10 @@ class GameView(arcade.View):
         # Visuals elements excepts ones Map related 
         # =======================================
         self.tab = arcade.load_texture(constantes.SPRITE_PATH + "PanelsOther/paneling_00017.png")
-        self.bar = arcade.load_texture(constantes.SPRITE_PATH + "Panel\Panel2\paneling_00010.png")
+        self.bar = arcade.load_texture(constantes.SPRITE_PATH + "Panel\panel0.png")
+        self.money_box = arcade.load_texture(constantes.SPRITE_PATH + "PanelsOther/paneling_00015.png")
+
+        self.money_text = None
         buttons_render = UI_buttons.buttons
         self.buttons = [arcade.gui.UITextureButton(x=b0, y=b1, texture=b2, texture_hovered=b3, texture_pressed=b4,
                                                    scale=constantes.SPRITE_SCALING) for
@@ -61,9 +103,15 @@ class GameView(arcade.View):
         self.buttons[5].on_click = self.button_click_house
         self.buttons[6].on_click = self.button_click_shovel
         self.buttons[7].on_click = self.button_click_road
-
+        self.select_all_manager()
+        self.attribute_on_click()
+        #self.buttons[8].on_click = UI_buttons.define_on_click_button_manager(self,"water")
+        #self.buttons[9].on_click = UI_buttons.define_on_click_button_manager(self,"health")
+        #self.buttons[10].
+        
+        
         for k in self.buttons:
-            self.manager.add(k)
+            self.right_panel_manager.add(k)
 
         # =======================================
         # Map related Visuals elements 
@@ -81,6 +129,7 @@ class GameView(arcade.View):
             self.game = game.Game(map.MapLogic())
         self.game.create_walker()
         self.game.walkersGetOut()
+        self.money_text=text.Sprite_sentence("Dn: " +str(self.game.money),"white",(205,constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4))
         self.visualmap.setup(self.game)
         self.center_map()
         self.builder_content = ""
@@ -93,7 +142,7 @@ class GameView(arcade.View):
         pass
 
     def on_hide(self):
-        self.manager.disable()
+        self.right_panel_manager.disable()
 
     def on_draw(self):
         self.clear()
@@ -118,7 +167,7 @@ class GameView(arcade.View):
 
             if self.remove_mode:
                 if self.real_mouse_pos[0] < constantes.DEFAULT_SCREEN_WIDTH - 165:
-                    #arcade.get_window().set_mouse_visible(False)
+                    arcade.get_window().set_mouse_visible(False)
                     hollow = hudb.hollow(self.mouse_pos[0], self.mouse_pos[1], self.visualmap)
                     hollow.draw()
                 else:
@@ -128,19 +177,40 @@ class GameView(arcade.View):
         # =======================================
         self.menu_camera.use()
         arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH / 2,
-                                      center_y=constantes.DEFAULT_SCREEN_HEIGHT - 20,
-                                      width=constantes.DEFAULT_SCREEN_WIDTH, height=40, texture=self.bar)
+                                      center_y=constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4,
+                                      width=self.bar.image.size[0]/2, height=self.bar.image.size[1]/2,
+                                      texture=self.bar)
+        arcade.draw_texture_rectangle(center_x=300,
+                                      center_y=constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4,
+                                      width=(len(self.money_text.sentence)+5) * constantes.FONT_WIDTH/2, height=self.bar.image.size[1]/2,
+                                      texture=self.money_box)
         arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH - 81,
-                                      center_y=constantes.DEFAULT_SCREEN_HEIGHT - 285 + 28,
+                                      center_y=constantes.DEFAULT_SCREEN_HEIGHT - 285 + 47,
                                       width=162, height=constantes.DEFAULT_SCREEN_HEIGHT / 2,
                                       texture=self.tab
                                       )
-        self.manager.draw()
+        self.money_text.draw_()
+        self.right_panel_manager.draw()
+        for manager in self.manager_state.items():
+            if manager[1]:
+                if manager[0] in self.right_panel_manager_depth_one:
+                    real_man = self.right_panel_manager_depth_one[manager[0]]
+                    real_man.draw()
+                    for k in real_man.children[0]:
+                        k.draw_()
+                elif manager[0] in self.right_panel_manager_depth_one.keys():
+                    real_man = self.right_panel_manager_depth_two[manager[0]]
+
+                    real_man.draw()
+                else:
+                    print("no manager")
+            
 
     def on_update(self, delta_time: float):
         self.move_map_camera_with_keys()
         (self.game.walkersOut[0]).walk2(self.game.map.roads_layer)
         self.visualmap.update_walker_list(self.game.walkersOut)
+        self.money_text = text.Sprite_sentence("Dn: " +str(self.game.money),"white",(320-(len(self.money_text.sentence)+5) * constantes.FONT_WIDTH/4,constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4))
         
 
     # =======================================
@@ -199,6 +269,7 @@ class GameView(arcade.View):
                 self.mouse_left_maintained = False
 
             if button == arcade.MOUSE_BUTTON_RIGHT:
+                self.hide_all_manager()
                 self.mouse_right_pressed = False
                 self.mouse_right_maintained = False
                 # self.red_sprite.visible = False
@@ -413,7 +484,7 @@ class GameView(arcade.View):
         print("button dwell")
         self.remove_mode = False
         window = arcade.get_window()
-        # window.set_mouse_visible(True)
+        window.set_mouse_visible(True)
         self.builder_mode = True
         self.builder_content = "dwell"
         fct.draw_normal_cursor()
@@ -422,7 +493,7 @@ class GameView(arcade.View):
     def button_click_shovel(self, event):
         self.builder_mode = False
         # We replace the cursor with a shovel image
-        #arcade.get_window().set_mouse_visible(False)
+        arcade.get_window().set_mouse_visible(False)
         self.remove_mode = True
         print("shovel")
 
@@ -430,12 +501,46 @@ class GameView(arcade.View):
         print("button road")
         self.remove_mode = False
         window = arcade.get_window()
-        # window.set_mouse_visible(True)
+        window.set_mouse_visible(True)
         self.builder_mode = True
         self.builder_content = "road"
         fct.draw_normal_cursor()
         pass
 
+    def attribute_on_click(self):
+        l = ["","","","","","","","","water","health","religion","roll","entertainment","education","hammer","sword","carry"]
+        for i in range(0,len(l)):
+            if i > 7:
+                self.buttons[i].on_click = UI_buttons.define_on_click_button_manager(self,l[i])
+        
+
+    def fill_manager(self,button_list,manager):
+            for k in button_list:
+                self.right_panel_manager_depth_one[manager].add(k)
+
+    def select_manager(self,manager):
+        match manager:
+            case "water": self.fill_manager(UI_buttons.button_list(gdata.text_water),manager)
+            case "health": self.fill_manager(UI_buttons.button_list(gdata.text_health),manager)
+            case "religion": self.fill_manager(UI_buttons.button_list(gdata.text_religion),manager)
+            case "education": self.fill_manager(UI_buttons.button_list(gdata.text_education),manager)
+            case "roll": self.fill_manager(UI_buttons.button_list(gdata.text_roll),manager)
+            case "entertainment": self.fill_manager(UI_buttons.button_list(gdata.text_entertainment),manager)
+            case "hammer": self.fill_manager(UI_buttons.button_list(gdata.text_hammer),manager)
+            case "sword": self.fill_manager(UI_buttons.button_list(gdata.text_sword),manager)
+            case "carry": self.fill_manager(UI_buttons.button_list(gdata.text_carry),manager)
+
+    def select_all_manager(self):
+        for k in self.right_panel_manager_depth_one.keys():
+            self.select_manager(k)
+
+    def hide_all_manager(self):
+        for manager in self.manager_state.items():
+            self.manager_state[manager[0]] = False
+
+    def button_click_depht(self, event , button):
+        pass
+        
     def button_click_water(self, event):
         pass
 
