@@ -168,7 +168,14 @@ def mapping_function(element_type, type_version, building_level=0) -> (str, int)
                 return const.SPRITE_PATH + "Commerce\Commerce_00042.png"
 
         elif type_version == "vegetable_farm":
-            return const.SPRITE_PATH + ""
+            if building_level == 0:
+                return const.SPRITE_PATH + "Commerce\Commerce_00019.png"
+            if building_level == 1:
+                return const.SPRITE_PATH + "Commerce\Commerce_00020.png"
+            if building_level == 0:
+                return const.SPRITE_PATH + "Commerce\Commerce_00021.png"
+            if building_level == 0:
+                return const.SPRITE_PATH + "Commerce\Commerce_00022.png"
 
         elif type_version == "vine_farm":
             if building_level == 0:
