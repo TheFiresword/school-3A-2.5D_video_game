@@ -13,7 +13,6 @@ class WelcomeScreen(arcade.View):
         arcade.set_background_color(arcade.color.AMAZON)
 
         self.buttons_manager = arcade.gui.UIManager()
-        self.buttons_manager.enable()
         self.newgame_button = but.NewGameButton(x=constantes.MIDDLE[0]-100,y=constantes.MIDDLE[1]+40+15+7.5,texture= but.texture_panel11,my_text="New Game", width=200, height=40,color="black")
         self.load_button = but.LoadGameButton(x=constantes.MIDDLE[0]-100,y=constantes.MIDDLE[1]+7.5,texture= but.texture_panel11, my_text="Load Game", width=200, height=40,color="black")
         self.settings_button = but.SettingButton(x=constantes.MIDDLE[0]-100,y=constantes.MIDDLE[1]-40-7.5,texture= but.texture_panel11, my_text="Settings", width=200, height=40,color="black")
@@ -41,9 +40,10 @@ class WelcomeScreen(arcade.View):
             self.settings_button.draw_()
             self.quit_button.draw_()
 
-    def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
+    def on_mouse_release(self, x: int, y: int, button: int, modifiers: int):
         if self.step == 0:
             self.step = 1
+            self.buttons_manager.enable()
 
     def on_hide_view(self):
         self.clear()

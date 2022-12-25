@@ -161,8 +161,10 @@ class GameView(arcade.View):
                 self.visualmap.red_sprite.draw()
 
             if self.builder_mode and self.builder_content not in ["road"]:
-                hollow = hudb.hollow_build(self.mouse_pos[0], self.mouse_pos[1],
-                                           gdata.building_dico[self.builder_content], self.visualmap)
+                if self.builder_content != "road":
+                    hollow = hudb.hollow_build(self.mouse_pos[0], self.mouse_pos[1],self.visualmap,gdata.building_dico[self.builder_content])
+                else:
+                    hollow = hudb.hollow_build(self.mouse_pos[0], self.mouse_pos[1],self.visualmap)
                 hollow.draw()
 
             if self.remove_mode:
