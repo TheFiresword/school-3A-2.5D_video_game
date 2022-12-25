@@ -1,6 +1,5 @@
 import arcade
 from Services import servicesGlobalVariables as constantes
-from UserInterface import buttons as but
 import arcade.gui
 
 class LoadScreen(arcade.View):

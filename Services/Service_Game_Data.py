@@ -24,10 +24,10 @@ building_dico = {
     "school": Building_info(50, -1, 10, "", False, False),
     "garden": Building_info(12, -1, 0, "", False, False),
     "plaza": Building_info(15, -1, 0, "", False, False),
-    "engineer's_post": Building_info(30, 1, 6, "", False, False),
+    "engineer's post": Building_info(30, 1, 6, "", False, False),
     "dock": Building_info(100, -1, 12, "", False, False),
-    "theatre": Building_info(50, -1, 8, "", False, False),
-    "amphitheatre": Building_info(100, -1, 12, "", False, False),
+    "theater": Building_info(50, -1, 8, "", False, False),
+    "amphitheater": Building_info(100, -1, 12, "", False, False),
     "colosseum": Building_info(500, -1, 25, "", False, False),
     "actor_colony": Building_info(50, -1, 5, "", False, False),
     "gladiator_school": Building_info(75, -1, 8, "", False, False),
@@ -67,5 +67,16 @@ building_dico = {
 }
 
 road_dico = {'cost': 4}
+
+text_water = ["Reservoir","Aqueduct","Fountain","Well"]
+text_health = ["Barber","Baths","Doctor","Hospital"]
+text_religion = ["Small temple"]
+text_roll = ["test"]
+text_entertainment = ["Theater","Amphitheater","Arena","Colosseum","Gladiator School","Lion House","Actor Colony"]
+text_education = ["Status","Trees","Parks","Paths","Governer's Mansion","Garden","Plaza","Road blocs","Forums","Senate"]
+text_hammer = ["Engineer's post", "Low Bridge", "Ship Bridge", "Dock","Work camps","Architect's Guild","Light house"]
+text_sword = ["Wall","Tower","Gate House","Palissade","Prefecture","Fort","Military academi","Barracks","Watchtowers"]
+text_carry = ["Farms","Raw Materials","Workshops","Market","Granary","Warehouse","Caravan serai"]
+
 
 removing_cost = 2

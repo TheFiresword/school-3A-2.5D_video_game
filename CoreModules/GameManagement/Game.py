@@ -3,7 +3,7 @@ from Services.Service_Game_Data import building_dico, road_dico, removing_cost
 from CoreModules.BuildingsManagement.buildingsManagementBuilding import *
 from CoreModules.WalkersManagement import walkersManagementWalker as walkers
 
-INIT_MONEY = 4000000000
+INIT_MONEY = 1000000000
 
 
 class Game:
