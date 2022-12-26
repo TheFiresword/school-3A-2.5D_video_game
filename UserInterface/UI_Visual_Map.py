@@ -1,6 +1,7 @@
 import arcade
 from Services import servicesGlobalVariables as constantes
 from Services import Service_Static_functions as fct
+from Services import Service_Game_Data as gdata
 from pyglet.math import Vec2
 
 
@@ -94,7 +95,7 @@ class VisualMap:
             walker_pos_x,walker_pos_y = support_sprite.center_x,support_sprite.center_y
             walker_pos_x += walker.offset_x
             walker_pos_y += walker.offset_y
-            walker_sprite=arcade.Sprite(filename=walker.paths_up[0],center_x=walker_pos_x,center_y=walker_pos_y,scale=self.map_scaling)
+            walker_sprite=arcade.Sprite(filename=walker.paths_up[walker.compteur % len(walker.paths_up)],center_x=walker_pos_x,center_y=walker_pos_y,scale=self.map_scaling)
             self.walker_to_render.append(walker_sprite)
         pass
 
@@ -146,7 +147,7 @@ class VisualMap:
     
     def get_sprite_associated(self, position):
         index = position[0] * 40 + position[1]
-        return self.grass_layer[constantes.TILE_COUNT**2 - index]
+        return self.grass_layer[constantes.TILE_COUNT**2 - index -1]
         
     
     def get_logic_element_associated(self, _sprite, _sprite_list):
@@ -163,4 +164,11 @@ class VisualMap:
             return self.game.map.roads_layer.array[line][column]
         elif _sprite_list == self.visualmap.buildings_layer:
             return self.game.map.buildings_layer.array[line][column]
+
+    def fill_temporary_build(self,list,sprite_list:arcade.SpriteList,type):
+        for pos in list:
+            support_sprite = (self.get_sprite_associated(pos))
+            sprite_pos_x,sprite_pos_y = support_sprite.center_x,support_sprite.center_y
+            sprite = arcade.Sprite(filename=(gdata.building_dico[type]).spritepath,center_x= sprite_pos_x,center_y=sprite_pos_y,scale=self.map_scaling)
+            sprite_list.append(sprite)
 

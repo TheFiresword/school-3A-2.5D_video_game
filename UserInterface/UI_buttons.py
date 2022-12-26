@@ -124,6 +124,7 @@ def button_list(text_manager):
 
 def define_on_click_button_manager(gameview,manager):
     def on_click_button(event,game_view = gameview,mana = manager):
+        game_view.hide_all_manager()
         game_view.manager_state[mana] = True
     return on_click_button
 

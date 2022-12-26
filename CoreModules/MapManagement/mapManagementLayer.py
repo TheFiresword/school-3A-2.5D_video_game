@@ -304,3 +304,21 @@ class Layer:
                           f"{self.array[line][column].position} ")
                     count += 1
         print(f"{count} elements")
+    
+    def parse_layer(self,action_on_element):
+        for i in range(0, globalVar.TILE_COUNT):
+            for j in range(0, globalVar.TILE_COUNT):
+                if self.type == globalVar.LAYER5:
+                    print(self.array[i][j].dic['version'])    
+                    if not (self.array[i][j].dic['version'] in ["occupied", "null"]):
+                        action_on_element(self.array[i][j])
+        return True
+                
+                
+            
+
+
+
+        
+        
+       

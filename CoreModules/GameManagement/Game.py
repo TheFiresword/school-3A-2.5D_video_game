@@ -1,6 +1,6 @@
 from Services import servicesGlobalVariables as globalVar
 from Services.Service_Game_Data import building_dico, road_dico, removing_cost
-from CoreModules.BuildingsManagement.buildingsManagementBuilding import *
+from CoreModules.BuildingsManagement import buildingsManagementBuilding as buildings
 from CoreModules.WalkersManagement import walkersManagementWalker as walkers
 
 INIT_MONEY = 1000000000
@@ -17,6 +17,7 @@ class Game:
         self.caesar_score = 0
         self.unemployement = 0
         self.isPaused = False
+        self.buildinglist = []
         self.walkersAll = []
         self.walkersOut = []
         self.framerate = globalVar.DEFAULT_FPS
@@ -31,25 +32,26 @@ class Game:
     def foodproduction(self):
         # ---------------------------------#
         pass
+    
+    def updatebuilding(self,building:buildings.Building):
+        building.update_risk("fire")
+        building.update_risk("collapse")
+        pass
 
     def updateReligion(self):
         pass
 
-    def updateFire(self):
-        pass
+    
 
-    def updateCollapsing(self):
-        pass
-
-    def updateLikeability(self):
-        pass
+    
 
     def updategame(self):
+        self.automatic_building_update()
         # ---------------------------------#
         pass
     
     def create_walker(self):
-        self.walkersAll.append(walkers.Walker(21,20,None,1/self.framerate))
+        self.walkersAll.append(walkers.Walker(globalVar.TILE_COUNT-2,20,None,1/self.framerate))
 
     def walkersGetOut(self):
         for k in self.walkersAll:
@@ -68,15 +70,22 @@ class Game:
             print("Not enough money")
             return None
         line, column = pos[0], pos[1]
-        if self.map.roads_layer.remove_cell(line, column):
-            self.money -= removing_cost
-            return globalVar.LAYER4
-        elif self.map.trees_layer.remove_cell(line, column):
-            self.money -= removing_cost
-            return globalVar.LAYER3
-        elif self.map.buildings_layer.remove_cell(line, column):
-            self.money -= removing_cost
-            return globalVar.LAYER5
+
+        road,tree,building = self.map.roads_layer.get_cell(line,column),self.map.trees_layer.get_cell(line,column),self.map.buildings_layer.get_cell(line,column)
+
+        if road.dic["version"] != "null":
+            if self.map.roads_layer.remove_cell(line, column):
+                self.money -= removing_cost
+                return globalVar.LAYER4
+        elif tree.dic["version"] != "null":
+            if self.map.trees_layer.remove_cell(line, column):
+                self.money -= removing_cost
+                return globalVar.LAYER3
+        elif building.dic["version"] != "null": 
+            if self.map.buildings_layer.remove_cell(line, column):
+                self.buildinglist.remove(building)
+                self.money -= removing_cost
+                return globalVar.LAYER5
         return None
 
     def remove_elements_serie(self, start_pos, end_pos) -> set:
@@ -137,7 +146,8 @@ class Game:
         if self.money < building_dico[version].cost:
             print("Not enough money")
             return False
-        building = Building(self.map.buildings_layer, globalVar.LAYER5, version)
+        building = buildings.Building(self.map.buildings_layer, globalVar.LAYER5, version)
+        self.buildinglist.append(building)
         status = self.map.buildings_layer.set_cell_constrained_to_bottom_layer(self.map.collisions_layers, line, column,
                                                                                building)
         if status:
@@ -179,3 +189,8 @@ class Game:
         if added:
             self.money -= building_dico[version].cost * count
         return added
+
+    def automatic_building_update(self):
+        for k in self.buildinglist:
+            self.updatebuilding(k)
+        pass
