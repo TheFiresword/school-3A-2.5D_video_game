@@ -179,3 +179,5 @@ class Game:
         if added:
             self.money -= building_dico[version].cost * count
         return added
+
+

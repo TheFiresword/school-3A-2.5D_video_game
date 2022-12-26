@@ -12,6 +12,7 @@ import CoreModules.MapManagement.mapManagementMap as map
 from Services import servicesGlobalVariables as constantes
 from Services import Service_Game_Data as gdata
 from Services import Service_Static_functions as fct
+from Services import Service_Save_and_Load as saveload
 
 import arcade
 import arcade.gui
@@ -133,7 +134,7 @@ class GameView(arcade.View):
         self.visualmap.setup(self.game)
         self.center_map()
         self.builder_content = ""
-        
+
 
     # =======================================
     #  View Related Fuctions
@@ -339,8 +340,7 @@ class GameView(arcade.View):
             self.visualmap.red_sprite.visible = False
         elif symbol == arcade.key.N:
             self.builder_mode = False
-            
-            
+
 
     def on_key_release(self, _symbol: int, _modifiers: int):
         if _symbol == arcade.key.UP:
@@ -578,3 +578,17 @@ class GameView(arcade.View):
 
     def button_click_bell(self, event):
         pass
+
+    def save_game(self, game_name):
+        saveload.save_game(self.game, game_name)
+
+    def load_game(self, game_name):
+        return saveload.load_game(game_name)
+
+    def delete_game(self, game_name):
+        saveload.delete_game(game_name)
+
+    def list_saved_games(self):
+        for _game in saveload.list_saved_games():
+            # do whatever u want with that
+            print(_game)
