@@ -341,6 +341,18 @@ class GameView(arcade.View):
         elif symbol == arcade.key.N:
             self.builder_mode = False
 
+        # Testing
+        # press S to save your game
+        elif symbol == arcade.key.S:
+            self.save_game('game1')
+        # press L to load game1
+        elif symbol == arcade.key.L:
+            self.load_game('game1')
+        # press D to delete game1
+        elif symbol == arcade.key.D:
+            self.delete_game('game1')
+
+
 
     def on_key_release(self, _symbol: int, _modifiers: int):
         if _symbol == arcade.key.UP:
@@ -583,7 +595,8 @@ class GameView(arcade.View):
         saveload.save_game(self.game, game_name)
 
     def load_game(self, game_name):
-        return saveload.load_game(game_name)
+        self.game = saveload.load_game(game_name)
+        self.setup()
 
     def delete_game(self, game_name):
         saveload.delete_game(game_name)
