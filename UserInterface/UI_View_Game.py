@@ -596,7 +596,7 @@ class GameView(arcade.View):
 
     def load_game(self, game_name):
         self.game = saveload.load_game(game_name)
-        self.setup()
+        self.visualmap.setup(self.game)
 
     def delete_game(self, game_name):
         saveload.delete_game(game_name)
