@@ -129,77 +129,80 @@ def mapping_function(element_type, type_version, building_level=0) -> (str, int)
         elif type_version == "hospital":
             return const.SPRITE_PATH + ""
 
+        elif type_version == "foundation_farm":
+            return const.SPRITE_PATH + "Commerce\Commerce_00012.png", 2
+
         elif type_version == "fruit_farm":
             if building_level == 0:
-                return const.SPRITE_PATH + "Commerce\Commerce_00023.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00023.png", 1
             if building_level == 1:
-                return const.SPRITE_PATH + "Commerce\Commerce_00024.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00024.png", 1
             if building_level == 2:
-                return const.SPRITE_PATH + "Commerce\Commerce_00025.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00025.png", 1
             if building_level == 3:
-                return const.SPRITE_PATH + "Commerce\Commerce_00026.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00026.png", 1
             if building_level == 4:
-                return const.SPRITE_PATH + "Commerce\Commerce_00027.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00027.png", 1
 
         elif type_version == "olive_farm":
             if building_level == 0:
-                return const.SPRITE_PATH + "Commerce\Commerce_00028.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00028.png", 1
             if building_level == 1:
-                return const.SPRITE_PATH + "Commerce\Commerce_00029.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00029.png", 1
             if building_level == 2:
-                return const.SPRITE_PATH + "Commerce\Commerce_00030.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00030.png", 1
             if building_level == 3:
-                return const.SPRITE_PATH + "Commerce\Commerce_00031.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00031.png", 1
             if building_level == 4:
-                return const.SPRITE_PATH + "Commerce\Commerce_00032.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00032.png", 1
             if building_level == 5:
-                return const.SPRITE_PATH + "Commerce\Commerce_00033.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00033.png", 1
 
         elif type_version == "pig_farm":
             if building_level == 0:
-                return const.SPRITE_PATH + "Commerce\Commerce_00038.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00038.png", 1
             if building_level == 1:
-                return const.SPRITE_PATH + "Commerce\Commerce_00039.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00039.png", 1
             if building_level == 2:
-                return const.SPRITE_PATH + "Commerce\Commerce_00040.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00040.png", 1
             if building_level == 3:
-                return const.SPRITE_PATH + "Commerce\Commerce_00041.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00041.png", 1
             if building_level == 4:
-                return const.SPRITE_PATH + "Commerce\Commerce_00042.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00042.png", 1
 
         elif type_version == "vegetable_farm":
             if building_level == 0:
-                return const.SPRITE_PATH + "Commerce\Commerce_00019.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00019.png", 1
             if building_level == 1:
-                return const.SPRITE_PATH + "Commerce\Commerce_00020.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00020.png", 1
             if building_level == 0:
-                return const.SPRITE_PATH + "Commerce\Commerce_00021.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00021.png", 1
             if building_level == 0:
-                return const.SPRITE_PATH + "Commerce\Commerce_00022.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00022.png", 1
 
         elif type_version == "vine_farm":
             if building_level == 0:
-                return const.SPRITE_PATH + "Commerce\Commerce_00033.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00033.png", 1
             if building_level == 1:
-                return const.SPRITE_PATH + "Commerce\Commerce_00034.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00034.png", 1
             if building_level == 2:
-                return const.SPRITE_PATH + "Commerce\Commerce_00035.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00035.png", 1
             if building_level == 3:
-                return const.SPRITE_PATH + "Commerce\Commerce_00036.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00036.png", 1
             if building_level == 4:
-                return const.SPRITE_PATH + "Commerce\Commerce_00037.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00037.png", 1
 
         elif type_version == "wheat_farm":
             if building_level == 0:
-                return const.SPRITE_PATH + "Commerce\Commerce_00013.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00013.png", 1
             if building_level == 1:
-                return const.SPRITE_PATH + "Commerce\Commerce_00014.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00014.png", 1
             if building_level == 2:
-                return const.SPRITE_PATH + "Commerce\Commerce_00015.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00015.png", 1
             if building_level == 3:
-                return const.SPRITE_PATH + "Commerce\Commerce_00016.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00016.png", 1
             if building_level == 4:
-                return const.SPRITE_PATH + "Commerce\Commerce_00017.png"
+                return const.SPRITE_PATH + "Commerce\Commerce_00017.png", 1
 
         elif type_version == "iron_mine":
             return const.SPRITE_PATH + ""

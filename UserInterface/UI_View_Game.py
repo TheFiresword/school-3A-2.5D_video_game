@@ -33,8 +33,6 @@ class GameView(arcade.View):
         self.mouse_pos = (0, 0)
         self.real_mouse_pos = (0,0)
         self.init_mouse_pos = (0, 0)
-        self.actual_sprite_limit = (0,0,0,0)
-        self.surface_drag = []
         self.mouse_left_pressed, self.mouse_right_pressed = False, False
         self.mouse_left_maintained, self.mouse_right_maintained = False, False
         self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed = False, False, False, False
@@ -119,7 +117,6 @@ class GameView(arcade.View):
         # Map related Visuals elements 
         # =======================================
         self.visualmap = uivm.VisualMap()
-        self.dragged_sprite = arcade.SpriteList()
 
         # =======================================
         # Preliminary actions
@@ -164,14 +161,11 @@ class GameView(arcade.View):
                 self.visualmap.red_sprite.draw()
 
             if self.builder_mode:
-                if not self.mouse_left_maintained:
-                    if self.builder_content != "road":
-                        hollow = hudb.hollow_build(self.mouse_pos[0], self.mouse_pos[1],self.visualmap,gdata.building_dico[self.builder_content])
-                    else:
-                        hollow = hudb.hollow_build(self.mouse_pos[0], self.mouse_pos[1],self.visualmap)
-                    hollow.draw()
+                if self.builder_content != "road":
+                    hollow = hudb.hollow_build(self.mouse_pos[0], self.mouse_pos[1],self.visualmap,gdata.building_dico[self.builder_content])
                 else:
-                    self.dragged_sprite.draw()
+                    hollow = hudb.hollow_build(self.mouse_pos[0], self.mouse_pos[1],self.visualmap)
+                hollow.draw()
 
             if self.remove_mode:
                 if self.real_mouse_pos[0] < constantes.DEFAULT_SCREEN_WIDTH - 165:
@@ -208,14 +202,13 @@ class GameView(arcade.View):
                         k.draw_()
                 elif manager[0] in self.right_panel_manager_depth_one.keys():
                     real_man = self.right_panel_manager_depth_two[manager[0]]
+
                     real_man.draw()
                 else:
                     print("no manager")
-        
             
 
     def on_update(self, delta_time: float):
-        self.game.updategame()
         self.move_map_camera_with_keys()
         (self.game.walkersOut[0]).walk2(self.game.map.roads_layer)
         self.visualmap.update_walker_list(self.game.walkersOut)
@@ -230,6 +223,7 @@ class GameView(arcade.View):
         # ===================================
         # Left click Draw red rectangle around closest sprite to mouse
         # ===================================
+
         (map_pos_x, map_pos_y) = Vec2(x, y) + self.map_camera.position
         self.init_mouse_pos = (map_pos_x, map_pos_y)
         if x < constantes.DEFAULT_SCREEN_WIDTH - 165:
@@ -266,15 +260,12 @@ class GameView(arcade.View):
                 else:
                     # If the remove_mode is not set the normal cursor is drawn
                     fct.draw_normal_cursor()
+
                 if self.builder_mode:
-                    if self.mouse_left_maintained:
-                        if self.builder_content == "dwell":
-                            self.add_multiple_one_sized_building()
-                            self.dragged_sprite.clear()
-                    else:
-                        if self.builder_content == "dwell":
-                            self.add_one_sized_building(self.mouse_pos)
-                        if self.builder_content == "road":
+                    if self.builder_content == "dwell":
+                        self.add_dwell(self.mouse_pos)
+                    elif self.builder_content == "road":
+                        if not self.mouse_left_maintained:
                             self.add_road(self.mouse_pos)
                 self.mouse_left_pressed = False
                 self.mouse_left_maintained = False
@@ -298,10 +289,9 @@ class GameView(arcade.View):
                         self.add_roads_serie(self.init_mouse_pos, tmp_end_pos, True)
                     else:
                         self.add_roads_serie(self.init_mouse_pos, tmp_end_pos)
-                else:
-                    self.get_surface_dragged(self.init_mouse_pos,tmp_end_pos)
-                    self.dragged_sprite.clear()
-                    self.visualmap.fill_temporary_build(self.surface_drag,self.dragged_sprite,self.builder_content)
+
+                elif self.builder_content == "dwell":
+                    self.add_multiple_dwell(self.init_mouse_pos, tmp_end_pos)
 
             self.mouse_left_maintained = True
         # self.red_sprite.visible = False
@@ -333,10 +323,6 @@ class GameView(arcade.View):
                 self.visualmap.rescale_the_map(constantes.SCALE_MAX, self.game)
                 self.center_map()
 
-    # =======================================
-    #  Key Related Fuctions
-    # =======================================
-
     def on_key_press(self, symbol: int, modifiers: int):
         if symbol == arcade.key.ESCAPE:
             arcade.exit()
@@ -352,7 +338,18 @@ class GameView(arcade.View):
             self.builder_mode = True
             self.visualmap.red_sprite.visible = False
         elif symbol == arcade.key.N:
-            self.builder_mode = False   
+            self.builder_mode = False
+
+        # Testing
+        # press S to save your game
+        elif symbol == arcade.key.S:
+            self.save_game('game1')
+        # press L to load game1
+        elif symbol == arcade.key.L:
+            self.load_game('game1')
+        # press D to delete game1
+        elif symbol == arcade.key.D:
+            self.delete_game('game1')
 
     def on_key_release(self, _symbol: int, _modifiers: int):
         if _symbol == arcade.key.UP:
@@ -364,10 +361,10 @@ class GameView(arcade.View):
         elif _symbol == arcade.key.RIGHT:
             self.right_pressed = False
 
+
     # =======================================
     #  Camera Related Fuctions
     # =======================================
-
     def move_map_camera_with_keys(self):
 
         if self.up_pressed and not self.down_pressed:
@@ -378,7 +375,7 @@ class GameView(arcade.View):
             self.scroll_to(self.map_camera.position + Vec2(-20, 0))
         elif self.right_pressed and not self.left_pressed:
             self.scroll_to(self.map_camera.position + Vec2(20, 0))
-        
+
     def scroll_to(self, position):
         """
         Scroll the window to the given position
@@ -433,8 +430,8 @@ class GameView(arcade.View):
             self.visualmap.update_sprite_list(self.visualmap.roads_layer, self.game.map.roads_layer.array)
             return True
         return False
-   
-    def add_one_sized_building(self,pos):
+
+    def add_one_sized_building(self, pos):
         # ================================
         #       Add single tile Building
         # ================================
@@ -446,11 +443,10 @@ class GameView(arcade.View):
         return False
 
     def add_multiple_one_sized_building(self):
-        for (line,column) in self.surface_drag:
-            if not self.game.add_building(line,column,self.builder_content):
+        for (line, column) in self.surface_drag:
+            if not self.game.add_building(line, column, self.builder_content):
                 print("Building failed")
         self.visualmap.update_sprite_list(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
-
 
     def remove_sprite(self, pos) -> bool:
         line, column = self.visualmap.get_sprite_at_screen_coordinates(pos)
@@ -498,6 +494,7 @@ class GameView(arcade.View):
         self.builder_content = "dwell"
         fct.draw_normal_cursor()
         
+
     def button_click_shovel(self, event):
         self.builder_mode = False
         # We replace the cursor with a shovel image
@@ -521,6 +518,7 @@ class GameView(arcade.View):
             if i > 7:
                 self.buttons[i].on_click = UI_buttons.define_on_click_button_manager(self,l[i])
         
+
     def fill_manager(self,button_list,manager):
             for k in button_list:
                 self.right_panel_manager_depth_one[manager].add(k)
@@ -547,8 +545,8 @@ class GameView(arcade.View):
 
     def button_click_depht(self, event , button):
         pass
-    
-    def get_surface_dragged(self,start,end):
+
+    def get_surface_dragged(self, start, end):
         line1, column1 = self.visualmap.get_sprite_at_screen_coordinates(start)
         line2, column2 = self.visualmap.get_sprite_at_screen_coordinates(end)
         self.surface_drag = []
@@ -561,12 +559,26 @@ class GameView(arcade.View):
             hrange = range(column2, column1 - 1, -1)
         else:
             hrange = range(column1, column2 - 1, -1)
-        
+
         for i in vrange:
             for j in hrange:
-                self.surface_drag.append((i,j))
-    
+                self.surface_drag.append((i, j))
+
     def mouse_changed_sprite(self):
-        x,y = self.mouse_pos
-        a,b,c,d = self.actual_sprite_limit
-        
+        x, y = self.mouse_pos
+        a, b, c, d = self.actual_sprite_limit
+
+    def save_game(self, game_name):
+        saveload.save_game(self.game, game_name)
+
+    def load_game(self, game_name):
+        self.game = saveload.load_game(game_name)
+        self.visualmap.setup(self.game)
+
+    def delete_game(self, game_name):
+        saveload.delete_game(game_name)
+
+    def list_saved_games(self):
+        for _game in saveload.list_saved_games():
+            # do whatever u want with that
+            print(_game)

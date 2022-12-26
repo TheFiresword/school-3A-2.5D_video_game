@@ -5,7 +5,7 @@ import random
 
 
 class Building(element.Element):
-    def __init__(self, buildings_layer, _type, version="normal"):
+    def __init__(self, buildings_layer, _type, version="dwell"):
         super().__init__(buildings_layer, _type, version)
         self.risk_dico = {"fire" : 0, "collapse" : 0}
         self.risk_level_dico = {"fire": 0, "collapse" : 0} 
@@ -52,11 +52,18 @@ class Building(element.Element):
 
 
 class Dwelling(Building):
-    def __init__(self, buildings_layer, _type, version="dwell"):
-        super().__init__(buildings_layer, _type, version)
+    def __init__(self, buildings_layer, _type):
+        super().__init__(buildings_layer, _type, "dwell")
         self.current_population = None
         self.max_population = None
 
-
+class Farm(Building):
+    def __init__(self, buildings_layer, _type, production="wheat_farm"):
+        foundation = super().__init__(buildings_layer, _type, "foundation_farm")
+        farm_at_00 = super().__init__(buildings_layer, _type, production)
+        farm_at_01 = super().__init__(buildings_layer, _type, production)
+        farm_at_02 = super().__init__(buildings_layer, _type, production)
+        farm_at_12 = super().__init__(buildings_layer, _type, production)
+        farm_at_22 = super().__init__(buildings_layer, _type, production)
 
 
