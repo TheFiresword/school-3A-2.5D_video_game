@@ -8,6 +8,9 @@ class SettingScreen(arcade.View):
         self.manager = arcade.gui.UIManager()
         self.manager.enable()
         arcade.set_background_color(arcade.color.AMAZON)
+    
+    def setup(self):
+        pass
 
     def on_show_view(self):
         arcade.set_background_color(arcade.color.AMAZON)
