@@ -55,6 +55,8 @@ class SettingButton(Text_Button_background):
 
 
 
+
+
 class NewGameButton(Text_Button_background):
     def on_click(self, event: arcade.gui.UIOnClickEvent):
         window = arcade.get_window()
@@ -128,7 +130,10 @@ def define_on_click_button_manager(gameview,manager):
         game_view.manager_state[mana] = True
     return on_click_button
 
-
+def define_on_click_button_selected(loadview,my_button):
+    def on_click_button(event,load_view = loadview,button = my_button):
+        load_view.selected_game = button.my_text
+    return on_click_button
 
 
 

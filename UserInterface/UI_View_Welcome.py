@@ -23,6 +23,10 @@ class WelcomeScreen(arcade.View):
         self.buttons_manager.add(self.settings_button)
         self.buttons_manager.add(self.quit_button)
 
+    def on_show_view(self):
+        if self.step != 0:
+            self.buttons_manager.enable()
+
     def on_draw(self):
         arcade.start_render()
         self.clear()
