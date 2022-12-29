@@ -479,8 +479,8 @@ class GameView(arcade.View):
             self.visualmap.update_layers(self.visualmap.roads_layer, self.game.map.roads_layer.array)
             return True
         elif what_is_removed == constantes.LAYER5:
-            self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer,position=(line,column),update_type="delete")
-            #self.visualmap.update_layers(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
+            #self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer,position=(line,column),update_type="delete")
+            self.visualmap.update_layers(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
 
             return True
         elif what_is_removed == constantes.LAYER3:
