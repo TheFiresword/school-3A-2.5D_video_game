@@ -75,7 +75,7 @@ class VisualMap:
                 # On ajoute le sprite au layer (spriteList)
                 layer.append(_sprite)
         layer.reverse()
-        
+
     def update_layers(self, layer, array):
         layer.clear()
         k = constantes.TILE_COUNT**2 -1
@@ -98,7 +98,7 @@ class VisualMap:
                 k -= 1
                 layer.append(_sprite)
         layer.reverse()
-    
+
     def update_walker_list(self, walkersout):
         self.walker_to_render.clear()
         for walker in walkersout:

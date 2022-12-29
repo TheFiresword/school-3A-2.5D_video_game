@@ -469,6 +469,7 @@ class GameView(arcade.View):
                 self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = (line,column),update_type="change_content",new_texture_path=[building.file_path])
             else:
                 print("Building failed")
+
         #self.visualmap.update_layers(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
 
     def remove_sprite(self, pos) -> bool:
@@ -480,6 +481,7 @@ class GameView(arcade.View):
         elif what_is_removed == constantes.LAYER5:
             self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer,position=(line,column),update_type="delete")
             #self.visualmap.update_layers(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
+
             return True
         elif what_is_removed == constantes.LAYER3:
             self.visualmap.update_layers(self.visualmap.trees_layer, self.game.map.trees_layer.array)
@@ -505,6 +507,7 @@ class GameView(arcade.View):
             self.visualmap.update_layers(self.visualmap.roads_layer, self.game.map.roads_layer.array)
             ret = True
         return ret
+
 
     # ===============================================
     # Side tab buttons functions (too hard to place anywhere else)

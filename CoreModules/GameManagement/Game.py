@@ -73,7 +73,8 @@ class Game:
             return None
         line, column = pos[0], pos[1]
 
-        road,tree,building = self.map.roads_layer.get_cell(line,column),self.map.trees_layer.get_cell(line,column),self.map.buildings_layer.get_cell(line,column)
+        road,tree,building = self.map.roads_layer.get_cell(line,column), self.map.trees_layer.get_cell(line,column),\
+                             self.map.buildings_layer.get_cell(line,column)
 
         if road.dic["version"] != "null":
             if self.map.roads_layer.remove_cell(line, column):
