@@ -248,3 +248,138 @@ def mapping_function(element_type, type_version, building_level=0) -> (str, int)
             return const.SPRITE_PATH + ""
         else:
             return "", 0
+
+    #unknow directory manipulation
+    #unKnow/Security
+
+    elif element_type == "security":
+        if type_version == "military_academy":
+            return const.SPRITE_PATH + "Unknow/Security/Academie_militaire.png"
+        if type_version == "barracks":
+            return const.SPRITE_PATH + "Unknow/Security/Caserne.png"
+        # Different aspects of a shipyard (Same picture reverted on 4 positions)
+        if type_version == "shipyard":
+            return const.SPRITE_PATH + "Unknow/Security/chantier_naval.png"
+        if type_version == "shipyard2":
+            return const.SPRITE_PATH + "Unknow/Security/chantier_naval2.png"
+        if type_version == "shipyard3":
+            return const.SPRITE_PATH + "Unknow/Security/chantier_naval3.png"
+        if type_version == "shipyard4":
+            return const.SPRITE_PATH + "Unknow/Security/chantier_naval4.png"
+        if type_version == "Camp":
+            return const.SPRITE_PATH + "Unknow/Security/Fort.png"
+        if type_version == "Prefecture":
+            return const.SPRITE_PATH + "Unknow/Security/Prefecture.png"
+        # Different aspects of a guard house (Same picture reverted)
+        if type_version == "guard_house": #left
+            return const.SPRITE_PATH + "Unknow/Security/corp_garde.png"
+        if type_version == "guard_house2": #right
+            return const.SPRITE_PATH + "Unknow/Security/corp_garde2.png"
+
+    #Unknow/EngineeringStructures
+    elif element_type == "engineering_structures":
+        if type_version == "engineering_studies":
+            return const.SPRITE_PATH + "Unknow/EngineeringStructures/Etude_inge.png"
+
+        if type_version == "dock": #first model of a dock (same picture reverted 4 times) (from 0 to 4)
+                return const.SPRITE_PATH + "Unknow/EngineeringStructures/Quai.png"
+        if type_version == "dock2":
+                return const.SPRITE_PATH + "Unknow/EngineeringStructures/Quai2.png"
+        if type_version == "dock3":
+                return const.SPRITE_PATH + "Unknow/EngineeringStructures/Quai3.png"
+        if type_version == "dock4":
+                return const.SPRITE_PATH + "Unknow/EngineeringStructures/Quai4.png"
+
+        if type_version == "dock5": #second model of a dock (same picture reverted 4 times) (from 5 to 8)
+                return const.SPRITE_PATH + "Unknow/EngineeringStructures/Quai5.png"
+        if type_version == "dock6":
+                return const.SPRITE_PATH + "Unknow/EngineeringStructures/Quai6.png"
+        if type_version == "dock7":
+                return const.SPRITE_PATH + "Unknow/EngineeringStructures/Quai7.png"
+        if type_version == "dock8":
+                return const.SPRITE_PATH + "Unknow/EngineeringStructures/Quai8.png"
+
+    # unKnow/Temples
+    # All gods except Panthéon
+    elif element_type == "temples":
+        if type_version == "ceres":
+            if building_level == 0:
+                return const.SPRITE_PATH + "Unknow/Temples/Ceres.png"
+            if building_level == 1:
+                return const.SPRITE_PATH + "Unknow/Temples/Ceres2.png"
+        if type_version == "mars":
+            if building_level == 0:
+                return const.SPRITE_PATH + "Unknow/Temples/Mars.png"
+            if building_level == 1:
+                return const.SPRITE_PATH + "Unknow/Temples/Mars2.png"
+        if type_version == "mercure":
+            if building_level == 0:
+                return const.SPRITE_PATH + "Unknow/Temples/Mercure.png"
+            if building_level == 1:
+                return const.SPRITE_PATH + "Unknow/Temples/Mercure2.png"
+        if type_version == "neptune":
+            if building_level == 0:
+                return const.SPRITE_PATH + "Unknow/Temples/Neptune.png"
+            if building_level == 1:
+                return const.SPRITE_PATH + "Unknow/Temples/Neptune2.png"
+        if type_version == "venus":
+            if building_level == 0:
+                return const.SPRITE_PATH + "Unknow/Temples/Venus.png"
+            if building_level == 1:
+                return const.SPRITE_PATH + "Unknow/Temples/Venus2.png"
+        if type_version == "oracle":
+            return const.SPRITE_PATH + "Unknow/Temples/Oracle.png"
+
+    # unKnow/Hygiene
+    # Tout ce qui a rapport avec l'hygiene
+    elif element_type == "hygiene":
+        if type_version == "barber":
+            return const.SPRITE_PATH + "Unknow/Hygiene/Barbier.png"
+        if type_version == "hospital":
+            return const.SPRITE_PATH + "Unknow/Hygiene/Hopital.png"
+        if type_version == "Dispensaire":
+            return const.SPRITE_PATH + "Unknow/Hygiene/Dispensaire.png"
+
+        #first model of a thermal
+        if type_version == "thermal":
+            if building_level == 0:
+                return const.SPRITE_PATH + "Unknow/Hygiene/thermes3.png"
+            if building_level == 1: #a superior building level means that the thermal is full with water
+                return const.SPRITE_PATH + "Unknow/Hygiene/thermes4.png"
+
+        #Second model of a thermal
+        if type_version == "thermal2":
+            if building_level == 0 :
+                return const.SPRITE_PATH + "Unknow/Hygiene/thermes.png"
+            if building_level == 1 : #a superior building level means that the thermal is full with water
+                return const.SPRITE_PATH + "Unknow/Hygiene/thermes2.png"
+    #WaterEquipments
+    elif element_type == "waterequipments":
+        if type_version == "well":
+            return const.SPRITE_PATH + "Unknow/WaterEquipments/puit.png"
+        if type_version == "reservoir": #empty reservoir
+            return const.SPRITE_PATH + "Unknow/WaterEquipments/reservoir.png"
+        #reservoir filled with different movements of water
+        if type_version == "reservoir1":
+            return const.SPRITE_PATH + "Unknow/WaterEquipments/reservoir1.png"
+        if type_version == "reservoir2":
+            return const.SPRITE_PATH + "Unknow/WaterEquipments/reservoir2.png"
+        if type_version == "reservoir3":
+            return const.SPRITE_PATH + "Unknow/WaterEquipments/reservoir3.png"
+        if type_version == "reservoir4":
+            return const.SPRITE_PATH + "Unknow/WaterEquipments/reservoir4.png"
+        if type_version == "reservoir5":
+            return const.SPRITE_PATH + "Unknow/WaterEquipments/reservoir5.png"
+        if type_version == "reservoir6":
+            return const.SPRITE_PATH + "Unknow/WaterEquipments/reservoir6.png"
+
+
+
+
+
+
+
+
+
+
+
