@@ -19,8 +19,9 @@ class VisualMap:
         self.map_scaling = constantes.SPRITE_SCALING
         self.red_sprite = arcade.Sprite()
         self.red_sprite.visible = False
+        self.destroyed = constantes.SPRITE_PATH + "Land/LandOverlay/Land2a_00112.png"
         pass
-
+    
     def setup(self, game):
         self.grass_layer = arcade.SpriteList(use_spatial_hash=True)
         self.hills_layer = arcade.SpriteList()
@@ -30,15 +31,19 @@ class VisualMap:
         self.fire_layer = arcade.SpriteList()
         self.collapse_layer = arcade.SpriteList()
         self.walker_to_render = arcade.SpriteList()
-        self.update_sprite_list(self.grass_layer, game.map.grass_layer.array)
-        self.update_sprite_list(self.hills_layer, game.map.hills_layer.array)
-        self.update_sprite_list(self.trees_layer, game.map.trees_layer.array)
-        self.update_sprite_list(self.roads_layer, game.map.roads_layer.array)
-        self.update_sprite_list(self.buildings_layer, game.map.buildings_layer.array)
+        self.create_ground(game)
+        self.update_layers(self.hills_layer, game.map.hills_layer.array)
+        self.update_layers(self.trees_layer, game.map.trees_layer.array)
+        self.update_layers(self.roads_layer, game.map.roads_layer.array)
+        self.update_layers(self.buildings_layer, game.map.buildings_layer.array)
         self.update_walker_list(game.walkersOut)
         pass
 
-    def update_sprite_list(self, layer, array):
+
+    def create_ground(self, _game):
+        layer = self.grass_layer
+        array = _game.map.grass_layer.array
+
         layer.clear()
         k = 0
         for i in range(0, len(array)):  # I=On parcout le tableau logique du bas vers le haut
@@ -49,35 +54,18 @@ class VisualMap:
                     _sprite = arcade.Sprite(file_name, self.map_scaling)
                 else:
                     _sprite = arcade.Sprite()
-                # Les coordonnées de départ sont en cartésien
-                count = array[i][j].dic['cells_number']
 
-                """
-                La taille des sprites peut déborder, donc il faut calculer ce débordement et l'ajouter comme offset
-                pour que le coin inférieur gauche soit bien aligné avec sa case
-                Ensuite, les coordonnées des sprites sont calculés en cartésien
-                Puis transformés en isométriques
-                Puis on ajoute l'offset
-                """
-                overflowing_height = (_sprite.height - constantes.TILE_HEIGHT * self.map_scaling * count) / 2
-                overflowing_width = (_sprite.width - constantes.TILE_WIDTH * self.map_scaling * count) / 2
-
-                if _sprite.width != 0:
-                    scale_factor = (_sprite.width - 2 * overflowing_width) / _sprite.width
-                    _sprite.rescale_relative_to_point((_sprite.center_x, _sprite.center_y),
-                                                      scale_factor)
+                overflowing_height = (_sprite.height - constantes.TILE_HEIGHT * self.map_scaling)
 
                 # Calcul des coordonnées du sprite en cartésien --
-                _sprite.center_x = constantes.TILE_WIDTH * self.map_scaling * j - overflowing_width
-                if count >0 :
-                    _sprite.center_y = (constantes.TILE_HEIGHT * self.map_scaling * (
-                            i + (count - 1) / 2)) + 1 * overflowing_height
+                _sprite.center_x = constantes.TILE_WIDTH * self.map_scaling * j
+                _sprite.center_y = (constantes.TILE_HEIGHT * self.map_scaling * i)
 
                 # Conversion en isométrique des coordonnées
                 _isometric_x = (_sprite.center_x + _sprite.center_y) - (constantes.TILE_WIDTH * self.map_scaling *
                                                                         k / 2)
                 _isometric_y = (-_sprite.center_x + _sprite.center_y) / 2 + (
-                        constantes.TILE_HEIGHT * self.map_scaling * k / 2)
+                        constantes.TILE_HEIGHT * self.map_scaling * k / 2) + overflowing_height/2
 
                 _sprite.center_x, _sprite.center_y = _isometric_x, _isometric_y
 
@@ -87,7 +75,30 @@ class VisualMap:
                 # On ajoute le sprite au layer (spriteList)
                 layer.append(_sprite)
         layer.reverse()
+        
+    def update_layers(self, layer, array):
+        layer.clear()
+        k = constantes.TILE_COUNT**2 -1
+        for i in range(0, len(array)):  # I=On parcout le tableau logique du bas vers le haut
+            line = array[i]
+            for j in range(0, len(line)):
+                file_name = array[i][j].file_path
+                if file_name != "":
+                    _sprite = arcade.Sprite(file_name, self.map_scaling)
+                else:
+                    _sprite = arcade.Sprite()
 
+                count = array[i][j].dic['cells_number']
+                overflowing_height = (_sprite.height - constantes.TILE_HEIGHT * self.map_scaling * count)
+
+                _sprite.center_x, _sprite.center_y = self.grass_layer[k].center_x, self.grass_layer[k].center_y
+
+                _sprite.center_x += (count-1)*constantes.TILE_WIDTH/2*self.map_scaling
+                _sprite.center_y += overflowing_height/2
+                k -= 1
+                layer.append(_sprite)
+        layer.reverse()
+    
     def update_walker_list(self, walkersout):
         self.walker_to_render.clear()
         for walker in walkersout:
@@ -172,3 +183,28 @@ class VisualMap:
             sprite = arcade.Sprite(filename=(gdata.building_dico[type]).spritepath,center_x= sprite_pos_x,center_y=sprite_pos_y,scale=self.map_scaling)
             sprite_list.append(sprite)
 
+    def update_one_sprite(self,layer:arcade.SpriteList,position,update_type,new_texture_path=[]):
+        index = fct.get_sprite_list_index(position)
+        support_sprite = (self.get_sprite_associated(position))
+        sprite_pos_x,sprite_pos_y = support_sprite.center_x,support_sprite.center_y
+        sprite = layer[constantes.TILE_COUNT**2 - index -1]
+        sprite.position = sprite_pos_x,sprite_pos_y
+        if not sprite.visible:
+            sprite.visible = True
+        if update_type == "building_destroy":
+            sprite.set_texture(-1)
+        if update_type == "change_content":
+            sprite.textures = []
+            for k in new_texture_path:
+                sprite.append_texture(arcade.load_texture(k))
+            sprite.append_texture(arcade.load_texture(self.destroyed))
+            sprite.set_texture(0)
+        if update_type == "stat_inc":
+            ind = sprite.textures.index(sprite.texture)
+            if sprite.textures[ind+1] == sprite.textures[-1]:
+                sprite.set_texture(0)
+            else :
+                sprite.set_texture(ind+1)
+        if update_type == "delete":
+            sprite.visible = False
+        sprite.scale = self.map_scaling
