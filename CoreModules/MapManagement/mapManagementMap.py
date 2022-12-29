@@ -122,8 +122,9 @@ class MapLogic:
                                                                       2 + i, my_dwelling)
         for i in range(0, 20, 4):
             my_dwelling = building.Dwelling(self.buildings_layer, globalVar.LAYER5)
+            my_wheat_farm = building.Farm(self.buildings_layer, globalVar.LAYER5)
             self.buildings_layer.set_cell_constrained_to_bottom_layer([self.hills_layer, self.trees_layer,
-                                                                       self.roads_layer], 3, i, my_dwelling)
+                                                                       self.roads_layer], 3, i, my_wheat_farm)
 
         # liste de Walker()
         self.walkers_list = []
