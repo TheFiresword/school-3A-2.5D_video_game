@@ -428,7 +428,7 @@ class GameView(arcade.View):
 
         if self.game.add_road(line, column):
             # si la route a été bien ajoutée on update la spritelist en la recréant
-            self.visualmap.update_sprite_list(self.visualmap.roads_layer, self.game.map.roads_layer.array)
+            self.visualmap.update_layers(self.visualmap.roads_layer, self.game.map.roads_layer.array)
             return True
         return False
 
@@ -441,7 +441,7 @@ class GameView(arcade.View):
         line2, column2 = self.visualmap.get_sprite_at_screen_coordinates(end_pos)
 
         if self.game.add_roads_serie((line1, column1), (line2, column2), dynamically):
-            self.visualmap.update_sprite_list(self.visualmap.roads_layer, self.game.map.roads_layer.array)
+            self.visualmap.update_layers(self.visualmap.roads_layer, self.game.map.roads_layer.array)
             return True
         return False
    
@@ -452,7 +452,7 @@ class GameView(arcade.View):
         line, column = self.visualmap.get_sprite_at_screen_coordinates(pos)
         if self.game.add_building(line, column, self.builder_content):
             # si la route a été bien ajoutée on update la spritelist en la recréant
-            self.visualmap.update_sprite_list(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
+            self.visualmap.update_layers(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
             return True
         return False
 
@@ -460,20 +460,20 @@ class GameView(arcade.View):
         for (line,column) in self.surface_drag:
             if not self.game.add_building(line,column,self.builder_content):
                 print("Building failed")
-        self.visualmap.update_sprite_list(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
+        self.visualmap.update_layers(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
 
 
     def remove_sprite(self, pos) -> bool:
         line, column = self.visualmap.get_sprite_at_screen_coordinates(pos)
         what_is_removed = self.game.remove_element((line, column))
         if what_is_removed == constantes.LAYER4:
-            self.visualmap.update_sprite_list(self.visualmap.roads_layer, self.game.map.roads_layer.array)
+            self.visualmap.update_layers(self.visualmap.roads_layer, self.game.map.roads_layer.array)
             return True
         elif what_is_removed == constantes.LAYER5:
-            self.visualmap.update_sprite_list(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
+            self.visualmap.update_layers(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
             return True
         elif what_is_removed == constantes.LAYER3:
-            self.visualmap.update_sprite_list(self.visualmap.trees_layer, self.game.map.trees_layer.array)
+            self.visualmap.update_layers(self.visualmap.trees_layer, self.game.map.trees_layer.array)
             return True
         return False
 
@@ -486,13 +486,13 @@ class GameView(arcade.View):
         line2, column2 = self.visualmap.get_sprite_at_screen_coordinates(end_pos)
         modified_layers = self.game.remove_elements_serie((line1, column1), (line2, column2))
         if constantes.LAYER5 in modified_layers:
-            self.visualmap.update_sprite_list(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
+            self.visualmap.update_layers(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
             return True
         if constantes.LAYER3 in modified_layers:
-            self.visualmap.update_sprite_list(self.visualmap.trees_layer, self.game.map.trees_layer.array)
+            self.visualmap.update_layers(self.visualmap.trees_layer, self.game.map.trees_layer.array)
             return True
         if constantes.LAYER4 in modified_layers:
-            self.visualmap.update_sprite_list(self.visualmap.roads_layer, self.game.map.roads_layer.array)
+            self.visualmap.update_layers(self.visualmap.roads_layer, self.game.map.roads_layer.array)
             return True
         return False
 

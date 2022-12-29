@@ -71,7 +71,8 @@ class Game:
             return None
         line, column = pos[0], pos[1]
 
-        road,tree,building = self.map.roads_layer.get_cell(line,column),self.map.trees_layer.get_cell(line,column),self.map.buildings_layer.get_cell(line,column)
+        road,tree,building = self.map.roads_layer.get_cell(line,column), self.map.trees_layer.get_cell(line,column),\
+                             self.map.buildings_layer.get_cell(line,column)
 
         if road.dic["version"] != "null":
             if self.map.roads_layer.remove_cell(line, column):
@@ -83,7 +84,8 @@ class Game:
                 return globalVar.LAYER3
         elif building.dic["version"] != "null": 
             if self.map.buildings_layer.remove_cell(line, column):
-                self.buildinglist.remove(building)
+                if self.buildinglist:
+                    self.buildinglist.remove(building)
                 self.money -= removing_cost
                 return globalVar.LAYER5
         return None
@@ -146,50 +148,28 @@ class Game:
         if self.money < building_dico[version].cost:
             print("Not enough money")
             return False
-        building = buildings.Building(self.map.buildings_layer, globalVar.LAYER5, version)
-        self.buildinglist.append(building)
+        # we have to determine the exact class of the building bcause they have not the same prototype
+        match version:
+            case 'dwell':
+                building = buildings.Dwelling(self.map.buildings_layer, globalVar.LAYER5)
+                self.buildinglist.append(building)
+            case "fruit_farm" | "olive_farm" | "pig_farm" | "vegetable_farm" | "vine_farm" | "wheat_farm":
+                building = buildings.Farm(self.map.buildings_layer, globalVar.LAYER5, version)
+                self.buildinglist.append(building.farm_at_02)
+                self.buildinglist.append(building.farm_at_12)
+                self.buildinglist.append(building.farm_at_01)
+                self.buildinglist.append(building.farm_at_00)
+                self.buildinglist.append(building.farm_at_22)
+                self.buildinglist.append(building.foundation)
+            case _:
+                building = buildings.Building(self.map.buildings_layer, globalVar.LAYER5, version)
+                self.buildinglist.append(building)
+
         status = self.map.buildings_layer.set_cell_constrained_to_bottom_layer(self.map.collisions_layers, line, column,
                                                                                building)
         if status:
             self.money -= building_dico[version].cost
         return status
-
-    def add_multiple_buildings(self, start_pos, end_pos, version) -> bool:
-        # Here we can't precisely calculate the money that will be needed to construct all the roads. we'll estimate
-        # that
-        estimated_counter_buildings = (abs(start_pos[0] - end_pos[0]) + 1) * (abs(start_pos[1] - end_pos[1]) + 1)
-        if self.money < estimated_counter_buildings * building_dico[version].cost:
-            print("Not enough money")
-            return False
-        # building = Building(self.map.buildings_layer, globalVar.LAYER5, version)
-        line1, column1 = start_pos[0], start_pos[1]
-        line2, column2 = end_pos[0], end_pos[1]
-
-        if line1 >= line2:
-            vrange = range(line1, line2 - 1, -1)
-        else:
-            vrange = range(line2, line1 - 1, -1)
-
-        if column1 <= column2:
-            hrange = range(column2, column1 - 1, -1)
-        else:
-            hrange = range(column1, column2 - 1, -1)
-
-
-        # a counter that will be returned as the number of roads added
-        count = 0
-        added = False
-        # On dessine une ligne verticale de routes de la ligne de départ jusqu'à la ligne de fin
-
-        for i in vrange:
-            for j in hrange:
-                if self.add_building(i, j, version):
-                    added = True
-                    count += 1
-        if added:
-            self.money -= building_dico[version].cost * count
-        return added
-
     def automatic_building_update(self):
         for k in self.buildinglist:
             self.updatebuilding(k)
