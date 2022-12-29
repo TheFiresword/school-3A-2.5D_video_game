@@ -7,7 +7,8 @@ INIT_MONEY = 1000000000
 
 
 class Game:
-    def __init__(self, _map):
+    def __init__(self, _map,name="save"):
+        self.name = name
         self.map = _map
         self.money = INIT_MONEY
         self.food = 0
@@ -34,8 +35,9 @@ class Game:
         pass
     
     def updatebuilding(self,building:buildings.Building):
-        building.update_risk("fire")
-        building.update_risk("collapse")
+        if not building.isDestroyed:
+            building.update_risk("fire")
+            building.update_risk("collapse")
         pass
 
     def updateReligion(self):
@@ -167,9 +169,11 @@ class Game:
 
         status = self.map.buildings_layer.set_cell_constrained_to_bottom_layer(self.map.collisions_layers, line, column,
                                                                                building)
+
         if status:
             self.money -= building_dico[version].cost
         return status
+
     def automatic_building_update(self):
         for k in self.buildinglist:
             self.updatebuilding(k)

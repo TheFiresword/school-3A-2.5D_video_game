@@ -19,8 +19,9 @@ class VisualMap:
         self.map_scaling = constantes.SPRITE_SCALING
         self.red_sprite = arcade.Sprite()
         self.red_sprite.visible = False
+        self.destroyed = constantes.SPRITE_PATH + "Land/LandOverlay/Land2a_00112.png"
         pass
-
+    
     def setup(self, game):
         self.grass_layer = arcade.SpriteList(use_spatial_hash=True)
         self.hills_layer = arcade.SpriteList()
@@ -74,6 +75,7 @@ class VisualMap:
                 # On ajoute le sprite au layer (spriteList)
                 layer.append(_sprite)
         layer.reverse()
+
     def update_layers(self, layer, array):
         layer.clear()
         k = constantes.TILE_COUNT**2 -1
@@ -96,6 +98,7 @@ class VisualMap:
                 k -= 1
                 layer.append(_sprite)
         layer.reverse()
+
     def update_walker_list(self, walkersout):
         self.walker_to_render.clear()
         for walker in walkersout:
@@ -180,3 +183,28 @@ class VisualMap:
             sprite = arcade.Sprite(filename=(gdata.building_dico[type]).spritepath,center_x= sprite_pos_x,center_y=sprite_pos_y,scale=self.map_scaling)
             sprite_list.append(sprite)
 
+    def update_one_sprite(self,layer:arcade.SpriteList,position,update_type,new_texture_path=[]):
+        index = fct.get_sprite_list_index(position)
+        support_sprite = (self.get_sprite_associated(position))
+        sprite_pos_x,sprite_pos_y = support_sprite.center_x,support_sprite.center_y
+        sprite = layer[constantes.TILE_COUNT**2 - index -1]
+        sprite.position = sprite_pos_x,sprite_pos_y
+        if not sprite.visible:
+            sprite.visible = True
+        if update_type == "building_destroy":
+            sprite.set_texture(-1)
+        if update_type == "change_content":
+            sprite.textures = []
+            for k in new_texture_path:
+                sprite.append_texture(arcade.load_texture(k))
+            sprite.append_texture(arcade.load_texture(self.destroyed))
+            sprite.set_texture(0)
+        if update_type == "stat_inc":
+            ind = sprite.textures.index(sprite.texture)
+            if sprite.textures[ind+1] == sprite.textures[-1]:
+                sprite.set_texture(0)
+            else :
+                sprite.set_texture(ind+1)
+        if update_type == "delete":
+            sprite.visible = False
+        sprite.scale = self.map_scaling

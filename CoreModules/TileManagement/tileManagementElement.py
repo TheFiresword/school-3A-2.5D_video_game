@@ -26,4 +26,3 @@ class Element:
         self.file_path, self.dic['cells_number'] = mapping.mapping_function(self.type, self.dic['version'],
         self.structure_level) if hasattr(self, 'structure_level') else mapping.mapping_function(self.type,
                                                                                                 self.dic['version'])
-

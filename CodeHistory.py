@@ -14,6 +14,7 @@
     def add_dwell(self, pos) -> bool:
     """
             Adding house function
+
     """
     line, column = self.visualmap.get_sprite_at_screen_coordinates(pos)
     if self.game.add_building(line, column, "dwell"):
@@ -23,6 +24,7 @@
     return False
 
  def add_multiple_buildings(self, start_pos, end_pos, version) -> bool:
+
         # Here we can't precisely calculate the money that will be needed to construct all the roads. we'll estimate
         # that
         estimated_counter_buildings = (abs(start_pos[0] - end_pos[0]) + 1) * (abs(start_pos[1] - end_pos[1]) + 1)

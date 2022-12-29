@@ -11,6 +11,10 @@ def convert_sprite_list_index_to_logic_position(sprite_list_index):
     column = constantes.TILE_COUNT - 1 - sprite_list_index % constantes.TILE_COUNT
     return line, column
 
+def get_sprite_list_index(position):
+    index = position[0] * 40 + position[1]
+    return index
+
 def draw_normal_cursor():
     window = arcade.get_window()
     cursor = window.get_system_mouse_cursor(window.CURSOR_DEFAULT)
