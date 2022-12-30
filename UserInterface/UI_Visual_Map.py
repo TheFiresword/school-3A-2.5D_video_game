@@ -95,7 +95,6 @@ class VisualMap:
             walker_pos_x,walker_pos_y = support_sprite.center_x,support_sprite.center_y+10
             walker_pos_x += walker.offset_x
             walker_pos_y += walker.offset_y
-            print(walker.head)
             if walker.head == "up":
                 walker_sprite=arcade.Sprite(filename=walker.paths_up[walker.compteur % len(walker.paths_up)],
                                             center_x=walker_pos_x,center_y=walker_pos_y,scale=self.map_scaling)
