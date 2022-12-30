@@ -92,7 +92,7 @@ class VisualMap:
         self.walker_to_render.clear()
         for walker in walkersout:
             support_sprite = (self.get_sprite_associated(walker.init_pos))
-            walker_pos_x,walker_pos_y = support_sprite.center_x,support_sprite.center_y
+            walker_pos_x,walker_pos_y = support_sprite.center_x,support_sprite.center_y+10
             walker_pos_x += walker.offset_x
             walker_pos_y += walker.offset_y
             print(walker.head)

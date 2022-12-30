@@ -157,6 +157,19 @@ class Walker:
                     self.head = up
                 elif self.dest_pos == down_tile:
                     self.head = down
+            else:
+                if self.head == right:
+                    self.dest_pos == left_tile
+                    self.head = left
+                elif self.head == left:
+                    self.dest_pos == right_tile
+                    self.head = right
+                elif self.head == up:
+                    self.dest_pos == down_tile
+                    self.head = down
+                elif self.head == down:
+                    self.dest_pos == up_tile
+                    self.head = up
 
         else:
             if self.compteur < self.fps - 1:
