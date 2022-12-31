@@ -133,8 +133,8 @@ class GameView(arcade.View):
     def setup(self):
         if not self.game:
             self.game = game.Game(map.MapLogic())
-        #self.game.create_walker()
-        #self.game.walkersGetOut()
+        self.game.create_walker()
+        self.game.walkersGetOut()
         self.money_text=text.Sprite_sentence("Dn: " +str(self.game.money),"white",(205,constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4))
         self.visualmap.setup(self.game)
         self.center_map()
