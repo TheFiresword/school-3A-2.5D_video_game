@@ -1,13 +1,10 @@
 from Services import servicesGlobalVariables as const
 
-def mafonction(direction):
-    """
-    up = []
-    left = []
-    down = []
-    right = []
-    for k in range(0,12):
-        if (1+k*8) > 10:
 
-    up = [const.SPRITE_PATH +"Citizen1/Type1/Citizen01_000"+ str(1 +k *8) + ".png" for k in range(0,12)]"""
-    return [const.SPRITE_PATH +"Citizen1/Type1/Citizen01_00001.png",const.SPRITE_PATH +"Citizen1/Type1/Citizen01_00009.png",const.SPRITE_PATH +"Citizen1/Type1/Citizen01_00017.png",const.SPRITE_PATH +"Citizen1/Type1/Citizen01_00025.png"]
+def walkers_to_sprite():
+    up = [const.SPRITE_PATH + "Citizen1/Type1/Citizen01_{:05d}".format(3 + k * 8) + ".png" for k in range(0, 12)]
+    left = [const.SPRITE_PATH + "Citizen1/Type1/Citizen01_{:05d}".format(7 + k * 8) + ".png" for k in range(0, 12)]
+    down = [const.SPRITE_PATH + "Citizen1/Type1/Citizen01_{:05d}".format(5 + k * 8) + ".png" for k in range(0, 12)]
+    right = [const.SPRITE_PATH + "Citizen1/Type1/Citizen01_{:05d}".format(1 + k * 8) + ".png" for k in range(0, 12)]
+
+    return (up, left, down, right)

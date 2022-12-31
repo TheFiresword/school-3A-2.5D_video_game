@@ -103,10 +103,22 @@ class VisualMap:
         self.walker_to_render.clear()
         for walker in walkersout:
             support_sprite = (self.get_sprite_associated(walker.init_pos))
-            walker_pos_x,walker_pos_y = support_sprite.center_x,support_sprite.center_y
+            walker_pos_x,walker_pos_y = support_sprite.center_x,support_sprite.center_y+10
             walker_pos_x += walker.offset_x
             walker_pos_y += walker.offset_y
-            walker_sprite=arcade.Sprite(filename=walker.paths_up[walker.compteur % len(walker.paths_up)],center_x=walker_pos_x,center_y=walker_pos_y,scale=self.map_scaling)
+            if walker.head == "up":
+                walker_sprite=arcade.Sprite(filename=walker.paths_up[walker.compteur % len(walker.paths_up)],
+                                            center_x=walker_pos_x,center_y=walker_pos_y,scale=self.map_scaling)
+            elif walker.head == "right":
+                walker_sprite=arcade.Sprite(filename=walker.paths_right[walker.compteur % len(walker.paths_right)],
+                                            center_x=walker_pos_x,center_y=walker_pos_y,scale=self.map_scaling)
+            elif walker.head == "down":
+                walker_sprite = arcade.Sprite(filename=walker.paths_down[walker.compteur % len(walker.paths_down)],
+                                              center_x=walker_pos_x, center_y=walker_pos_y, scale=self.map_scaling)
+            elif walker.head == "left":
+                walker_sprite = arcade.Sprite(filename=walker.paths_left[walker.compteur % len(walker.paths_left)],
+                                              center_x=walker_pos_x, center_y=walker_pos_y, scale=self.map_scaling)
+
             self.walker_to_render.append(walker_sprite)
         pass
 
