@@ -15,18 +15,21 @@ class Building(element.Element):
         self.isBurning = False
         self.BurningTime = 0
         self.isDestroyed = False
+        self.randombuf = 0
 
         super().__init__(buildings_layer, _type, version)
        
     def update_risk(self,risk):
         if risk == "fire" and self.isBurning:
-            if self.BurningTime <= 600:
+            if self.BurningTime <= 60000000000000000000000000000000:
                 self.BurningTime += 1
             else:
                 self.isDestroyed = True
                 self.isBurning = False
         else:
-            if random.random() > gdata.risk_random_ratio:
+            self.randombuf += random.random()
+            if  self.randombuf> gdata.risk_random_ratio:
+                self.randombuf = 0
                 self.risk_dico[risk] += 5
             if self.risk_dico[risk] == 0:
                 self.risk_level_dico[risk] = 0
@@ -45,6 +48,7 @@ class Building(element.Element):
                     print("j ai pris feu",self.position)
                 else :
                     self.isDestroyed = True
+                    self.isBurning = False
                     print("Destroyed")
 
     def updateLikeability(self):

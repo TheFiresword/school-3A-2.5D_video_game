@@ -223,7 +223,11 @@ class GameView(arcade.View):
 
     def on_update(self, delta_time: float):
         update = self.game.updategame()
-        
+        self.update_treatment(update)
+        self.visualmap.fire_count += 1
+        for sprite in self.visualmap.fire_layer:
+            sprite.set_texture(self.visualmap.fire_count % len(sprite.textures))
+
         self.move_map_camera_with_keys()
         if not (len(self.game.walkersOut) == 0):
             (self.game.walkersOut[0]).walk2(self.game.map.roads_layer,self.visualmap.map_scaling)
@@ -380,7 +384,7 @@ class GameView(arcade.View):
         elif symbol == arcade.key.B:
             self.actual_pop_up.visible = True
         elif symbol == arcade.key.N:
-            self.builder_mode = False
+            self.builder_content = "wheat_farm"
         # Testing
         # press S to save your game
         elif symbol == arcade.key.S:
@@ -634,6 +638,8 @@ class GameView(arcade.View):
     
     def update_treatment(self,update:updates.LogicUpdate):
         for k in update.catchedfire:
-            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = k.position ,update_type="change_content",new_texture_path=[])
+            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = k ,update_type="building_fire",new_texture_path=[])
+        for j in update.collapsed:
+            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = j ,update_type="building_destroy",new_texture_path=[])
 
     

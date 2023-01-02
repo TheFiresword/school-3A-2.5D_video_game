@@ -3,7 +3,7 @@
 class LogicUpdate():
 
     def __init__(self):
-        self.as_evolved = []
+        self.has_evolved = []
         self.catchedfire = []
         self.collapsed = []
         pass

@@ -80,7 +80,8 @@ def mapping_function(element_type, type_version, building_level=0) -> (str, int)
         if type_version == "dwell":
             count_digit = len(str(building_level))
             if count_digit == 1:
-                return const.SPRITE_PATH + "Land/housng/Housng1a_0000"+str(building_level)+".png", 1
+                #return const.SPRITE_PATH + "Land/housng/Housng1a_0000"+str(building_level)+".png", 1
+                return const.SPRITE_PATH + "Commerce\Commerce_00012.png", 2
             if count_digit == 2:
                 return const.SPRITE_PATH + "Land/housng/Housng1a_000" + str(building_level) + ".png", 1
 

@@ -80,4 +80,4 @@ text_carry = ["Farms","Raw Materials","Workshops","Market","Granary","Warehouse"
 
 
 removing_cost = 2
-risk_random_ratio = 0.95
+risk_random_ratio = 40
