@@ -17,12 +17,12 @@ class Element:
         # L'id et la position vont être calculés directement à partir du layer auquel l'Element appartient
         self.id = None
         self.position = (None, None)
-        self.file_path = None
+        self.file_paths = None
         self.layer = layer
         self.dic = {"version": version, "cells_number": 0}
         self.set_file_infos()
 
     def set_file_infos(self):
-        self.file_path, self.dic['cells_number'] = mapping.mapping_function(self.type, self.dic['version'],
-        self.structure_level) if hasattr(self, 'structure_level') else mapping.mapping_function(self.type,
-                                                                                                self.dic['version'])
+        self.file_paths = mapping.mapping_function(self.type, self.dic['version'])
+        # Here i suppose all levels of a building have the same size, but that is not correct.
+        self.dic['cells_number'] = self.file_paths[0][1]

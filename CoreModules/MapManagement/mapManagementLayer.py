@@ -79,7 +79,7 @@ class Layer:
         présents que d'en créer de nouveaux
         """
         # on récupère le cells_number directement depuis la fonction mapping Services
-        file_path, cells_number = mapping.mapping_function(self.type, version)
+        cells_number = (mapping.mapping_function(self.type, version))[0][1]
         element_class = None
         # La classe des elements à créer: Element ou Building pour le moment
         if self.type in [globalVar.LAYER1, globalVar.LAYER2, globalVar.LAYER3, globalVar.LAYER4]:
