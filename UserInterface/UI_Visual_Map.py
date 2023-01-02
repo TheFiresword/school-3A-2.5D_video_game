@@ -226,7 +226,7 @@ class VisualMap:
                 sprite = arcade.Sprite(filename=(gdata.building_dico[type]).spritepath,center_x= sprite_pos_x,center_y=sprite_pos_y,scale=self.map_scaling)
             else:
                 sprite = arcade.Sprite(filename=constantes.SPRITE_PATH + "Land/LandOverlay/Land2a_00001.png",center_x= sprite_pos_x,center_y=sprite_pos_y,scale=self.map_scaling)
-                sprite_list.append(sprite)
+            sprite_list.append(sprite)
 
     def update_one_sprite(self,layer:arcade.SpriteList,position,update_type,new_texture_path=[]):
         index = fct.get_sprite_list_index(position)
