@@ -24,6 +24,9 @@ class Game:
         self.walkersOut = []
         self.framerate = globalVar.DEFAULT_FPS
 
+        # some lists of specific buildings
+        self.water_structures_list = []
+
     def print_money(self):
         print("#========You have " + str(self.money) + " left========#")
 
@@ -202,4 +205,6 @@ class Game:
                     self.buildinglist.append(building)
             
             self.money -= building_dico[version].cost
+            if version in ["well"]:
+                self.water_structures_list.append((line, column))
         return status

@@ -51,9 +51,10 @@ class VisualMap:
         for i in range(0, len(array)):  # I=On parcout le tableau logique du bas vers le haut
             line = array[i]
             for j in range(0, len(line)):
-                file_name = array[i][j].file_path
-                if file_name != "":
-                    _sprite = arcade.Sprite(file_name, self.map_scaling)
+                file_names = array[i][j].file_paths
+                first_path = file_names[0][0]
+                if first_path != "":
+                    _sprite = arcade.Sprite(first_path, self.map_scaling)
                 else:
                     _sprite = arcade.Sprite()
 
@@ -87,11 +88,23 @@ class VisualMap:
         for i in range(0, len(array)):  # I=On parcout le tableau logique du bas vers le haut
             line = array[i]
             for j in range(0, len(line)):
-                file_name = array[i][j].file_path
-                if file_name != "":
-                    _sprite = arcade.Sprite(file_name, self.map_scaling)
-                else:
+                file_names = [ file_name[0] for file_name in array[i][j].file_paths]
+                first_path = file_names[0]
+
+                if first_path == "":
                     _sprite = arcade.Sprite()
+                else:
+                    if layer != self.buildings_layer:
+                        _sprite = arcade.Sprite(first_path, self.map_scaling)
+                    else:
+                        # For buildings layer
+                        # we must save all textures in the sprite
+                        textures = [arcade.load_texture(path) for path in file_names]
+                        _sprite = arcade.Sprite()
+                        for texture in textures:
+                            _sprite.append_texture(texture)
+                            _sprite.set_texture(0)
+                            _sprite.scale = self.map_scaling
 
                 count = array[i][j].dic['cells_number']
                 overflowing_height = (_sprite.height - constantes.TILE_HEIGHT * self.map_scaling * count)
@@ -158,10 +171,9 @@ class VisualMap:
         :param new_scale:
         :return:
         """
+
         self.map_scaling = new_scale
         self.setup(game)
-        # self.convert_map_cartesian_to_isometric()
-        pass
 
     def get_map_center(self):
         center_tile = self.grass_layer[int(len(self.grass_layer) // 2 + constantes.TILE_COUNT // 2)]

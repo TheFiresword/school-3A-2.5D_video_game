@@ -1,5 +1,5 @@
 from Services import servicesGlobalVariables as const
-
+from Services import servicesmMapSpriteToFile as mapping
 
 class Building_info:
 
@@ -8,13 +8,14 @@ class Building_info:
         self.size = size
         self.max_employs = max_employs
         self.spritepath = sprite
+        # (self.spritepath, self.cells_number) = mapping.mapping_function(const.LAYER5, sprite_type)
         self.road_dependency = road_dependency
         self.water_dependency = water_dependency
 
 
 # Some data are not accurate, only copy paste name and fill some building
 building_dico = {
-    "forum": Building_info(75, 4, 6, "", False, False),
+    "forum": Building_info(75, 4, 6, "forum", False, False),
     "senate": Building_info(400, 20, 30, "", False, False),
     "gov_housing_house": Building_info(150, -1, 0, "", False, False),
     "gov_housing_villa": Building_info(400, -1, 0, "", False, False),
@@ -41,7 +42,7 @@ building_dico = {
     "pig_farm": Building_info(40, -1, 10, "", True, False),
     "vegetable_farm": Building_info(40, -1, 10, "", True, False),
     "vine_farm": Building_info(40, -1, 10, "", True, False),
-    "wheat_farm": Building_info(40, -1, 10, "", True, False),
+    "wheat_farm": Building_info(40, -1, 10, "wheat_farm", True, False),
     "iron_mine": Building_info(40, -1, 10, "", True, False),
     "timber_yard": Building_info(40, -1, 10, "", True, False),
     "marble_quarry": Building_info(40, -1, 10, "", True, False),
@@ -61,9 +62,9 @@ building_dico = {
     "fort": Building_info(40, -1, 10, "", True, False),
     "military_academy": Building_info(40, -1, 10, "", True, False),
     "reservoir": Building_info(40, -1, 10, "", True, False),
-    "aqueduct": Building_info(40, -1, 10, "", True, False),
-    "well": Building_info(40, -1, 10, "", True, False),
-    "dwell": Building_info(10, 1, 0, const.SPRITE_PATH + "Land\housng\Housng1a_00000.png", False, False)
+    "aqueduct": Building_info(40, -1, 10, "aqueduct", True, False),
+    "well": Building_info(40, -1, 10, "well", True, False),
+    "dwell": Building_info(10, 1, 0, const.SPRITE_PATH + "Land/housng/Housng1a_00000.png", False, False)
 }
 
 road_dico = {'cost': 4}

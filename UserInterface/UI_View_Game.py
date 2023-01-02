@@ -484,8 +484,9 @@ class GameView(arcade.View):
         if self.game.add_building(line, column, self.builder_content):
             # si la route a été bien ajoutée on update la spritelist en la recréant
             building = self.game.map.buildings_layer.array[line][column]
-            #self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = (line,column),update_type="change_content",new_texture_path=[building.file_path])
-            self.visualmap.update_layers(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
+            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer, position = (line,column),
+                    update_type="change_content", new_texture_path=[path[0] for path in building.file_paths])
+            #self.visualmap.update_layers(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
             return True
         return False
 
@@ -493,7 +494,8 @@ class GameView(arcade.View):
         for (line,column) in self.surface_drag:
             if self.game.add_building(line,column,self.builder_content):
                 building = self.game.map.buildings_layer.array[line][column]
-                self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = (line,column),update_type="change_content",new_texture_path=[building.file_path])
+                self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer, position = (line,column),
+                        update_type="change_content", new_texture_path=[path[0] for path in building.file_paths])
             else:
                 print("Building failed")
 
