@@ -2,6 +2,11 @@ import random
 from Services import servicesGlobalVariables as cst
 from Services import Service_Walker_Sprite_To_File as wstf
 
+#============================================#
+# Relative to pathfinding--We use the library pathfinding
+from pathfinding.core.grid import Grid
+from pathfinding.finder import *
+
 right = "right"
 left = "left"
 up = "up"
@@ -27,6 +32,8 @@ class Walker:
         self.house = house
         self.paths_up, self.paths_down, self.paths_left, self.paths_right = wstf.walkers_to_sprite()
         self.direction = list()
+
+        self.pathfinding_grid = Grid()
 
     def walk(self, road_layer):
         if not self.dest_pos:
@@ -159,16 +166,16 @@ class Walker:
                     self.head = down
             else:
                 if self.head == right:
-                    self.dest_pos == left_tile
+                    self.dest_pos = left_tile
                     self.head = left
                 elif self.head == left:
-                    self.dest_pos == right_tile
+                    self.dest_pos = right_tile
                     self.head = right
                 elif self.head == up:
-                    self.dest_pos == down_tile
+                    self.dest_pos = down_tile
                     self.head = down
                 elif self.head == down:
-                    self.dest_pos == up_tile
+                    self.dest_pos = up_tile
                     self.head = up
 
         else:
@@ -183,6 +190,33 @@ class Walker:
                 self.offset_x, self.offset_y = (0, 0)
                 self.compteur = 0
 
+    def walk_to_a_building(self, road_layer, building_layer, building_target_pos):
+        """
+        This function uses pathfinding to calculate the path that a walker should follow to move from its position to
+        a building position.
+        This path is calculated with the library pathfinding
+        param: road_layer
+        param: building_target_pos: a tuple
+        """
+        self.pathfinding_grid.clear()
+        self.pathfinding_grid = Grid(matrix=road_layer)
+        finder = best_first.BestFirst()
+        line, column = building_target_pos
+        cells_number = building_layer[line][column].dic['cells_number']
+        possible_cells_to_approch_target = []
+        for i in range(cells_number):
+            possible_cells_to_approch_target.append((line + i, column - 1))
+            possible_cells_to_approch_target.append((line - 1, column + i))
+            possible_cells_to_approch_target.append((line + cells_number, column + i))
+            possible_cells_to_approch_target.append((line + i, column + cells_number))
+
+        for i in range(len(possible_cells_to_approch_target)):
+            _end = self.pathfinding_grid.node(possible_cells_to_approch_target[i])
+            path, runs = finder.find_path(self.init_pos, _end, self.pathfinding_grid)
+            if path:
+                # we have a valide path, so we have to move the walker with this path
+                # ie a list of destpos; ex: path = [(1,1), (2, 2)]
+                pass
     def work(self):
         pass
 
