@@ -1,5 +1,6 @@
 from Services import servicesGlobalVariables as globalVar
 from Services.Service_Game_Data import building_dico, road_dico, removing_cost
+from CoreModules.UpdateManagement import Update as updates
 from CoreModules.BuildingsManagement import buildingsManagementBuilding as buildings
 from CoreModules.WalkersManagement import walkersManagementWalker as walkers
 
@@ -38,10 +39,12 @@ class Game:
         pass
     
     def updatebuilding(self,building:buildings.Building):
+        current_state = (building.isBurning,building.isDestroyed)
         if not building.isDestroyed:
             building.update_risk("fire")
-            building.update_risk("collapse")
-        pass
+            building.update_risk("collapse") 
+        updated_state = (building.isBurning,building.isDestroyed)
+        return (current_state[0] != updated_state[0],current_state[1] != updated_state[1])
 
     def updateReligion(self):
         pass
@@ -51,12 +54,34 @@ class Game:
     
 
     def updategame(self):
-        self.automatic_building_update()
+        update = updates.LogicUpdate()
+        for k in self.buildinglist:
+            pos = k.position
+            cases = []
+            if k.dic['cells_number'] != 1 :
+                for i in range(0,k.dic['cells_number']):
+                    for j in range(0,k.dic['cells_number']):
+                        if (i,j) != (0,0): 
+                            cases.append((pos[0]+i,pos[1]+j))
+            building_update = self.updatebuilding(k)
+            if building_update[0]:
+                update.catchedfire.append(k.position)
+                if k.dic['cells_number'] != 1:
+                    for i in cases:
+                        self.map.buildings_layer.array[i[0]][i[1]].isBurning=True
+                        update.catchedfire.append(i)
+            if building_update[1]:
+                update.collapsed.append(k.position)
+                if k.dic['cells_number'] != 1:
+                    for i in cases:
+                        self.map.buildings_layer.array[i[0]][i[1]].isDestroyed=True
+                        update.collapsed.append(i)             
+        return update
         # ---------------------------------#
         pass
     
     def create_walker(self):
-        self.walkersAll.append(walkers.Walker(globalVar.TILE_COUNT-2,20,None,1/self.framerate))
+        self.walkersAll.append(walkers.Walker(globalVar.TILE_COUNT-2,20,None,1/self.framerate,globalVar.SPRITE_SCALING))
 
     def walkersGetOut(self):
         for k in self.walkersAll:
@@ -155,31 +180,31 @@ class Game:
             return False
         # we have to determine the exact class of the building bcause they have not the same prototype
         match version:
-            case 'dwell':
-                building = buildings.Dwelling(self.map.buildings_layer, globalVar.LAYER5)
-                self.buildinglist.append(building)
-            case "fruit_farm" | "olive_farm" | "pig_farm" | "vegetable_farm" | "vine_farm" | "wheat_farm":
-                building = buildings.Farm(self.map.buildings_layer, globalVar.LAYER5, version)
-                self.buildinglist.append(building.farm_at_02)
-                self.buildinglist.append(building.farm_at_12)
-                self.buildinglist.append(building.farm_at_01)
-                self.buildinglist.append(building.farm_at_00)
-                self.buildinglist.append(building.farm_at_22)
-                self.buildinglist.append(building.foundation)
-            case _:
-                building = buildings.Building(self.map.buildings_layer, globalVar.LAYER5, version)
-                self.buildinglist.append(building)
+                case 'dwell':
+                    building = buildings.Dwelling(self.map.buildings_layer, globalVar.LAYER5)
+                case "fruit_farm" | "olive_farm" | "pig_farm" | "vegetable_farm" | "vine_farm" | "wheat_farm":
+                    building = buildings.Farm(self.map.buildings_layer, globalVar.LAYER5, version)
+                case _:
+                    building = buildings.Building(self.map.buildings_layer, globalVar.LAYER5, version)
 
         status = self.map.buildings_layer.set_cell_constrained_to_bottom_layer(self.map.collisions_layers, line, column,
                                                                                building)
 
         if status:
+            match version:
+                case 'dwell':
+                    self.buildinglist.append(building)
+                case "fruit_farm" | "olive_farm" | "pig_farm" | "vegetable_farm" | "vine_farm" | "wheat_farm":
+                    self.buildinglist.append(building.farm_at_02)
+                    self.buildinglist.append(building.farm_at_12)
+                    self.buildinglist.append(building.farm_at_01)
+                    self.buildinglist.append(building.farm_at_00)
+                    self.buildinglist.append(building.farm_at_22)
+                    self.buildinglist.append(building.foundation)
+                case _:
+                    self.buildinglist.append(building)
+            
             self.money -= building_dico[version].cost
             if version in ["well"]:
                 self.water_structures_list.append((line, column))
         return status
-
-    def automatic_building_update(self):
-        for k in self.buildinglist:
-            self.updatebuilding(k)
-        pass

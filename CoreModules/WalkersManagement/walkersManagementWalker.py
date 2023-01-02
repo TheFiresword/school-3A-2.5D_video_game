@@ -20,8 +20,9 @@ down = "down"
 
 
 class Walker:
-    def __init__(self, pos_ligne, pos_col, house, fps):
+    def __init__(self, pos_ligne, pos_col, house, fps,zoom):
         self.fps = fps
+        self.zoom = zoom
         self.head = left
         self.init_pos = (pos_ligne, pos_col)
         self.dest_pos = None
@@ -127,7 +128,8 @@ class Walker:
                 self.offset_x, self.offset_y = (0, 0)
                 self.compteur = 0
 
-    def walk2(self, road_layer):
+    def walk2(self, road_layer,zoom):
+        self.zoom = zoom
         if not self.dest_pos:
             right_tile = (self.init_pos[0] + 1, self.init_pos[1])
             left_tile = (self.init_pos[0] - 1, self.init_pos[1])
@@ -222,13 +224,13 @@ class Walker:
 
     def variation_pos_visuel(self, depart, arrive):
         if depart[0] < arrive[0] and depart[1] == arrive[1]:
-            return (cst.TILE_WIDTH / (4 * self.fps), cst.TILE_HEIGHT / (4 * self.fps))
+            return (cst.TILE_WIDTH*self.zoom / (2 * self.fps), cst.TILE_HEIGHT*self.zoom / (2 * self.fps))
         if depart[0] > arrive[0] and depart[1] == arrive[1]:
-            return (-1 * cst.TILE_WIDTH / (4 * self.fps), -1 * cst.TILE_HEIGHT / (4 * self.fps))
+            return (-1 * cst.TILE_WIDTH *self.zoom/ (2 * self.fps), -1 * cst.TILE_HEIGHT*self.zoom / (2 * self.fps))
         if depart[0] == arrive[0] and depart[1] < arrive[1]:
-            return (cst.TILE_WIDTH / (4 * self.fps), -1 * cst.TILE_HEIGHT / (4 * self.fps))
+            return (cst.TILE_WIDTH*self.zoom / (2 * self.fps), -1 * cst.TILE_HEIGHT*self.zoom / (2 * self.fps))
         if depart[0] == arrive[0] and depart[1] > arrive[1]:
-            return (-1 * cst.TILE_WIDTH / (4 * self.fps), cst.TILE_HEIGHT / (4 * self.fps))
+            return (-1 * cst.TILE_WIDTH*self.zoom / (2 * self.fps), cst.TILE_HEIGHT*self.zoom / (2 * self.fps))
 
 
 class Engineer(Walker):

@@ -13,6 +13,8 @@ class VisualMap:
         self.trees_layer = None
         self.roads_layer = None
         self.fire_layer = None
+        self.fire_count = 0
+        self.destoyed_layer = None
         self.collapse_layer = None
         self.buildings_layer = None
         self.walker_to_render = None
@@ -28,9 +30,9 @@ class VisualMap:
         self.trees_layer = arcade.SpriteList()
         self.roads_layer = arcade.SpriteList()
         self.buildings_layer = arcade.SpriteList()
-        self.fire_layer = arcade.SpriteList()
-        self.collapse_layer = arcade.SpriteList()
         self.walker_to_render = arcade.SpriteList()
+        self.fire_layer = arcade.SpriteList()
+        self.destroyed_layer = arcade.SpriteList()
         self.create_ground(game)
         self.update_layers(self.hills_layer, game.map.hills_layer.array)
         self.update_layers(self.trees_layer, game.map.trees_layer.array)
@@ -78,6 +80,9 @@ class VisualMap:
         layer.reverse()
 
     def update_layers(self, layer, array):
+        if layer == self.buildings_layer:
+            self.fire_layer.clear()
+            self.destroyed_layer.clear()
         layer.clear()
         k = constantes.TILE_COUNT**2 -1
         for i in range(0, len(array)):  # I=On parcout le tableau logique du bas vers le haut
@@ -108,6 +113,19 @@ class VisualMap:
 
                 _sprite.center_x += (count-1)*constantes.TILE_WIDTH/2*self.map_scaling
                 _sprite.center_y += overflowing_height/2
+                
+                if hasattr(array[i][j],"isBurning") and hasattr(array[i][j],"isDestroyed"):
+                    if array[i][j].isBurning or array[i][j].isDestroyed:
+                        _sprite.visible = False
+                    if array[i][j].isBurning:
+                        firesprite = self.fire_sprite(_sprite.position)
+                        firesprite.center_x, firesprite.center_y = self.grass_layer[k].center_x, self.grass_layer[k].center_y
+                        self.fire_layer.append(firesprite)
+
+                    if array[i][j].isDestroyed:
+                        destroyedsprite = self.destroyed_sprite(_sprite.position)
+                        destroyedsprite.center_x, destroyedsprite.center_y = self.grass_layer[k].center_x, self.grass_layer[k].center_y
+                        self.destroyed_layer.append(destroyedsprite)
                 k -= 1
                 layer.append(_sprite)
         layer.reverse()
@@ -137,8 +155,8 @@ class VisualMap:
 
     def draw_layers(self, game):
         layers = [(self.grass_layer, game.map.grass_layer.activate), (self.roads_layer, game.map.roads_layer.activate),
-                  (self.hills_layer, game.map.hills_layer.activate), (self.trees_layer, game.map.trees_layer.activate),
-                  (self.buildings_layer, game.map.buildings_layer.activate)]
+                  (self.hills_layer, game.map.hills_layer.activate), (self.trees_layer, game.map.trees_layer.activate)
+                  ,(self.fire_layer,True),(self.destroyed_layer,True),(self.buildings_layer, game.map.buildings_layer.activate)]
         for k in layers:
             if k[1]: k[0].draw()
 
@@ -200,12 +218,15 @@ class VisualMap:
         elif _sprite_list == self.visualmap.buildings_layer:
             return self.game.map.buildings_layer.array[line][column]
 
-    def fill_temporary_build(self,list,sprite_list:arcade.SpriteList,type):
+    def fill_temporary_build(self,list,sprite_list:arcade.SpriteList,type,mode):
         for pos in list:
             support_sprite = (self.get_sprite_associated(pos))
             sprite_pos_x,sprite_pos_y = support_sprite.center_x,support_sprite.center_y
-            sprite = arcade.Sprite(filename=(gdata.building_dico[type]).spritepath,center_x= sprite_pos_x,center_y=sprite_pos_y,scale=self.map_scaling)
-            sprite_list.append(sprite)
+            if mode == "build":
+                sprite = arcade.Sprite(filename=(gdata.building_dico[type]).spritepath,center_x= sprite_pos_x,center_y=sprite_pos_y,scale=self.map_scaling)
+            else:
+                sprite = arcade.Sprite(filename=constantes.SPRITE_PATH + "Land/LandOverlay/Land2a_00001.png",center_x= sprite_pos_x,center_y=sprite_pos_y,scale=self.map_scaling)
+                sprite_list.append(sprite)
 
     def update_one_sprite(self,layer:arcade.SpriteList,position,update_type,new_texture_path=[]):
         index = fct.get_sprite_list_index(position)
@@ -216,7 +237,20 @@ class VisualMap:
         if not sprite.visible:
             sprite.visible = True
         if update_type == "building_destroy":
-            sprite.set_texture(-1)
+            firesprite= self.look_sprite_list(support_sprite.center_x,support_sprite.center_y,self.fire_layer)
+            if firesprite:
+                firesprite.visible = False
+            sprite.visible = False
+            collapsedsprite= self.destroyed_sprite((sprite_pos_x,sprite_pos_y))
+            self.destroyed_layer.append(collapsedsprite)
+        if update_type == "building_fire":
+            sprite.visible = False
+            firesprite= self.look_sprite_list(support_sprite.center_x,support_sprite.center_y,self.fire_layer)
+            if firesprite:
+                firesprite.visible = not firesprite.visible
+            else:
+                firesprite= self.fire_sprite((sprite_pos_x,sprite_pos_y))
+                self.fire_layer.append(firesprite)
         if update_type == "change_content":
             sprite.textures = []
             for k in new_texture_path:
@@ -232,3 +266,27 @@ class VisualMap:
         if update_type == "delete":
             sprite.visible = False
         sprite.scale = self.map_scaling
+    
+    def fire_sprite(self,pos):
+        textures =  [arcade.load_texture(constantes.SPRITE_PATH + "Land/LandOverlay/Land2a_00"+str(i) +".png") for i in range(188,196)]
+        sprite = arcade.Sprite()
+        sprite.center_x = pos[0]
+        sprite.center_y = pos[1]
+        for textu in textures:
+            sprite.append_texture(textu)
+        sprite.set_texture(1)
+        sprite.scale = self.map_scaling
+        return sprite
+    
+    def destroyed_sprite(self,pos):
+        sprite = arcade.Sprite()
+        sprite.center_x = pos[0]
+        sprite.center_y = pos[1]
+        sprite.texture = arcade.load_texture(self.destroyed)
+        sprite.scale = self.map_scaling
+        return sprite
+    
+    def look_sprite_list(self,x,y,spritelist:arcade.SpriteList):
+        for sprite in spritelist:
+            if sprite.position == (x,y):
+                return sprite
