@@ -1,5 +1,6 @@
 from Services import servicesGlobalVariables as globalVar
 from Services.Service_Game_Data import building_dico, road_dico, removing_cost
+from CoreModules.UpdateManagement import Update as updates
 from CoreModules.BuildingsManagement import buildingsManagementBuilding as buildings
 from CoreModules.WalkersManagement import walkersManagementWalker as walkers
 
@@ -35,10 +36,12 @@ class Game:
         pass
     
     def updatebuilding(self,building:buildings.Building):
+        current_state = (building.isBurning,building.isDestroyed)
         if not building.isDestroyed:
             building.update_risk("fire")
-            building.update_risk("collapse")
-        pass
+            building.update_risk("collapse") 
+        updated_state = (building.BurningTime,building.isDestroyed)
+        return (current_state[0] == updated_state[0],current_state[1] == updated_state[1])
 
     def updateReligion(self):
         pass
@@ -48,12 +51,19 @@ class Game:
     
 
     def updategame(self):
-        self.automatic_building_update()
+        update = updates.LogicUpdate()
+        for k in self.buildinglist:
+            building_update = self.updatebuilding(k)
+            if building_update[0]:
+                update.catchedfire.append(k)
+            if building_update[1]:
+                update.collapsed.append(k)
+        return update
         # ---------------------------------#
         pass
     
     def create_walker(self):
-        self.walkersAll.append(walkers.Walker(globalVar.TILE_COUNT-2,20,None,1/self.framerate))
+        self.walkersAll.append(walkers.Walker(globalVar.TILE_COUNT-2,20,None,1/self.framerate,globalVar.SPRITE_SCALING))
 
     def walkersGetOut(self):
         for k in self.walkersAll:
@@ -173,8 +183,3 @@ class Game:
         if status:
             self.money -= building_dico[version].cost
         return status
-
-    def automatic_building_update(self):
-        for k in self.buildinglist:
-            self.updatebuilding(k)
-        pass

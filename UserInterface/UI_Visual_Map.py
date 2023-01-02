@@ -188,12 +188,15 @@ class VisualMap:
         elif _sprite_list == self.visualmap.buildings_layer:
             return self.game.map.buildings_layer.array[line][column]
 
-    def fill_temporary_build(self,list,sprite_list:arcade.SpriteList,type):
+    def fill_temporary_build(self,list,sprite_list:arcade.SpriteList,type,mode):
         for pos in list:
             support_sprite = (self.get_sprite_associated(pos))
             sprite_pos_x,sprite_pos_y = support_sprite.center_x,support_sprite.center_y
-            sprite = arcade.Sprite(filename=(gdata.building_dico[type]).spritepath,center_x= sprite_pos_x,center_y=sprite_pos_y,scale=self.map_scaling)
-            sprite_list.append(sprite)
+            if mode == "build":
+                sprite = arcade.Sprite(filename=(gdata.building_dico[type]).spritepath,center_x= sprite_pos_x,center_y=sprite_pos_y,scale=self.map_scaling)
+            else:
+                sprite = arcade.Sprite(filename=constantes.SPRITE_PATH + "Land/LandOverlay/Land2a_00001.png",center_x= sprite_pos_x,center_y=sprite_pos_y,scale=self.map_scaling)
+                sprite_list.append(sprite)
 
     def update_one_sprite(self,layer:arcade.SpriteList,position,update_type,new_texture_path=[]):
         index = fct.get_sprite_list_index(position)
@@ -205,6 +208,9 @@ class VisualMap:
             sprite.visible = True
         if update_type == "building_destroy":
             sprite.set_texture(-1)
+        if update_type == "building_fire":
+            sprite.visible = False
+            firesprite= arcade.Sprite(filename=constantes.SPRITE_PATH + "Land/LandOverlay/Land2a_00187.png",center_x = sprite_pos_x,center_y = sprite_pos_y)
         if update_type == "change_content":
             sprite.textures = []
             for k in new_texture_path:

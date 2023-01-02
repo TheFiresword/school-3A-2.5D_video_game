@@ -1,0 +1,21 @@
+To protect against fire,build a prefecture
+(now available) near your housing.
+
+The prefecture sends a citizen to walk around
+and look for laborers.Once he walks past some
+housing, the prefecture has access. Then, it can
+send prefects out on patrol
+
+
+When the prefect discovers a fire in his area,
+he moves to douse the fire with buckets of
+water.
+
+You can right-click on rubble to learn what was
+there before the fire. Once back on normal
+patrol,the prefect inspects buildings on his
+route for fire hazards, reducing their risk of
+catching fire.
+
+Prefects can provide their service to any
+building within 2 spaces of the road
