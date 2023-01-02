@@ -11,7 +11,14 @@ class Building(element.Element):
         self.fire_level = 0
         self.fire_risk_level = 0
         self.collapse_score = 0
+        # Structure level is a number that indicates the level of the building
+        # in fact some buildings like farms, dwells, grow up or grow down very often
+        # we have to save these evolutions; so we use an attribute
+        # value -1 indicates the building is destroyed and value -2 indicates the building is burned/burning
         self.structure_level = 1
+
+        self.max_level = 1
+
         self.isBurning = False
         self.BurningTime = 0
         self.isDestroyed = False
@@ -50,7 +57,20 @@ class Building(element.Element):
     def updateLikeability(self):
         pass
 
-
+    def update_level(self, update_type):
+        if update_type == "destroy":
+            self.structure_level = -1
+        elif update_type == "burn":
+            self.structure_level = -2
+        elif update_type == "change_content":
+            self.structure_level = 0
+            self.file_path = 'something'
+        elif update_type == "stat_inc":
+            ind = sprite.textures.index(sprite.texture)
+            if self.structure_level == len(self.file_path):
+                self.structure_level = 0
+            else :
+                self.structure_level += 1
 
 
 class Dwelling(Building):
@@ -58,6 +78,26 @@ class Dwelling(Building):
         super().__init__(buildings_layer, _type, "dwell")
         self.current_population = None
         self.max_population = None
+        """
+        Desirability can prevent a house from evolving. In order to evolve, a house also must have a certain 
+        desirability in addition to more services. Desirability is calculated from the nearby buildings. 
+        For example, a reservoir is an undesirable neighbour while a temple is rather desirable. A house requires more 
+        desirability as it evolves.
+        """
+        self.desirability = 0
+
+        # Requirements of housing to evolve
+        """
+        The general progression of housing is as follows:
+
+        Tents: Basic housing, very prone to fires. Large tents need a water supply.
+        
+        Shacks: Shacks require food provided from a market.
+        
+        Hovels: Hovels require basic temple access.
+        """
+        # attributes will be added following our progression in the code
+        self.water_supply = 0
 
 class Farm(Building):
     def __init__(self, buildings_layer, _type, production="wheat_farm"):

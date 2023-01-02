@@ -1,12 +1,5 @@
-import arcade
 
-from popup import  MyWindow
+from UserInterface import views
+#Juste la pour lancer le tout
 
-
-def main():
-    window = MyWindow()
-    arcade.run()
-
-
-if __name__ == "__main__":
-    main()
+views.main()
