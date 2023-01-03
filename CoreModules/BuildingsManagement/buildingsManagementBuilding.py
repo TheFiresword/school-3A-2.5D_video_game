@@ -1,5 +1,5 @@
 from Services import Service_Game_Data as gdata
-
+from Services import servicesmMapSpriteToFile as mapping
 import CoreModules.TileManagement.tileManagementElement as element
 import random, math
 
@@ -14,10 +14,8 @@ class Building(element.Element):
         # Structure level is a number that indicates the level of the building
         # in fact some buildings like farms, dwells, grow up or grow down very often
         # we have to save these evolutions; so we use an attribute
-        # value -1 indicates the building is destroyed and value -2 indicates the building is burned/burning
-        self.structure_level = 1
-
-        self.max_level = 1
+        self.structure_level = 4 if version != "foundation_farm" else 0
+        self.max_level = len(mapping.mapping_function(_type, version))
 
         self.isBurning = False
         self.BurningTime = 0
@@ -52,30 +50,20 @@ class Building(element.Element):
                 if risk == "fire":
                     self.isBurning = True
                     self.BurningTime = 0
-                    print("j ai pris feu",self.position)
                 else :
                     self.isDestroyed = True
                     self.isBurning = False
-                    print("Destroyed")
 
     def updateLikeability(self):
         pass
 
-    def update_level(self, update_type):
-        if update_type == "destroy":
-            self.structure_level = -1
-        elif update_type == "burn":
-            self.structure_level = -2
-        elif update_type == "change_content":
+    def update_level(self, update_type: "stat_inc" or 'change_content'):
+        if update_type == "change_content":
             self.structure_level = 0
-            self.file_path = 'something'
+            # self.file_path = something
         elif update_type == "stat_inc":
-            ind = sprite.textures.index(sprite.texture)
-            if self.structure_level == len(self.file_path):
-                self.structure_level = 0
-            else :
-                self.structure_level += 1
-
+            self.structure_level += 1
+            self.structure_level %= self.max_level
 
 class Dwelling(Building):
     def __init__(self, buildings_layer, _type):
@@ -103,6 +91,10 @@ class Dwelling(Building):
         # attributes will be added following our progression in the code
         self.water_supply = 0
 
+    def update_with_supply(self):
+        self.water_supply = 1
+        self.update_level('stat_inc')
+
 class Farm(Building):
     def __init__(self, buildings_layer, _type, production="wheat_farm"):
         # opt: empecher l'attribut d'id a l'init
@@ -121,3 +113,9 @@ class Farm(Building):
         self.total_cells = int(math.sqrt(self.total_cells))
         # we change the cells_number attribute so that to have the exact cells number
         self.dic['cells_number'] = self.total_cells
+
+class WaterStructure(Building):
+    def __init__(self, buildings_layer, _type, version="well"):
+        super().__init__(buildings_layer, _type, version)
+        self.range = mapping.get_structures_range(_type, version)
+        self.functional = False
