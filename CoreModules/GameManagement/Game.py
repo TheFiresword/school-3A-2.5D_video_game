@@ -8,7 +8,7 @@ INIT_MONEY = 1000000000
 
 
 class Game:
-    def __init__(self, _map,name="save"):
+    def __init__(self, _map, name="save"):
         self.name = name
         self.map = _map
         self.money = INIT_MONEY
@@ -27,9 +27,6 @@ class Game:
         # some lists of specific buildings
         self.water_structures_list = []
 
-    def print_money(self):
-        print("#========You have " + str(self.money) + " left========#")
-
     def startGame(self):
         # ---------------------------------#
         pass
@@ -37,58 +34,74 @@ class Game:
     def foodproduction(self):
         # ---------------------------------#
         pass
-    
-    def updatebuilding(self,building:buildings.Building):
-        current_state = (building.isBurning,building.isDestroyed)
+
+    def updatebuilding(self, building: buildings.Building):
+        current_state = (building.isBurning, building.isDestroyed)
         if not building.isDestroyed:
             building.update_risk("fire")
-            building.update_risk("collapse") 
-        updated_state = (building.isBurning,building.isDestroyed)
-        return (current_state[0] != updated_state[0],current_state[1] != updated_state[1])
+            building.update_risk("collapse")
+        updated_state = (building.isBurning, building.isDestroyed)
+        return (current_state[0] != updated_state[0], current_state[1] != updated_state[1])
 
     def updateReligion(self):
         pass
 
-    
 
-    
+    def update_water_requirements(self):
+        for water_structure in self.water_structures_list:
+            _range = water_structure.range
+            _position = water_structure.position
+            for i in _range(-_range, _range+1, 1):
+                for j in _range(-_range, _range + 1, 1):
+                    line, column = _position[0]+i, _position[1]+j
+                    real_building = self.map.buildings_layer.get_cell((line, column))
+                    if real_building.dic['version'] == "dwell":
+                        real_building.update_with_supply()
+
 
     def updategame(self):
         update = updates.LogicUpdate()
         for k in self.buildinglist:
             pos = k.position
             cases = []
-            if k.dic['cells_number'] != 1 :
-                for i in range(0,k.dic['cells_number']):
-                    for j in range(0,k.dic['cells_number']):
-                        if (i,j) != (0,0): 
-                            cases.append((pos[0]+i,pos[1]+j))
+            if k.dic['cells_number'] != 1:
+                for i in range(0, k.dic['cells_number']):
+                    for j in range(0, k.dic['cells_number']):
+                        if (i, j) != (0, 0):
+                            cases.append((pos[0] + i, pos[1] + j))
             building_update = self.updatebuilding(k)
             if building_update[0]:
                 update.catchedfire.append(k.position)
                 if k.dic['cells_number'] != 1:
                     for i in cases:
-                        self.map.buildings_layer.array[i[0]][i[1]].isBurning=True
+                        self.map.buildings_layer.array[i[0]][i[1]].isBurning = True
                         update.catchedfire.append(i)
             if building_update[1]:
                 update.collapsed.append(k.position)
                 if k.dic['cells_number'] != 1:
                     for i in cases:
-                        self.map.buildings_layer.array[i[0]][i[1]].isDestroyed=True
-                        update.collapsed.append(i)             
+                        self.map.buildings_layer.array[i[0]][i[1]].isDestroyed = True
+                        update.collapsed.append(i)
         return update
         # ---------------------------------#
         pass
-    
+
     def create_walker(self):
-        self.walkersAll.append(walkers.Walker(globalVar.TILE_COUNT-2,20,None,1/self.framerate,globalVar.SPRITE_SCALING))
+        self.walkersAll.append(
+            walkers.Walker(globalVar.TILE_COUNT - 1, 20, None, 1 / self.framerate, globalVar.SPRITE_SCALING, self))
+        self.walkersAll.append(
+            walkers.Engineer(globalVar.TILE_COUNT - 3, 20, None, 1 / self.framerate, globalVar.SPRITE_SCALING, self))
+        self.walkersAll.append(
+            walkers.Prefect(globalVar.TILE_COUNT - 5, 20, None, 1 / self.framerate, globalVar.SPRITE_SCALING, self))
+        self.walkersAll.append(
+            walkers.Immigrant(1, 20, None, 1 / self.framerate, globalVar.SPRITE_SCALING, self))
 
     def walkersGetOut(self):
         for k in self.walkersAll:
             self.walkersOut.append(k)
         pass
 
-    def walkersOutUpdates(self,fps): #fps = 1/self.framerate
+    def walkersOutUpdates(self, fps):  # fps = 1/self.framerate
         pass
 
     def remove_element(self, pos) -> str | None:
@@ -101,8 +114,8 @@ class Game:
             return None
         line, column = pos[0], pos[1]
 
-        road,tree,building = self.map.roads_layer.get_cell(line,column), self.map.trees_layer.get_cell(line,column),\
-                             self.map.buildings_layer.get_cell(line,column)
+        road, tree, building = self.map.roads_layer.get_cell(line, column), self.map.trees_layer.get_cell(line, column), \
+                               self.map.buildings_layer.get_cell(line, column)
 
         if road.dic["version"] != "null":
             if self.map.roads_layer.remove_cell(line, column):
@@ -112,11 +125,13 @@ class Game:
             if self.map.trees_layer.remove_cell(line, column):
                 self.money -= removing_cost
                 return globalVar.LAYER3
-        elif building.dic["version"] != "null": 
+        elif building.dic["version"] != "null":
             if self.map.buildings_layer.remove_cell(line, column):
                 if self.buildinglist:
                     self.buildinglist.remove(building)
                 self.money -= removing_cost
+                if building.dic["version"] in ["well"]:
+                    self.water_structures_list.remove(building)
                 return globalVar.LAYER5
         return None
 
@@ -181,20 +196,18 @@ class Game:
             return False
         # we have to determine the exact class of the building bcause they have not the same prototype
         match version:
-                case 'dwell':
-                    building = buildings.Dwelling(self.map.buildings_layer, globalVar.LAYER5)
-                case "fruit_farm" | "olive_farm" | "pig_farm" | "vegetable_farm" | "vine_farm" | "wheat_farm":
-                    building = buildings.Farm(self.map.buildings_layer, globalVar.LAYER5, version)
-                case _:
-                    building = buildings.Building(self.map.buildings_layer, globalVar.LAYER5, version)
+            case 'dwell':
+                building = buildings.Dwelling(self.map.buildings_layer, globalVar.LAYER5)
+            case "fruit_farm" | "olive_farm" | "pig_farm" | "vegetable_farm" | "vine_farm" | "wheat_farm":
+                building = buildings.Farm(self.map.buildings_layer, globalVar.LAYER5, version)
+            case _:
+                building = buildings.Building(self.map.buildings_layer, globalVar.LAYER5, version)
 
         status = self.map.buildings_layer.set_cell_constrained_to_bottom_layer(self.map.collisions_layers, line, column,
                                                                                building)
 
         if status:
             match version:
-                case 'dwell':
-                    self.buildinglist.append(building)
                 case "fruit_farm" | "olive_farm" | "pig_farm" | "vegetable_farm" | "vine_farm" | "wheat_farm":
                     self.buildinglist.append(building.farm_at_02)
                     self.buildinglist.append(building.farm_at_12)
@@ -204,8 +217,8 @@ class Game:
                     self.buildinglist.append(building.foundation)
                 case _:
                     self.buildinglist.append(building)
-            
             self.money -= building_dico[txt].cost
             if version in ["well"]:
-                self.water_structures_list.append((line, column))
+                self.water_structures_list.append(building)
         return status
+

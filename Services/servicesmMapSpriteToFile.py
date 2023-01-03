@@ -345,4 +345,12 @@ def mapping_function(element_type, type_version) -> [str, int]:
             return [(const.SPRITE_PATH + "Temples\Temples_00011.png", 2)]
 
 def get_structures_range(element_type, type_version) -> int:
-    pass
+    if element_type != "buildings":
+        return 0
+    else:
+        if type_version == "well":
+            return 2
+        if type_version in ["fountain", "fountain1", "fountain2", "fountain3", "fountain4"]:
+            return 4
+        if type_version == "reservoir":
+            return 10

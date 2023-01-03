@@ -103,8 +103,12 @@ class VisualMap:
                         _sprite = arcade.Sprite()
                         for texture in textures:
                             _sprite.append_texture(texture)
-                            _sprite.set_texture(0)
-                            _sprite.scale = self.map_scaling
+                        # we check twice that the level is valid
+                        _level = array[i][j].structure_level
+                        if _level >= len(textures):
+                            _level = -_level
+                        _sprite.set_texture(_level)
+                        _sprite.scale = self.map_scaling
 
                 count = array[i][j].dic['cells_number']
                 overflowing_height = (_sprite.height - constantes.TILE_HEIGHT * self.map_scaling * count)
