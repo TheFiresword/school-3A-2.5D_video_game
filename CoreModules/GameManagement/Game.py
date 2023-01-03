@@ -27,9 +27,6 @@ class Game:
         # some lists of specific buildings
         self.water_structures_list = []
 
-    def print_money(self):
-        print("#========You have " + str(self.money) + " left========#")
-
     def startGame(self):
         # ---------------------------------#
         pass
@@ -49,9 +46,17 @@ class Game:
     def updateReligion(self):
         pass
 
-    
+    def update_water_requirements(self):
+        for water_structure in self.water_structures_list:
+            _range = water_structure.range
+            _position = water_structure.position
+            for i in _range(-_range, _range+1, 1):
+                for j in _range(-_range, _range + 1, 1):
+                    line, column = _position[0]+i, _position[1]+j
+                    real_building = self.map.buildings_layer.get_cell((line, column))
+                    if real_building.dic['version'] == "dwell":
+                        real_building.update_with_supply()
 
-    
 
     def updategame(self):
         update = updates.LogicUpdate()
@@ -117,6 +122,8 @@ class Game:
                 if self.buildinglist:
                     self.buildinglist.remove(building)
                 self.money -= removing_cost
+                if building.dic["version"] in ["well"]:
+                    self.water_structures_list.remove(building)
                 return globalVar.LAYER5
         return None
 
@@ -192,8 +199,6 @@ class Game:
 
         if status:
             match version:
-                case 'dwell':
-                    self.buildinglist.append(building)
                 case "fruit_farm" | "olive_farm" | "pig_farm" | "vegetable_farm" | "vine_farm" | "wheat_farm":
                     self.buildinglist.append(building.farm_at_02)
                     self.buildinglist.append(building.farm_at_12)
@@ -206,5 +211,5 @@ class Game:
             
             self.money -= building_dico[version].cost
             if version in ["well"]:
-                self.water_structures_list.append((line, column))
+                self.water_structures_list.append(building)
         return status
