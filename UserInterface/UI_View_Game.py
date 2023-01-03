@@ -61,15 +61,74 @@ class GameView(arcade.View):
                                               "sword":arcade.gui.UIManager(),
                                               "carry":arcade.gui.UIManager()
                                              }
-        self.right_panel_manager_depth_two = {"status":arcade.gui.UIManager(),
-                                              "tress":arcade.gui.UIManager(),
-                                              "parks":arcade.gui.UIManager(),
-                                              "paths":arcade.gui.UIManager(),
-                                              "governor":arcade.gui.UIManager(),
-                                              "small_temple":arcade.gui.UIManager(),
-                                              "farm":arcade.gui.UIManager(),
-                                              "raw_material":arcade.gui.UIManager(),
-                                              "workshop":arcade.gui.UIManager()
+        self.right_panel_manager_depth_two = {
+                                              "academy":None,
+                                              "actor colony":None,
+                                              "architects guild":None,
+                                              "aqueduct":None,
+                                              "arena":None,
+                                              "ares temple":None,
+                                              "neptune temple":None,
+                                              "mercury temple":None,
+                                              "mars temple":None,
+                                              "venus temple":None,
+                                              "amphitheater":None,
+                                              "barber":None,
+                                              "baths":None,
+                                              "barracks":None,
+                                              "clay pit":None,
+                                              "colosseum":None,
+                                              "dock":None,
+                                              "doctor":None,
+                                              "dwell":None,
+                                              "engineer's post":None,
+                                              "forum":None,
+                                              "fruit farm":None,
+                                              "furniture workshop":None,
+                                              "fort":None,
+                                              "fountain":None,
+                                              "garden":None,
+                                              "gatehouse":None,
+                                              "gladiator school":None,
+                                              "governor housing house":None,
+                                              "governor housing villa":None,
+                                              "governor housing palace":None,
+                                              "granary":None,
+                                              "hospital":None,
+                                              "iron mine":None,
+                                              "library":None,
+                                              "lion house":None,
+                                              "low bridge":None,
+                                              "lararium":None,
+                                              "lighthouse":None,
+                                              "marble quarry":None,
+                                              "market":None,
+                                              "oil workshop":None,
+                                              "military academi":None,
+                                              "olive farm":None,
+                                              "palisade":None,
+                                              "plaza":None,
+                                              "pig farm": None,
+                                              "prefecture": None,
+                                              "pottery workshop": None,
+                                              "reservoir": None,
+                                              "senate": None,
+                                              "school": None,
+                                              "ship bridge": None,
+                                              "tavern": None,
+                                              "theater": None,
+                                              "tower": None,
+                                              "timber yard": None,
+                                              "vegetable farm": None,
+                                              "vine farm": None,
+                                              "watchtower": None,
+                                              "weapons workshop": None,
+                                              "wheat farm": None,
+                                              "wine workshop": None,
+                                              "warehouse": None,
+                                              "work camp": None,
+                                              "wall": None,
+                                              "well": None
                                              }
         self.manager_state = {"water":False,
                                               "health":False,
@@ -79,16 +138,7 @@ class GameView(arcade.View):
                                               "roll":False,
                                               "hammer":False,
                                               "sword":False,
-                                              "carrier":False,
-                                              "status":False,
-                                              "tress":False,
-                                              "parks":False,
-                                              "paths":False,
-                                              "governor":False,
-                                              "small_temple":False,
-                                              "farm":False,
-                                              "raw_material":False,
-                                              "workshop":False
+                                              "carry":False,
                                               }
         self.menusect = uis.MenuSect()
         self.map_camera = arcade.Camera()
@@ -100,7 +150,7 @@ class GameView(arcade.View):
         self.tab = arcade.load_texture(constantes.SPRITE_PATH + "PanelsOther/paneling_00017.png")
         self.bar = arcade.load_texture(constantes.SPRITE_PATH + "Panel\panel0.png")
         self.money_box = arcade.load_texture(constantes.SPRITE_PATH + "PanelsOther/paneling_00015.png")
-        self.actual_pop_up = pop.create_PoP_Up(image= constantes.SPRITE_PATH + "Pictures/feu2.png" ,title="AU FEU",normal_text="tchoupi",carved_text="Y'a le feu quelque part allez éteindre ça",top_left_corner=(0,constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]),order=["title_zone","image_zone","carved_text_zone","button_zone"])
+        self.actual_pop_up = pop.create_PoP_Up(image= constantes.SPRITE_PATH + "Pictures/panelwindows_00021.png" ,title="AU FEU",normal_text="tchoupi",carved_text="Y'a le feu quelque part allez éteindre ça\n je suis sur ca marche",top_left_corner=(0,constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]),order=["title_zone","image_zone","carved_text_zone","button_zone"])
         self.money_text = None
         buttons_render = UI_buttons.buttons
         self.buttons = [arcade.gui.UITextureButton(x=b0, y=b1, texture=b2, texture_hovered=b3, texture_pressed=b4,
@@ -170,7 +220,7 @@ class GameView(arcade.View):
             if self.builder_mode:
                 if not self.mouse_left_maintained:
                     if self.builder_content != "road":
-                        hollow = hudb.hollow_build(self.mouse_pos[0], self.mouse_pos[1],self.visualmap,gdata.building_dico[self.builder_content])
+                        hollow = hudb.hollow_build(self.mouse_pos[0], self.mouse_pos[1],self.visualmap,gdata.building_dico[self.builder_content.lower()])
                     else:
                         hollow = hudb.hollow_build(self.mouse_pos[0], self.mouse_pos[1],self.visualmap)
                     hollow.draw()
@@ -273,7 +323,6 @@ class GameView(arcade.View):
                 self.visualmap.red_sprite.center_x, self.visualmap.red_sprite.center_y = nearest_sprite.center_x, nearest_sprite.center_y
                 self.visualmap.red_sprite.texture = nearest_sprite.texture
                 self.mouse_left_pressed = True
-                print("================")
             # For testing
             if button == arcade.MOUSE_BUTTON_RIGHT:
                 # A right clic cancel whatever mode (remove or build) is activated
@@ -299,11 +348,11 @@ class GameView(arcade.View):
                         if self.builder_content == "dwell":
                             self.add_multiple_one_sized_building()
                             self.dragged_sprite.clear()
-                    else:
-                        if self.builder_content == "dwell":
-                            self.add_one_sized_building(self.mouse_pos)
+                    else:                      
                         if self.builder_content == "road":
                             self.add_road(self.mouse_pos)
+                        else:
+                            self.add_one_sized_building(self.mouse_pos)
                 self.mouse_left_pressed = False
                 self.mouse_left_maintained = False
 
@@ -384,7 +433,7 @@ class GameView(arcade.View):
         elif symbol == arcade.key.B:
             self.actual_pop_up.visible = True
         elif symbol == arcade.key.N:
-            self.builder_content = "wheat_farm"
+            print(self.builder_content,self.builder_mode)
         # Testing
         # press S to save your game
         elif symbol == arcade.key.S:
@@ -481,12 +530,12 @@ class GameView(arcade.View):
         #       Add single tile Building
         # ================================
         line, column = self.visualmap.get_sprite_at_screen_coordinates(pos)
-        if self.game.add_building(line, column, self.builder_content):
+        if self.game.add_building(line, column, gdata.building_dico[self.builder_content].name):
             # si la route a été bien ajoutée on update la spritelist en la recréant
             building = self.game.map.buildings_layer.array[line][column]
-            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer, position = (line,column),
-                    update_type="change_content", new_texture_path=[path[0] for path in building.file_paths])
-            #self.visualmap.update_layers(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
+            #self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer, position = (line,column),
+            #        update_type="change_content", new_texture_path=[path[0] for path in building.file_paths])
+            self.visualmap.update_layers(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
             return True
         return False
 
@@ -575,8 +624,10 @@ class GameView(arcade.View):
                 self.buttons[i].on_click = UI_buttons.define_on_click_button_manager(self,l[i])
         
     def fill_manager(self,button_list,manager):
-            for k in button_list:
-                self.right_panel_manager_depth_one[manager].add(k)
+            for button in button_list:
+                txt =  (button.my_text.split(":"))[0]
+                button.on_click = UI_buttons.define_on_click_build(self,txt)
+                self.right_panel_manager_depth_one[manager].add(button)
 
     def select_manager(self,manager):
         match manager:
@@ -596,6 +647,7 @@ class GameView(arcade.View):
 
     def hide_all_manager(self):
         for manager in self.manager_state.items():
+            self.right_panel_manager_depth_one[manager[0]].disable()
             self.manager_state[manager[0]] = False
 
     def button_click_depht(self, event , button):

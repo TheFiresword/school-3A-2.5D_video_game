@@ -190,7 +190,8 @@ class Game:
         return status
 
     def add_building(self, line, column, version) -> bool:
-        if self.money < building_dico[version].cost:
+        txt= " ".join(version.split("_"))
+        if self.money < building_dico[txt].cost:
             print("Not enough money")
             return False
         # we have to determine the exact class of the building bcause they have not the same prototype
@@ -216,8 +217,7 @@ class Game:
                     self.buildinglist.append(building.foundation)
                 case _:
                     self.buildinglist.append(building)
-
-            self.money -= building_dico[version].cost
+            self.money -= building_dico[txt].cost
             if version in ["well"]:
                 self.water_structures_list.append(building)
         return status

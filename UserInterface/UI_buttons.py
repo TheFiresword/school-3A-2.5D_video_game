@@ -117,16 +117,25 @@ def get_tuples(words):
         counter += 1
     return tuples
 
+def define_on_click_build(gameview,button_text):
+    def on_click_button(event,game_view = gameview,but = button_text):
+        game_view.builder_content = but.lower()
+        game_view.builder_mode = True
+    return on_click_button
+
+
 def button_list(text_manager):
     tuples = get_tuples(text_manager)
     buttons_list = []
     for (my_x,my_y,my_width,my_height,my_texture,my_content,my_color) in tuples:
-        buttons_list.append(Text_Button_background(my_x,my_y,my_width,my_height,my_texture,my_content,my_color))   
+        button = Text_Button_background(my_x,my_y,my_width,my_height,my_texture,my_content,my_color)
+        buttons_list.append(button)   
     return buttons_list
 
 def define_on_click_button_manager(gameview,manager):
     def on_click_button(event,game_view = gameview,mana = manager):
         game_view.hide_all_manager()
+        game_view.right_panel_manager_depth_one[mana].enable()
         game_view.manager_state[mana] = True
     return on_click_button
 
