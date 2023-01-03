@@ -25,7 +25,7 @@ class Walker:
         # self.init_pos[0] = pos_ligne
         # self.init_pos[1] = pos_col
         self.house = house
-        self.paths_up, self.paths_down, self.paths_left, self.paths_right = wstf.walkers_to_sprite()
+        self.paths_up, self.paths_down, self.paths_left, self.paths_right = wstf.walkers_to_sprite(self.__class__.__name__)
         self.direction = list()
 
     def walk(self, road_layer):

@@ -218,7 +218,8 @@ class GameView(arcade.View):
     def on_update(self, delta_time: float):
         self.game.updategame()
         self.move_map_camera_with_keys()
-        (self.game.walkersOut[0]).walk2(self.game.map.roads_layer)
+        for walker in self.game.walkersOut:
+            walker.walk2(self.game.map.roads_layer)
         self.visualmap.update_walker_list(self.game.walkersOut)
         self.money_text = text.Sprite_sentence("Dn: " +str(self.game.money),"white",(320-(len(self.money_text.sentence)+5) * constantes.FONT_WIDTH/4,constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4))
         

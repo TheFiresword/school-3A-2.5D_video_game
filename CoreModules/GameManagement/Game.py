@@ -51,7 +51,9 @@ class Game:
         pass
     
     def create_walker(self):
-        self.walkersAll.append(walkers.Walker(globalVar.TILE_COUNT-2,20,None,1/self.framerate))
+        self.walkersAll.append(walkers.Walker(globalVar.TILE_COUNT - 1, 20, None, 1 / self.framerate))
+        self.walkersAll.append(walkers.Engineer(globalVar.TILE_COUNT - 3, 20, None, 1 / self.framerate))
+        self.walkersAll.append(walkers.Prefect(globalVar.TILE_COUNT - 5, 20, None, 1 / self.framerate))
 
     def walkersGetOut(self):
         for k in self.walkersAll:
