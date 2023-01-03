@@ -2,7 +2,7 @@ import random
 from Services import servicesGlobalVariables as cst
 from Services import Service_Walker_Sprite_To_File as wstf
 
-#============================================#
+# ============================================#
 # Relative to pathfinding--We use the library pathfinding
 from pathfinding.core.grid import Grid
 from pathfinding.finder import *
@@ -20,7 +20,7 @@ down = "down"
 
 
 class Walker:
-    def __init__(self, pos_ligne, pos_col, house, fps,zoom,game):
+    def __init__(self, pos_ligne, pos_col, house, fps, zoom, game):
         self.road_layer = game.map.roads_layer
         self.fps = fps
         self.zoom = zoom
@@ -32,13 +32,17 @@ class Walker:
         # self.init_pos[0] = pos_ligne
         # self.init_pos[1] = pos_col
         self.house = house
-        self.paths_up, self.paths_down, self.paths_left, self.paths_right = wstf.walkers_to_sprite(self.__class__.__name__)
+        self.paths_up, self.paths_down, self.paths_left, self.paths_right = wstf.walkers_to_sprite(
+            self.__class__.__name__)
         self.direction = list()
-
+        self.dest_final = list()
+        self.dest_compteur = 0
         self.pathfinding_grid = Grid()
 
-    def walk(self, zoom):
+    def walk(self, zoom, back=False):
         self.zoom = zoom
+        if self.dest_final:
+            self.dest_pos = self.dest_final[self.dest_compteur]
         if not self.dest_pos:
             right_tile = (self.init_pos[0] + 1, self.init_pos[1])
             left_tile = (self.init_pos[0] - 1, self.init_pos[1])
@@ -62,7 +66,7 @@ class Walker:
 
             if (not (down_tile[0] == -1 or down_tile[0] == cst.TILE_COUNT or down_tile[1] == -1 or down_tile[
                 1] == cst.TILE_COUNT)) and (self.road_layer.array[down_tile[0]][down_tile[1]]).dic["version"] not in [
-                "null","entry","exit"] and self.head != up:
+                "null", "entry", "exit"] and self.head != up:
                 possible.append(down_tile)
 
             if len(possible) != 0:
@@ -100,6 +104,19 @@ class Walker:
                 self.dest_pos = None
                 self.offset_x, self.offset_y = (0, 0)
                 self.compteur = 0
+                if back:
+                    if self.dest_compteur >= len(self.dest_final):
+                        self.dest_compteur = 0
+                        self.dest_final.reverse()
+                    else:
+                        self.dest_final=self.dest_final[:self.dest_compteur]
+                        self.dest_final.reverse()
+                        self.dest_compteur += 1
+                else:
+                    if self.dest_compteur >= len(self.dest_final):
+                        self.dest_compteur = 0
+                    else:
+                        self.dest_compteur += 1
 
     def walk_to_a_building(self, road_layer, building_layer, building_target_pos):
         """
@@ -128,18 +145,19 @@ class Walker:
                 # we have a valide path, so we have to move the walker with this path
                 # ie a list of destpos; ex: path = [(1,1), (2, 2)]
                 pass
+
     def work(self):
         pass
 
     def variation_pos_visuel(self, depart, arrive):
         if depart[0] < arrive[0] and depart[1] == arrive[1]:
-            return (cst.TILE_WIDTH*self.zoom / (2 * self.fps), cst.TILE_HEIGHT*self.zoom / (2 * self.fps))
+            return (cst.TILE_WIDTH * self.zoom / (2 * self.fps), cst.TILE_HEIGHT * self.zoom / (2 * self.fps))
         if depart[0] > arrive[0] and depart[1] == arrive[1]:
-            return (-1 * cst.TILE_WIDTH *self.zoom/ (2 * self.fps), -1 * cst.TILE_HEIGHT*self.zoom / (2 * self.fps))
+            return (-1 * cst.TILE_WIDTH * self.zoom / (2 * self.fps), -1 * cst.TILE_HEIGHT * self.zoom / (2 * self.fps))
         if depart[0] == arrive[0] and depart[1] < arrive[1]:
-            return (cst.TILE_WIDTH*self.zoom / (2 * self.fps), -1 * cst.TILE_HEIGHT*self.zoom / (2 * self.fps))
+            return (cst.TILE_WIDTH * self.zoom / (2 * self.fps), -1 * cst.TILE_HEIGHT * self.zoom / (2 * self.fps))
         if depart[0] == arrive[0] and depart[1] > arrive[1]:
-            return (-1 * cst.TILE_WIDTH*self.zoom / (2 * self.fps), cst.TILE_HEIGHT*self.zoom / (2 * self.fps))
+            return (-1 * cst.TILE_WIDTH * self.zoom / (2 * self.fps), cst.TILE_HEIGHT * self.zoom / (2 * self.fps))
 
 
 class Engineer(Walker):
