@@ -230,7 +230,7 @@ class GameView(arcade.View):
 
         self.move_map_camera_with_keys()
         for walker in self.game.walkersOut:
-            walker.walk2(self.game.map.roads_layer,self.visualmap.map_scaling)
+            walker.walk(self.game.map.roads_layer, self.visualmap.map_scaling)
         self.visualmap.update_walker_list(self.game.walkersOut)
         self.money_text = text.Sprite_sentence("Dn: " +str(self.game.money),"white",(320-(len(self.money_text.sentence)+5) * constantes.FONT_WIDTH/4,constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4))
         
