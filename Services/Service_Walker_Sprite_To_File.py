@@ -4,7 +4,7 @@ from Services import servicesGlobalVariables as const
 def walkers_to_sprite(type_walker):
     citizen_number = "1"
     type_number = "1"
-    sprite_number = 0
+    sprite_number = 1
     match type_walker:
         case "Engineer":
             citizen_number = "1"
