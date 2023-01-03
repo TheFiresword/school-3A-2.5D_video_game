@@ -93,7 +93,7 @@ class GameView(arcade.View):
         self.menusect = uis.MenuSect()
         self.map_camera = arcade.Camera()
         self.menu_camera = arcade.Camera()
-        
+
         # =======================================
         # Visuals elements excepts ones Map related 
         # =======================================
@@ -218,7 +218,7 @@ class GameView(arcade.View):
                     print("no manager")
         if self.actual_pop_up.visible:
             self.actual_pop_up.draw_()
-        
+
             
 
     def on_update(self, delta_time: float):
@@ -229,8 +229,8 @@ class GameView(arcade.View):
             sprite.set_texture(self.visualmap.fire_count % len(sprite.textures))
 
         self.move_map_camera_with_keys()
-        if not (len(self.game.walkersOut) == 0):
-            (self.game.walkersOut[0]).walk2(self.game.map.roads_layer,self.visualmap.map_scaling)
+        for walker in self.game.walkersOut:
+            walker.walk(self.visualmap.map_scaling)
         self.visualmap.update_walker_list(self.game.walkersOut)
         self.money_text = text.Sprite_sentence("Dn: " +str(self.game.money),"white",(320-(len(self.money_text.sentence)+5) * constantes.FONT_WIDTH/4,constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4))
         
@@ -265,7 +265,7 @@ class GameView(arcade.View):
                                                                     self.visualmap.hills_layer)
                                 if not nearest_sprite.textures:
                                     (nearest_sprite, d) = arcade.get_closest_sprite(self.visualmap.red_sprite,
-                                                                    self.visualmap.grass_layer)                                                    
+                                                                    self.visualmap.grass_layer)
                     # self.visualmap.red_sprite.texture = nearest_sprite.texture
                 else:
                     (nearest_sprite, d) = arcade.get_closest_sprite(self.visualmap.red_sprite,
@@ -334,7 +334,7 @@ class GameView(arcade.View):
                 self.get_surface_dragged(self.init_mouse_pos,tmp_end_pos)
                 self.dragged_sprite.clear()
                 self.visualmap.fill_temporary_build(self.surface_drag,self.dragged_sprite,self.builder_content,"remove")
-                
+
 
             self.mouse_left_maintained = True
         # self.red_sprite.visible = False
@@ -637,11 +637,10 @@ class GameView(arcade.View):
         for _game in saveload.list_saved_games():
             # do whatever u want with that
             print(_game)
-    
+
     def update_treatment(self,update:updates.LogicUpdate):
         for k in update.catchedfire:
             self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = k ,update_type="building_fire",new_texture_path=[])
         for j in update.collapsed:
             self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = j ,update_type="building_destroy",new_texture_path=[])
 
-    

@@ -2,7 +2,7 @@ import random
 from Services import servicesGlobalVariables as cst
 from Services import Service_Walker_Sprite_To_File as wstf
 
-#============================================#
+# ============================================#
 # Relative to pathfinding--We use the library pathfinding
 from pathfinding.core.grid import Grid
 from pathfinding.finder import *
@@ -20,7 +20,8 @@ down = "down"
 
 
 class Walker:
-    def __init__(self, pos_ligne, pos_col, house, fps,zoom):
+    def __init__(self, pos_ligne, pos_col, house, fps, zoom, game):
+        self.road_layer = game.map.roads_layer
         self.fps = fps
         self.zoom = zoom
         self.head = left
@@ -31,105 +32,17 @@ class Walker:
         # self.init_pos[0] = pos_ligne
         # self.init_pos[1] = pos_col
         self.house = house
-        self.paths_up, self.paths_down, self.paths_left, self.paths_right = wstf.walkers_to_sprite()
+        self.paths_up, self.paths_down, self.paths_left, self.paths_right = wstf.walkers_to_sprite(
+            self.__class__.__name__)
         self.direction = list()
-
+        self.dest_final = list()
+        self.dest_compteur = 0
         self.pathfinding_grid = Grid()
 
-    def walk(self, road_layer):
-        if not self.dest_pos:
-            ran = 0
-            self.direction.clear()
-
-            r = (self.init_pos[0], self.init_pos[1] + 1)
-            le = (self.init_pos[0], self.init_pos[1] - 1)
-            u = (self.init_pos[0] + 1, self.init_pos[1])
-            d = (self.init_pos[0] - 1, self.init_pos[1])
-            (rr, ll, uu, dd) = ((road_layer.array[r[0]][r[1]]).dic["version"] != "null",
-                                (road_layer.array[le[0]][le[1]]).dic["version"] != "null",
-                                (road_layer.array[u[0]][u[1]]).dic["version"] != "null",
-                                (road_layer.array[d[0]][d[1]]).dic["version"] != "null"
-                                )
-            """if (road_layer.array[r[0]][r[1]]).dic["version"] != "null":
-                rr = True
-            if (road_layer.array[le[0]][le[1]]).dic["version"] != "null":
-               ll = True
-            if (road_layer.array[u[0]][u[1]]).dic["version"] != "null":
-                uu = True
-            if (road_layer.array[d[0]][d[1]]).dic["version"] != "null":
-                dd = True"""
-
-            if self.head == right:
-                if not (rr or dd or uu):
-                    self.direction.append(left)
-                else:
-                    if rr:
-                        self.direction.append(right)
-                    if uu:
-                        self.direction.append(up)
-                    if dd:
-                        self.direction.append(down)
-            elif self.head == up:
-                if not (rr or ll or uu):
-                    self.direction.append(down)
-                else:
-                    if rr:
-                        self.direction.append(right)
-                    if uu:
-                        self.direction.append(up)
-                    if ll:
-                        self.direction.append(left)
-            elif self.head == left:
-                if not (ll or dd or uu):
-                    self.direction.append(right)
-                else:
-                    if ll:
-                        self.direction.append(left)
-                    if uu:
-                        self.direction.append(up)
-                    if dd:
-                        self.direction.append(down)
-            elif self.head == down:
-                if not (rr or dd or ll):
-                    self.direction.append(up)
-                else:
-                    if rr:
-                        self.direction.append(right)
-                    if ll:
-                        self.direction.append(left)
-                    if dd:
-                        self.direction.append(down)
-
-            ran = random.randint(0, len(self.direction))
-            if self.direction[ran - 1] == right:
-                self.dest_pos = (self.init_pos[0] + 1, self.init_pos[1])
-                # self.init_pos[0] += 1
-                self.head = right
-            elif self.direction[ran - 1] == left:
-                self.dest_pos = (self.init_pos[0] - 1, self.init_pos[1])
-                # self.init_pos[0] -= 1
-                self.head = left
-            elif self.direction[ran - 1] == up:
-                self.dest_pos = (self.init_pos[0], self.init_pos[1] + 1)
-                # self.init_pos[1] += 1
-                self.head = up
-            elif self.direction[ran - 1] == down:
-                self.dest_pos = (self.init_pos[0], self.init_pos[1] - 1)
-                # self.init_pos[1] -= 1
-                self.head = down
-        else:
-            if self.compteur != self.fps:
-                self.compteur += 1
-                self.offset_x, self.offset_y = self.variation_pos_visuel(self, self.init_pos,
-                                                                         self.dest_pos) * self.compteur
-            else:
-                self.init_pos = self.dest_pos
-                self.dest_pos = None
-                self.offset_x, self.offset_y = (0, 0)
-                self.compteur = 0
-
-    def walk2(self, road_layer,zoom):
+    def walk(self, zoom, back=False):
         self.zoom = zoom
+        if self.dest_final:
+            self.dest_pos = self.dest_final[self.dest_compteur]
         if not self.dest_pos:
             right_tile = (self.init_pos[0] + 1, self.init_pos[1])
             left_tile = (self.init_pos[0] - 1, self.init_pos[1])
@@ -137,23 +50,23 @@ class Walker:
             down_tile = (self.init_pos[0], self.init_pos[1] - 1)
             possible = []
             if (not (right_tile[0] == -1 or right_tile[0] == cst.TILE_COUNT or right_tile[1] == -1 or right_tile[
-                1] == cst.TILE_COUNT)) and (road_layer.array[right_tile[0]][right_tile[1]]).dic["version"] not in [
+                1] == cst.TILE_COUNT)) and (self.road_layer.array[right_tile[0]][right_tile[1]]).dic["version"] not in [
                 "null", "entry", "exit"] and self.head != left:
                 possible.append(right_tile)
 
             if (not (left_tile[0] == -1 or left_tile[0] == cst.TILE_COUNT or left_tile[1] == -1 or left_tile[
-                1] == cst.TILE_COUNT)) and (road_layer.array[left_tile[0]][left_tile[1]]).dic["version"] not in [
+                1] == cst.TILE_COUNT)) and (self.road_layer.array[left_tile[0]][left_tile[1]]).dic["version"] not in [
                 "null", "entry", "exit"] and self.head != right:
                 possible.append(left_tile)
 
             if (not (up_tile[0] == -1 or up_tile[0] == cst.TILE_COUNT or up_tile[1] == -1 or up_tile[
-                1] == cst.TILE_COUNT)) and (road_layer.array[up_tile[0]][up_tile[1]]).dic["version"] not in [
+                1] == cst.TILE_COUNT)) and (self.road_layer.array[up_tile[0]][up_tile[1]]).dic["version"] not in [
                 "null", "entry", "exit"] and self.head != down:
                 possible.append(up_tile)
 
             if (not (down_tile[0] == -1 or down_tile[0] == cst.TILE_COUNT or down_tile[1] == -1 or down_tile[
-                1] == cst.TILE_COUNT)) and (road_layer.array[down_tile[0]][down_tile[1]]).dic["version"] not in [
-                "null","entry","exit"] and self.head != up:
+                1] == cst.TILE_COUNT)) and (self.road_layer.array[down_tile[0]][down_tile[1]]).dic["version"] not in [
+                "null", "entry", "exit"] and self.head != up:
                 possible.append(down_tile)
 
             if len(possible) != 0:
@@ -191,6 +104,19 @@ class Walker:
                 self.dest_pos = None
                 self.offset_x, self.offset_y = (0, 0)
                 self.compteur = 0
+                if back:
+                    if self.dest_compteur >= len(self.dest_final):
+                        self.dest_compteur = 0
+                        self.dest_final.reverse()
+                    else:
+                        self.dest_final=self.dest_final[:self.dest_compteur]
+                        self.dest_final.reverse()
+                        self.dest_compteur += 1
+                else:
+                    if self.dest_compteur >= len(self.dest_final):
+                        self.dest_compteur = 0
+                    else:
+                        self.dest_compteur += 1
 
     def walk_to_a_building(self, road_layer, building_layer, building_target_pos):
         """
@@ -219,18 +145,19 @@ class Walker:
                 # we have a valide path, so we have to move the walker with this path
                 # ie a list of destpos; ex: path = [(1,1), (2, 2)]
                 pass
+
     def work(self):
         pass
 
     def variation_pos_visuel(self, depart, arrive):
         if depart[0] < arrive[0] and depart[1] == arrive[1]:
-            return (cst.TILE_WIDTH*self.zoom / (2 * self.fps), cst.TILE_HEIGHT*self.zoom / (2 * self.fps))
+            return (cst.TILE_WIDTH * self.zoom / (2 * self.fps), cst.TILE_HEIGHT * self.zoom / (2 * self.fps))
         if depart[0] > arrive[0] and depart[1] == arrive[1]:
-            return (-1 * cst.TILE_WIDTH *self.zoom/ (2 * self.fps), -1 * cst.TILE_HEIGHT*self.zoom / (2 * self.fps))
+            return (-1 * cst.TILE_WIDTH * self.zoom / (2 * self.fps), -1 * cst.TILE_HEIGHT * self.zoom / (2 * self.fps))
         if depart[0] == arrive[0] and depart[1] < arrive[1]:
-            return (cst.TILE_WIDTH*self.zoom / (2 * self.fps), -1 * cst.TILE_HEIGHT*self.zoom / (2 * self.fps))
+            return (cst.TILE_WIDTH * self.zoom / (2 * self.fps), -1 * cst.TILE_HEIGHT * self.zoom / (2 * self.fps))
         if depart[0] == arrive[0] and depart[1] > arrive[1]:
-            return (-1 * cst.TILE_WIDTH*self.zoom / (2 * self.fps), cst.TILE_HEIGHT*self.zoom / (2 * self.fps))
+            return (-1 * cst.TILE_WIDTH * self.zoom / (2 * self.fps), cst.TILE_HEIGHT * self.zoom / (2 * self.fps))
 
 
 class Engineer(Walker):
