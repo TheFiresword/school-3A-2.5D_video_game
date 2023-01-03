@@ -61,7 +61,16 @@ class GameView(arcade.View):
                                               "sword":arcade.gui.UIManager(),
                                               "carry":arcade.gui.UIManager()
                                              }
-        self.right_panel_manager_depth_two = {"status":arcade.gui.UIManager(),
+        self.right_panel_manager_depth_two = {
+                                              "status":arcade.gui.UIManager(),
+                                              "tress":arcade.gui.UIManager(),
+                                              "parks":arcade.gui.UIManager(),
+                                              "paths":arcade.gui.UIManager(),
+                                              "governor":arcade.gui.UIManager(),
+                                              "small_temple":arcade.gui.UIManager(),
+                                              "farm":arcade.gui.UIManager(),
+                                              "raw_material":arcade.gui.UIManager(),
+                                              "status":arcade.gui.UIManager(),
                                               "tress":arcade.gui.UIManager(),
                                               "parks":arcade.gui.UIManager(),
                                               "paths":arcade.gui.UIManager(),
@@ -100,7 +109,7 @@ class GameView(arcade.View):
         self.tab = arcade.load_texture(constantes.SPRITE_PATH + "PanelsOther/paneling_00017.png")
         self.bar = arcade.load_texture(constantes.SPRITE_PATH + "Panel\panel0.png")
         self.money_box = arcade.load_texture(constantes.SPRITE_PATH + "PanelsOther/paneling_00015.png")
-        self.actual_pop_up = pop.create_PoP_Up(image= constantes.SPRITE_PATH + "Pictures/feu2.png" ,title="AU FEU",normal_text="tchoupi",carved_text="Y'a le feu quelque part allez éteindre ça",top_left_corner=(0,constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]),order=["title_zone","image_zone","carved_text_zone","button_zone"])
+        self.actual_pop_up = pop.create_PoP_Up(image= constantes.SPRITE_PATH + "Pictures/panelwindows_00021.png" ,title="AU FEU",normal_text="tchoupi",carved_text="Y'a le feu quelque part allez éteindre ça\n je suis sur ca marche",top_left_corner=(0,constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]),order=["title_zone","image_zone","carved_text_zone","button_zone"])
         self.money_text = None
         buttons_render = UI_buttons.buttons
         self.buttons = [arcade.gui.UITextureButton(x=b0, y=b1, texture=b2, texture_hovered=b3, texture_pressed=b4,
