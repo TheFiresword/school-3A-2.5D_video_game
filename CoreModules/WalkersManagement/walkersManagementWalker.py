@@ -20,7 +20,8 @@ down = "down"
 
 
 class Walker:
-    def __init__(self, pos_ligne, pos_col, house, fps,zoom):
+    def __init__(self, pos_ligne, pos_col, house, fps,zoom,game):
+        self.road_layer = game.map.roads_layer
         self.fps = fps
         self.zoom = zoom
         self.head = left
@@ -36,7 +37,7 @@ class Walker:
 
         self.pathfinding_grid = Grid()
 
-    def walk(self, road_layer, zoom):
+    def walk(self, zoom):
         self.zoom = zoom
         if not self.dest_pos:
             right_tile = (self.init_pos[0] + 1, self.init_pos[1])
@@ -45,22 +46,22 @@ class Walker:
             down_tile = (self.init_pos[0], self.init_pos[1] - 1)
             possible = []
             if (not (right_tile[0] == -1 or right_tile[0] == cst.TILE_COUNT or right_tile[1] == -1 or right_tile[
-                1] == cst.TILE_COUNT)) and (road_layer.array[right_tile[0]][right_tile[1]]).dic["version"] not in [
+                1] == cst.TILE_COUNT)) and (self.road_layer.array[right_tile[0]][right_tile[1]]).dic["version"] not in [
                 "null", "entry", "exit"] and self.head != left:
                 possible.append(right_tile)
 
             if (not (left_tile[0] == -1 or left_tile[0] == cst.TILE_COUNT or left_tile[1] == -1 or left_tile[
-                1] == cst.TILE_COUNT)) and (road_layer.array[left_tile[0]][left_tile[1]]).dic["version"] not in [
+                1] == cst.TILE_COUNT)) and (self.road_layer.array[left_tile[0]][left_tile[1]]).dic["version"] not in [
                 "null", "entry", "exit"] and self.head != right:
                 possible.append(left_tile)
 
             if (not (up_tile[0] == -1 or up_tile[0] == cst.TILE_COUNT or up_tile[1] == -1 or up_tile[
-                1] == cst.TILE_COUNT)) and (road_layer.array[up_tile[0]][up_tile[1]]).dic["version"] not in [
+                1] == cst.TILE_COUNT)) and (self.road_layer.array[up_tile[0]][up_tile[1]]).dic["version"] not in [
                 "null", "entry", "exit"] and self.head != down:
                 possible.append(up_tile)
 
             if (not (down_tile[0] == -1 or down_tile[0] == cst.TILE_COUNT or down_tile[1] == -1 or down_tile[
-                1] == cst.TILE_COUNT)) and (road_layer.array[down_tile[0]][down_tile[1]]).dic["version"] not in [
+                1] == cst.TILE_COUNT)) and (self.road_layer.array[down_tile[0]][down_tile[1]]).dic["version"] not in [
                 "null","entry","exit"] and self.head != up:
                 possible.append(down_tile)
 
