@@ -5,9 +5,11 @@ from UserInterface import UI_buttons
 from UserInterface import UI_HUD_Build as hudb
 from UserInterface import UI_Visual_Map as uivm
 from UserInterface import UI_Text_Display as text
+from UserInterface import UI_PoP_Up as pop
 
 import CoreModules.GameManagement.Game as game
 import CoreModules.MapManagement.mapManagementMap as map
+from CoreModules.UpdateManagement import Update as updates
 
 from Services import servicesGlobalVariables as constantes
 from Services import Service_Game_Data as gdata
@@ -91,13 +93,14 @@ class GameView(arcade.View):
         self.menusect = uis.MenuSect()
         self.map_camera = arcade.Camera()
         self.menu_camera = arcade.Camera()
+
         # =======================================
         # Visuals elements excepts ones Map related 
         # =======================================
         self.tab = arcade.load_texture(constantes.SPRITE_PATH + "PanelsOther/paneling_00017.png")
         self.bar = arcade.load_texture(constantes.SPRITE_PATH + "Panel\panel0.png")
         self.money_box = arcade.load_texture(constantes.SPRITE_PATH + "PanelsOther/paneling_00015.png")
-
+        self.actual_pop_up = pop.create_PoP_Up(image= constantes.SPRITE_PATH + "Pictures/feu2.png" ,title="AU FEU",normal_text="tchoupi",carved_text="Y'a le feu quelque part allez éteindre ça",top_left_corner=(0,constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]),order=["title_zone","image_zone","carved_text_zone","button_zone"])
         self.money_text = None
         buttons_render = UI_buttons.buttons
         self.buttons = [arcade.gui.UITextureButton(x=b0, y=b1, texture=b2, texture_hovered=b3, texture_pressed=b4,
@@ -179,6 +182,7 @@ class GameView(arcade.View):
                     arcade.get_window().set_mouse_visible(False)
                     hollow = hudb.hollow(self.mouse_pos[0], self.mouse_pos[1], self.visualmap)
                     hollow.draw()
+                    self.dragged_sprite.draw()
                 else:
                     fct.draw_normal_cursor()
         # =======================================
@@ -212,11 +216,18 @@ class GameView(arcade.View):
                     real_man.draw()
                 else:
                     print("no manager")
-        
+        if self.actual_pop_up.visible:
+            self.actual_pop_up.draw_()
+
             
 
     def on_update(self, delta_time: float):
-        self.game.updategame()
+        update = self.game.updategame()
+        self.update_treatment(update)
+        self.visualmap.fire_count += 1
+        for sprite in self.visualmap.fire_layer:
+            sprite.set_texture(self.visualmap.fire_count % len(sprite.textures))
+
         self.move_map_camera_with_keys()
         for walker in self.game.walkersOut:
             walker.walk2(self.game.map.roads_layer)
@@ -235,7 +246,7 @@ class GameView(arcade.View):
         (map_pos_x, map_pos_y) = Vec2(x, y) + self.map_camera.position
         self.init_mouse_pos = (map_pos_x, map_pos_y)
         if x < constantes.DEFAULT_SCREEN_WIDTH - 165:
-            if button == arcade.MOUSE_BUTTON_LEFT:
+            if button == arcade.MOUSE_BUTTON_LEFT and not self.actual_pop_up.visible:
                 self.visualmap.red_sprite = arcade.Sprite(constantes.SPRITE_PATH + "Land/LandOverlay/Land2a_00037.png",
                                                           scale=self.visualmap.map_scaling, center_x=map_pos_x,
                                                           center_y=map_pos_y, hit_box_algorithm="Detailed")
@@ -243,12 +254,26 @@ class GameView(arcade.View):
                 if not self.builder_mode and not self.builder_content == "road":
                     (nearest_sprite, d) = arcade.get_closest_sprite(self.visualmap.red_sprite,
                                                                     self.visualmap.buildings_layer)
+                    if not nearest_sprite.textures:
+                        (nearest_sprite, d) = arcade.get_closest_sprite(self.visualmap.red_sprite,
+                                                                    self.visualmap.roads_layer)
+                        if not nearest_sprite.textures:
+                            (nearest_sprite, d) = arcade.get_closest_sprite(self.visualmap.red_sprite,
+                                                                    self.visualmap.trees_layer)
+                            if not nearest_sprite.textures:
+                                (nearest_sprite, d) = arcade.get_closest_sprite(self.visualmap.red_sprite,
+                                                                    self.visualmap.hills_layer)
+                                if not nearest_sprite.textures:
+                                    (nearest_sprite, d) = arcade.get_closest_sprite(self.visualmap.red_sprite,
+                                                                    self.visualmap.grass_layer)
                     # self.visualmap.red_sprite.texture = nearest_sprite.texture
                 else:
                     (nearest_sprite, d) = arcade.get_closest_sprite(self.visualmap.red_sprite,
                                                                     self.visualmap.grass_layer)
                 self.visualmap.red_sprite.center_x, self.visualmap.red_sprite.center_y = nearest_sprite.center_x, nearest_sprite.center_y
+                self.visualmap.red_sprite.texture = nearest_sprite.texture
                 self.mouse_left_pressed = True
+                print("================")
             # For testing
             if button == arcade.MOUSE_BUTTON_RIGHT:
                 # A right clic cancel whatever mode (remove or build) is activated
@@ -263,6 +288,7 @@ class GameView(arcade.View):
                 if self.remove_mode:
                     if self.mouse_left_maintained:
                         self.remove_elements_serie(self.init_mouse_pos, (Vec2(x, y) + self.map_camera.position))
+                        self.dragged_sprite.clear()
                     else:
                         self.remove_sprite(self.mouse_pos)
                 else:
@@ -303,7 +329,12 @@ class GameView(arcade.View):
                 else:
                     self.get_surface_dragged(self.init_mouse_pos,tmp_end_pos)
                     self.dragged_sprite.clear()
-                    self.visualmap.fill_temporary_build(self.surface_drag,self.dragged_sprite,self.builder_content)
+                    self.visualmap.fill_temporary_build(self.surface_drag,self.dragged_sprite,self.builder_content,"build")
+            if self.remove_mode:
+                self.get_surface_dragged(self.init_mouse_pos,tmp_end_pos)
+                self.dragged_sprite.clear()
+                self.visualmap.fill_temporary_build(self.surface_drag,self.dragged_sprite,self.builder_content,"remove")
+
 
             self.mouse_left_maintained = True
         # self.red_sprite.visible = False
@@ -351,10 +382,9 @@ class GameView(arcade.View):
         elif symbol == arcade.key.RIGHT:
             self.right_pressed = True
         elif symbol == arcade.key.B:
-            self.builder_mode = True
-            self.visualmap.red_sprite.visible = False
+            self.actual_pop_up.visible = True
         elif symbol == arcade.key.N:
-            self.builder_mode = False
+            self.builder_content = "wheat_farm"
         # Testing
         # press S to save your game
         elif symbol == arcade.key.S:
@@ -429,7 +459,7 @@ class GameView(arcade.View):
 
         if self.game.add_road(line, column):
             # si la route a été bien ajoutée on update la spritelist en la recréant
-            self.visualmap.update_sprite_list(self.visualmap.roads_layer, self.game.map.roads_layer.array)
+            self.visualmap.update_layers(self.visualmap.roads_layer, self.game.map.roads_layer.array)
             return True
         return False
 
@@ -442,7 +472,7 @@ class GameView(arcade.View):
         line2, column2 = self.visualmap.get_sprite_at_screen_coordinates(end_pos)
 
         if self.game.add_roads_serie((line1, column1), (line2, column2), dynamically):
-            self.visualmap.update_sprite_list(self.visualmap.roads_layer, self.game.map.roads_layer.array)
+            self.visualmap.update_layers(self.visualmap.roads_layer, self.game.map.roads_layer.array)
             return True
         return False
    
@@ -453,28 +483,37 @@ class GameView(arcade.View):
         line, column = self.visualmap.get_sprite_at_screen_coordinates(pos)
         if self.game.add_building(line, column, self.builder_content):
             # si la route a été bien ajoutée on update la spritelist en la recréant
-            self.visualmap.update_sprite_list(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
+            building = self.game.map.buildings_layer.array[line][column]
+            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer, position = (line,column),
+                    update_type="change_content", new_texture_path=[path[0] for path in building.file_paths])
+            #self.visualmap.update_layers(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
             return True
         return False
 
     def add_multiple_one_sized_building(self):
         for (line,column) in self.surface_drag:
-            if not self.game.add_building(line,column,self.builder_content):
+            if self.game.add_building(line,column,self.builder_content):
+                building = self.game.map.buildings_layer.array[line][column]
+                self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer, position = (line,column),
+                        update_type="change_content", new_texture_path=[path[0] for path in building.file_paths])
+            else:
                 print("Building failed")
-        self.visualmap.update_sprite_list(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
 
+        #self.visualmap.update_layers(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
 
     def remove_sprite(self, pos) -> bool:
         line, column = self.visualmap.get_sprite_at_screen_coordinates(pos)
         what_is_removed = self.game.remove_element((line, column))
         if what_is_removed == constantes.LAYER4:
-            self.visualmap.update_sprite_list(self.visualmap.roads_layer, self.game.map.roads_layer.array)
+            self.visualmap.update_layers(self.visualmap.roads_layer, self.game.map.roads_layer.array)
             return True
         elif what_is_removed == constantes.LAYER5:
-            self.visualmap.update_sprite_list(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
+            #self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer,position=(line,column),update_type="delete")
+            self.visualmap.update_layers(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
+
             return True
         elif what_is_removed == constantes.LAYER3:
-            self.visualmap.update_sprite_list(self.visualmap.trees_layer, self.game.map.trees_layer.array)
+            self.visualmap.update_layers(self.visualmap.trees_layer, self.game.map.trees_layer.array)
             return True
         return False
 
@@ -486,16 +525,18 @@ class GameView(arcade.View):
         line1, column1 = self.visualmap.get_sprite_at_screen_coordinates(start_pos)
         line2, column2 = self.visualmap.get_sprite_at_screen_coordinates(end_pos)
         modified_layers = self.game.remove_elements_serie((line1, column1), (line2, column2))
+        ret = False
         if constantes.LAYER5 in modified_layers:
-            self.visualmap.update_sprite_list(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
-            return True
+            self.visualmap.update_layers(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
+            ret = True
         if constantes.LAYER3 in modified_layers:
-            self.visualmap.update_sprite_list(self.visualmap.trees_layer, self.game.map.trees_layer.array)
-            return True
+            self.visualmap.update_layers(self.visualmap.trees_layer, self.game.map.trees_layer.array)
+            ret = True
         if constantes.LAYER4 in modified_layers:
-            self.visualmap.update_sprite_list(self.visualmap.roads_layer, self.game.map.roads_layer.array)
-            return True
-        return False
+            self.visualmap.update_layers(self.visualmap.roads_layer, self.game.map.roads_layer.array)
+            ret = True
+        return ret
+
 
     # ===============================================
     # Side tab buttons functions (too hard to place anywhere else)
@@ -596,4 +637,10 @@ class GameView(arcade.View):
         for _game in saveload.list_saved_games():
             # do whatever u want with that
             print(_game)
-    
+
+    def update_treatment(self,update:updates.LogicUpdate):
+        for k in update.catchedfire:
+            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = k ,update_type="building_fire",new_texture_path=[])
+        for j in update.collapsed:
+            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = j ,update_type="building_destroy",new_texture_path=[])
+

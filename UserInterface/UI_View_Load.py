@@ -25,7 +25,6 @@ class LoadScreen(arcade.View):
         arcade.set_background_color(arcade.color.BLACK)
         self.background = arcade.load_texture(constantes.SPRITE_PATH + "Screens/0_fired_00001.png")
         self.manager = arcade.gui.UIManager()
-        self.manager.enable()
         self.selec_manager = arcade.gui.UIManager()
         # =======================================
         # Visuals elements  
@@ -101,7 +100,7 @@ class LoadScreen(arcade.View):
     def on_hide_view(self):
         self.clear()
         self.manager.disable()
-        self.selec_manager.enable()
+        self.selec_manager.disable()
     
     def leave_button_on_click(self,event):
         window = arcade.get_window()

@@ -1,7 +1,7 @@
 import Services.servicesGlobalVariables as globalVar
 import Services.servicesmMapSpriteToFile as mapping
 import CoreModules.TileManagement.tileManagementElement as Element
-from CoreModules.BuildingsManagement.buildingsManagementBuilding import Building
+from CoreModules.BuildingsManagement.buildingsManagementBuilding import *
 
 # PROBLEME Les lignes et les colonnes sont inversées je ne sais pas pourquoi
 """
@@ -33,23 +33,16 @@ Les versions de remplissage sont respectivement:
 def position_is_valid(i, j):
     return (0 <= i < globalVar.TILE_COUNT) and (0 <= j < globalVar.TILE_COUNT)
 
-
-MAX_NUMBER_ID = 1000000
 VOID_CELL_ID = -1
 
-
 # an id generator
-
 class IdIterator:
     def __init__(self):
         self.id = 0
         pass
     def __next__(self):
         id = self.id
-        if id < MAX_NUMBER_ID:
-            self.id += 1
-        else:
-            self.id = 0
+        self.id += 1
         return  id
 
 
@@ -69,6 +62,7 @@ class Layer:
 
         # Un générateur d'id
         self.id_iterator = IdIterator()
+        self.current_id = None
 
         # Initialisation du layer; chaque case contient un Element de version null
         self.setup()
@@ -85,7 +79,7 @@ class Layer:
         présents que d'en créer de nouveaux
         """
         # on récupère le cells_number directement depuis la fonction mapping Services
-        file_path, cells_number = mapping.mapping_function(self.type, version)
+        cells_number = (mapping.mapping_function(self.type, version))[0][1]
         element_class = None
         # La classe des elements à créer: Element ou Building pour le moment
         if self.type in [globalVar.LAYER1, globalVar.LAYER2, globalVar.LAYER3, globalVar.LAYER4]:
@@ -106,6 +100,7 @@ class Layer:
                     else:
                         self.array[i][j].id = next(self.id_iterator)
                     self.array[i][j].position = (i, j)
+                    self.current_id = self.array[i][j].id
 
         else:
             """
@@ -135,7 +130,7 @@ class Layer:
             for j in range(0, globalVar.TILE_COUNT):
                 self.remove_cell(i, j)
 
-    def remove_cell(self, line, column) -> bool:
+    def remove_cell(self, line: int, column: int) -> bool:
         """
         Cette fonction enlève l'élément présent à la position (line, column) du layer auquel il appartient.
         En fait, on va remplacer l'élément présent à cette position par un élément null
@@ -144,32 +139,37 @@ class Layer:
         """
         if not position_is_valid(line, column):
             return False
+        id_for_search = self.array[line][column].id
         (origin_x, origin_y) = self.array[line][column].position
         origin_version = self.array[origin_x][origin_y].dic['version']
-        size = self.array[origin_x][origin_y].dic['cells_number']
         element_class = type(self.array[origin_x][origin_y])
 
-        # Si c'est le layer route et que l'élément correspond au panneau d'entrée ou de sortie on ne peut pas le retirer
-        if self.type == globalVar.LAYER4 and origin_version in ["entry", "exit"]:
-            return False
-
-        if origin_version != "null":
-            for i in range(0, size):
-                for j in range(0, size):
-                    e = element_class(self, self.type, "null")
-                    self.array[origin_x + i][origin_y + j] = e
-                    self.array[origin_x + i][origin_y + j].position = (origin_x + i, origin_y + j)
-                    self.array[origin_x + i][origin_y + j].id = VOID_CELL_ID
+        # I get the indexes and then the positions of all the elements linked to the element we want to remove
+        # so that we can remove all of them
+        indexes_of_parts_of_the_element = []
+        for i in range(globalVar.TILE_COUNT):
+            indexes_of_parts_of_the_element += [(i, index) for (index, element_part) in enumerate(self.array[i]) if
+                                                element_part.id == id_for_search]
+        # if the elements the user wants to remove is the 'entry' signal or the 'exit' signal, then we have to stop it
+        # because those elements are not removable
+        if origin_version not in ["null", "entry", "exit"]:
+            for part_position in indexes_of_parts_of_the_element:
+                if issubclass(element_class, Building) :
+                    element_class = Building
+                e = element_class(self, self.type, "null")
+                self.array[part_position[0]][part_position[1]] = e
+                self.array[part_position[0]][part_position[1]].position = part_position
+                self.array[part_position[0]][part_position[1]].id = VOID_CELL_ID
             return True
-        else:
-            return False
+        return False
 
     def get_cell(self, line, column):
         if position_is_valid(line, column):
-            return self.array[line][column]
+            (origin_x, origin_y) = self.array[line][column].position
+            return self.array[origin_x][origin_y]
         return None
 
-    def set_cell(self, line, column, element: Element, can_replace: bool = False) -> bool:
+    def set_cell(self, line, column, element: Element, can_replace: bool = False, change_id=True) -> bool:
         """
         _dic: Un dictionnaire avec une version et un nombre de cellules
         can_replace: Un booléen qui dit si on peut remplacer une cellule existante
@@ -187,26 +187,45 @@ class Layer:
         if not self.changeable(line, column, cells_number, can_replace):
             return False
 
-        # On copie les informations de l'Element dans la case correspondante--On garde l'id de la case
-        self.array[line][column] = element
-        self.array[line][column].id = next(self.id_iterator)
-        self.array[line][column].position = (line, column)
+        if type(element) not in [Farm]:
+            # On copie les informations de l'Element dans la case correspondante--On garde l'id de la case
+            self.array[line][column] = element
+            if change_id:
+                self.array[line][column].id = next(self.id_iterator)
+            else:
+                self.array[line][column].id = self.current_id
 
-        # On met les cases supplémentaires à la version occupied
-        for i in range(0, cells_number):
-            for j in range(0, cells_number):
-                if (i, j) == (0, 0):
-                    continue
-                else:
-                    self.array[line + i][column + j].dic['version'] = "occupied"
-                    # Les id des cellules supplémentaires sont set à l'id de l'Element ajouté
-                    self.array[line + i][column + j].id = self.array[line][column].id
-                    self.array[line + i][column + j].position = (line, column)
-        # print(f"New elemenet added: {self.type} -- {element.dic['version']} at {(line, column)}")
-        return True
+            self.current_id = self.array[line][column].id
+            self.array[line][column].position = (line, column)
+
+            # On met les cases supplémentaires à la version occupied
+            for i in range(0, cells_number):
+                for j in range(0, cells_number):
+                    if (i, j) == (0, 0):
+                        continue
+                    else:
+                        self.array[line + i][column + j].dic['version'] = "occupied"
+                        # The id of the additionnal elements are set to the same as the first part because they are
+                        # parts of the same logic element
+                        self.array[line + i][column + j].id = self.array[line][column].id
+                        self.array[line + i][column + j].position = (line, column)
+            return True
+
+        else:
+            multi_part_element = element
+            multi_part_element.position = (line, column)
+            multi_part_element.id = next(self.id_iterator)
+            self.current_id = multi_part_element.id
+
+            return self.set_cell(line, column, element.farm_at_00, can_replace, change_id=False) and \
+            self.set_cell(line, column+1, element.farm_at_01, can_replace, change_id=False)      and \
+            self.set_cell(line, column+2, element.farm_at_02, can_replace, change_id=False)      and \
+            self.set_cell(line+1, column + 2, element.farm_at_12, can_replace, change_id=False)  and \
+            self.set_cell(line+2, column + 2, element.farm_at_22, can_replace, change_id=False)  and \
+            self.set_cell(line + 1, column, element.foundation, can_replace, change_id=False)
 
     def set_cell_constrained_to_bottom_layer(self, bottom_layers_list, line, column, element,
-                                             can_replace=False) -> bool:
+                                             can_replace=False, change_id=True) -> bool:
         """
         Cette fonction insère un Element dans un layer à la position (line, column)  si et seulement si les cellules
         (line, column) des layers contenus dans la liste bottom_layers_list, sont "null"
@@ -215,7 +234,7 @@ class Layer:
         for i in range(count):
             if bottom_layers_list[i].array[line][column].dic["version"] != "null":
                 return False
-        return self.set_cell(line, column, element, can_replace)
+        return self.set_cell(line, column, element, can_replace, change_id)
 
     def add_elements_serie(self, start_pos, end_pos, element, collision_list) -> (bool, int):
         """
