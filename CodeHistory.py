@@ -59,3 +59,96 @@
         if added:
             self.money -= building_dico[version].cost * count
         return added
+
+
+    def walk(self, road_layer):
+        if not self.dest_pos:
+            ran = 0
+            self.direction.clear()
+
+            r = (self.init_pos[0], self.init_pos[1] + 1)
+            le = (self.init_pos[0], self.init_pos[1] - 1)
+            u = (self.init_pos[0] + 1, self.init_pos[1])
+            d = (self.init_pos[0] - 1, self.init_pos[1])
+            (rr, ll, uu, dd) = ((road_layer.array[r[0]][r[1]]).dic["version"] != "null",
+                                (road_layer.array[le[0]][le[1]]).dic["version"] != "null",
+                                (road_layer.array[u[0]][u[1]]).dic["version"] != "null",
+                                (road_layer.array[d[0]][d[1]]).dic["version"] != "null"
+                                )
+            """if (road_layer.array[r[0]][r[1]]).dic["version"] != "null":
+                rr = True
+            if (road_layer.array[le[0]][le[1]]).dic["version"] != "null":
+               ll = True
+            if (road_layer.array[u[0]][u[1]]).dic["version"] != "null":
+                uu = True
+            if (road_layer.array[d[0]][d[1]]).dic["version"] != "null":
+                dd = True"""
+
+            if self.head == right:
+                if not (rr or dd or uu):
+                    self.direction.append(left)
+                else:
+                    if rr:
+                        self.direction.append(right)
+                    if uu:
+                        self.direction.append(up)
+                    if dd:
+                        self.direction.append(down)
+            elif self.head == up:
+                if not (rr or ll or uu):
+                    self.direction.append(down)
+                else:
+                    if rr:
+                        self.direction.append(right)
+                    if uu:
+                        self.direction.append(up)
+                    if ll:
+                        self.direction.append(left)
+            elif self.head == left:
+                if not (ll or dd or uu):
+                    self.direction.append(right)
+                else:
+                    if ll:
+                        self.direction.append(left)
+                    if uu:
+                        self.direction.append(up)
+                    if dd:
+                        self.direction.append(down)
+            elif self.head == down:
+                if not (rr or dd or ll):
+                    self.direction.append(up)
+                else:
+                    if rr:
+                        self.direction.append(right)
+                    if ll:
+                        self.direction.append(left)
+                    if dd:
+                        self.direction.append(down)
+
+            ran = random.randint(0, len(self.direction))
+            if self.direction[ran - 1] == right:
+                self.dest_pos = (self.init_pos[0] + 1, self.init_pos[1])
+                # self.init_pos[0] += 1
+                self.head = right
+            elif self.direction[ran - 1] == left:
+                self.dest_pos = (self.init_pos[0] - 1, self.init_pos[1])
+                # self.init_pos[0] -= 1
+                self.head = left
+            elif self.direction[ran - 1] == up:
+                self.dest_pos = (self.init_pos[0], self.init_pos[1] + 1)
+                # self.init_pos[1] += 1
+                self.head = up
+            elif self.direction[ran - 1] == down:
+                self.dest_pos = (self.init_pos[0], self.init_pos[1] - 1)
+                # self.init_pos[1] -= 1
+                self.head = down
+        else:
+            if self.compteur != self.fps:
+                self.compteur += 1
+                self.offset_x, self.offset_y = self.variation_pos_visuel(self, self.init_pos,
+                                                                         self.dest_pos) * self.compteur
+            else:
+                self.init_pos = self.dest_pos
+                self.dest_pos = None
+                self.offset_x, self.offset_y = (0, 0)
+                self.compteur = 0
