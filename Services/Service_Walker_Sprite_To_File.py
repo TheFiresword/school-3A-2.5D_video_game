@@ -14,6 +14,10 @@ def walkers_to_sprite(type_walker):
             citizen_number = "2"
             type_number = "6"
             sprite_number = 615
+        case "Immigrant":
+            citizen_number = "1"
+            type_number = "11"
+            sprite_number = 1033
 
     up = [const.SPRITE_PATH + "Citizen" + citizen_number + "/Type" + type_number + "/Citizen0" +
           citizen_number + "_{:05d}".format(sprite_number + 2 + k * 8) + ".png" for k in range(0, 12)]
