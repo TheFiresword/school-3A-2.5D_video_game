@@ -106,7 +106,7 @@ class VisualMap:
                         # we check twice that the level is valid
                         _level = array[i][j].structure_level
                         if _level >= len(textures):
-                            _level = -_level
+                            _level = 0
                         _sprite.set_texture(_level)
                         _sprite.scale = self.map_scaling
 
