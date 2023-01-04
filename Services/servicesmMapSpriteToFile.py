@@ -130,9 +130,9 @@ def mapping_function(element_type, type_version) -> [str, int]:
         elif type_version == "dock4":
             return [(const.SPRITE_PATH + "EngineeringStructures\EngineeringStructures_00009.png", 3)]
 
-        elif type_version == "theatre":
+        elif type_version == "theater":
             return [(const.SPRITE_PATH + "Entertainment\entertainment_00013.png", 2)]
-        elif type_version == "amphitheatre":
+        elif type_version == "amphitheater":
             return [(const.SPRITE_PATH + "Entertainment\entertainment_00001.png", 3)]
         elif type_version == "colosseum":
             return [(const.SPRITE_PATH + "Entertainment\entertainment_00036.png", 5)]
