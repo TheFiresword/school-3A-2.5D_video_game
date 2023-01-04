@@ -169,6 +169,24 @@ class Layer:
             return self.array[origin_x][origin_y]
         return None
 
+    def get_cells_number(self, line, column):
+        """
+        The implementation of this getter is to return the number of elements in the layer that have the same id as
+        the element at position (line, column)
+        The benefit of this method is that it works even for elements constitued with multiple parts like farms
+        """
+        if position_is_valid(line, column):
+
+            id_for_search = self.array[line][column].id
+
+            indexes_of_parts_of_the_element = []
+            for i in range(globalVar.TILE_COUNT):
+                indexes_of_parts_of_the_element += [(i, index) for (index, element_part) in enumerate(self.array[i]) if
+                                                    element_part.id == id_for_search]
+
+            return len(indexes_of_parts_of_the_element)
+        return None
+
     def set_cell(self, line, column, element: Element, can_replace: bool = False, change_id=True) -> bool:
         """
         _dic: Un dictionnaire avec une version et un nombre de cellules

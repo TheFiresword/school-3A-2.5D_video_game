@@ -20,7 +20,7 @@ class RoadLayer(layer.Layer):
     def add_entry_and_exit(self):
         entry_road = Element.Element(self, self.type, "entry")
         exit_road = Element.Element(self, self.type, "exit")
-        middle = int(globalVar.TILE_COUNT * 1 / 2)
+        middle = globalVar.TILE_COUNT //2
 
         self.array[2 * middle - 1][middle - 1] = entry_road
         self.array[2 * middle - 1][middle - 1].id = next(self.id_iterator)
@@ -293,3 +293,6 @@ class RoadLayer(layer.Layer):
         if added:
             return True, count
         return False, count
+
+    def is_real_road(self, line, column):
+        return self.array[line][column].dic['version'] not in ["null", "entry", "exit"]
