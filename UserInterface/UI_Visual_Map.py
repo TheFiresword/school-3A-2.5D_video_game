@@ -106,7 +106,7 @@ class VisualMap:
                         # we check twice that the level is valid
                         _level = array[i][j].structure_level
                         if _level >= len(textures):
-                            _level = -_level
+                            _level = 0
                         _sprite.set_texture(_level)
                         _sprite.scale = self.map_scaling
 
@@ -227,7 +227,7 @@ class VisualMap:
             support_sprite = (self.get_sprite_associated(pos))
             sprite_pos_x,sprite_pos_y = support_sprite.center_x,support_sprite.center_y
             if mode == "build":
-                sprite = arcade.Sprite(filename=(gdata.building_dico[type]).spritepath,center_x= sprite_pos_x,center_y=sprite_pos_y,scale=self.map_scaling)
+                sprite = arcade.Sprite(filename=(gdata.building_dico[type.lower()]).spritepath[0][0],center_x= sprite_pos_x,center_y=sprite_pos_y,scale=self.map_scaling)
             else:
                 sprite = arcade.Sprite(filename=constantes.SPRITE_PATH + "Land/LandOverlay/Land2a_00001.png",center_x= sprite_pos_x,center_y=sprite_pos_y,scale=self.map_scaling)
             sprite_list.append(sprite)
