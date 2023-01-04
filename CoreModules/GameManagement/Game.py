@@ -101,7 +101,8 @@ class Game:
             self.walkersOut.append(k)
         pass
 
-    def walkersOutUpdates(self, fps):  # fps = 1/self.framerate
+    def walkersOutUpdates(self, fps=None):  # fps = 1/self.framerate
+        self.walkersOut[0].walk_to_a_building((globalVar.TILE_COUNT//2, globalVar.TILE_COUNT // 2 -4 ))
         pass
 
     def remove_element(self, pos) -> str | None:

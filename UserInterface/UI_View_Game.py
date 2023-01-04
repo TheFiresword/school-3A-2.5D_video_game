@@ -383,8 +383,7 @@ class GameView(arcade.View):
             self.right_pressed = True
         elif symbol == arcade.key.B:
             self.actual_pop_up.visible = True
-        elif symbol == arcade.key.N:
-            self.builder_content = "wheat_farm"
+
         # Testing
         # press S to save your game
         elif symbol == arcade.key.S:
@@ -395,6 +394,8 @@ class GameView(arcade.View):
         # press D to delete game1
         elif symbol == arcade.key.D:
             self.delete_game('game1')
+        elif symbol == arcade.key.P:
+            self.game.walkersOutUpdates()
 
     def on_key_release(self, _symbol: int, _modifiers: int):
         if _symbol == arcade.key.UP:
