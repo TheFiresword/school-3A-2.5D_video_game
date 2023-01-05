@@ -537,6 +537,7 @@ class GameView(arcade.View):
             #self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer, position = (line,column),
             #        update_type="change_content", new_texture_path=[path[0] for path in building.file_paths])
             self.visualmap.update_layers(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
+            self.visualmap.ri
             return True
         return False
 

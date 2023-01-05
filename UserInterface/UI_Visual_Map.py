@@ -18,6 +18,7 @@ class VisualMap:
         self.collapse_layer = None
         self.buildings_layer = None
         self.walker_to_render = None
+        self.fire_risk_layer = None
         self.map_scaling = constantes.SPRITE_SCALING
         self.red_sprite = arcade.Sprite()
         self.red_sprite.visible = False
@@ -31,8 +32,10 @@ class VisualMap:
         self.roads_layer = arcade.SpriteList()
         self.buildings_layer = arcade.SpriteList()
         self.walker_to_render = arcade.SpriteList()
-        self.fire_layer = arcade.SpriteList()
-        self.destroyed_layer = arcade.SpriteList()
+        self.destroyed_layer = arcade.SpriteList() #sprite list of destroyed buildings
+        self.fire_layer = arcade.SpriteList() #sprite list of burning buildings
+        self.fire_risk_layer = arcade.SpriteList() 
+        self.collapse_risk_layer = arcade.SpriteList()
         self.create_ground(game)
         self.update_layers(self.hills_layer, game.map.hills_layer.array)
         self.update_layers(self.trees_layer, game.map.trees_layer.array)
@@ -83,6 +86,8 @@ class VisualMap:
         if layer == self.buildings_layer:
             self.fire_layer.clear()
             self.destroyed_layer.clear()
+            self.fire_risk_layer.clear()
+            self.collapse_layer.clear()
         layer.clear()
         k = constantes.TILE_COUNT**2 -1
         for i in range(0, len(array)):  # I=On parcout le tableau logique du bas vers le haut
@@ -118,7 +123,7 @@ class VisualMap:
                 _sprite.center_x += (count-1)*constantes.TILE_WIDTH/2*self.map_scaling
                 _sprite.center_y += overflowing_height/2
                 
-                if hasattr(array[i][j],"isBurning") and hasattr(array[i][j],"isDestroyed"):
+                if hasattr(array[i][j],"isBurning") and hasattr(array[i][j],"isDestroyed") and hasattr(array[i][j],"risk_level_dico"):
                     if array[i][j].isBurning or array[i][j].isDestroyed:
                         _sprite.visible = False
                     if array[i][j].isBurning:
@@ -130,9 +135,16 @@ class VisualMap:
                         destroyedsprite = self.destroyed_sprite(_sprite.position)
                         destroyedsprite.center_x, destroyedsprite.center_y = self.grass_layer[k].center_x, self.grass_layer[k].center_y
                         self.destroyed_layer.append(destroyedsprite)
+                    
                 k -= 1
                 layer.append(_sprite)
         layer.reverse()
+
+    def setup_risk_layers(self,game):
+        self.fire_risk_layer.clear()
+        self.collapse_risk_layer.clear()
+        for building in game.building_list:
+            
 
     def update_walker_list(self, walkersout):
         self.walker_to_render.clear()
@@ -290,7 +302,21 @@ class VisualMap:
         sprite.scale = self.map_scaling
         return sprite
     
+    def collumn_sprite(self,pos):
+        textures = [constantes.SPRITE_PATH + "Land/LandOverlay/Land2a_00037.png"] + [arcade.load_texture(constantes.SPRITE_PATH + "Statues/"+str(10*i) +".png") for i in range(1,10)]
+        sprite= arcade.Sprite()
+        sprite.center_x = pos[0]
+        sprite.center_y = pos[1]
+        for textu in textures:
+            sprite.append_texture(textu)
+        sprite.set_texture(1)
+        sprite.scale = self.map_scaling
+        return sprite
+
+    
     def look_sprite_list(self,x,y,spritelist:arcade.SpriteList):
         for sprite in spritelist:
             if sprite.position == (x,y):
                 return sprite
+    
+    
