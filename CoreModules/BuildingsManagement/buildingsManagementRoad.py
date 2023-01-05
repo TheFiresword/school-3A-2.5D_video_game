@@ -30,6 +30,21 @@ class RoadLayer(layer.Layer):
         self.array[0][middle - 1].id = next(self.id_iterator)
         self.array[0][middle - 1].position = (0, middle - 1)
 
+    def get_entry_position(self):
+        for i in range(globalVar.TILE_COUNT):
+            for j in range(globalVar.TILE_COUNT):
+                if self.array[i][j].dic['version'] == "entry":
+                    return (i, j)
+        return None
+
+    def get_exit_position(self):
+        for i in range(globalVar.TILE_COUNT):
+            for j in range(globalVar.TILE_COUNT):
+                if self.array[i][j].dic['version'] == "exit":
+                    return (i, j)
+        return None
+
+
     def set_cell(self, line, column, recursively=True, can_replace=False, memorize=False) \
             -> bool:
         """

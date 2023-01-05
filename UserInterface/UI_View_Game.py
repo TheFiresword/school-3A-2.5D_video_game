@@ -446,6 +446,8 @@ class GameView(arcade.View):
             self.delete_game('game1')
         elif symbol == arcade.key.P:
             self.game.walkersOutUpdates()
+        elif symbol == arcade.key.E:
+            self.game.walkersOutUpdates(exit=True)
 
     def on_key_release(self, _symbol: int, _modifiers: int):
         if _symbol == arcade.key.UP:
