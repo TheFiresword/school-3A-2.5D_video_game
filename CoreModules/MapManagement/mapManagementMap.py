@@ -123,3 +123,41 @@ class MapLogic:
         # -------------------------------------------------------------------------------------------------------------#
         # A list of layers to check for collision
         self.collisions_layers = [self.buildings_layer, self.hills_layer, self.trees_layer, self.roads_layer]
+
+    def get_element_in_cell(self, line, column):
+        """
+        This function returns the highest level element on a cell
+        Priority of elements is as follows: building - road - tree - hill - grass
+        return: the type of this element
+        """
+        if self.buildings_layer.array[line][column].dic['version'] != "null":
+            return globalVar.LAYER5
+        elif self.roads_layer.array[line][column].dic['version'] != "null":
+            return globalVar.LAYER4
+        elif self.trees_layer.array[line][column].dic['version'] != "null":
+            return globalVar.LAYER3
+        elif self.hills_layer.array[line][column].dic['version'] != "null":
+            return globalVar.LAYER2
+        return globalVar.LAYER1
+
+    def remove_element_in_cell(self, line, column):
+        """
+        Remove if only it is not grass, not hill
+        """
+        type = self.get_element_in_cell(line, column)
+        for layer in [self.roads_layer, self.buildings_layer, self.trees_layer] :
+            if layer.type == type:
+                _element = layer.get_cell(line, column)
+                status = layer.remove_cell(line, column)
+                return status, type, _element
+        return False, None, None
+    def cell_is_walkable(self, line, column, can_walk_on_signal=False):
+        """A cell is walkable when it contains a valid road"""
+        if can_walk_on_signal:
+            return self.get_element_in_cell(line, column) == globalVar.LAYER4
+        return self.get_element_in_cell(line, column) == globalVar.LAYER4 and self.roads_layer.is_real_road(line,
+                                                                                                            column)
+
+    def cell_is_walkable_desperately(self, line, column):
+        """A cell is walkable desperately when it is just a grass"""
+        return self.get_element_in_cell(line, column) == globalVar.LAYER1

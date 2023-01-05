@@ -169,6 +169,8 @@ class Layer:
             return self.array[origin_x][origin_y]
         return None
 
+    def cell_is_non_null(self, line, column):
+        return self.array[line][column].dic["version"] != "null"
     def get_cells_number(self, line, column):
         """
         The implementation of this getter is to return the number of elements in the layer that have the same id as

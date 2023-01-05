@@ -145,8 +145,11 @@ class Game:
             self.walkersOut.append(k)
         pass
 
-    def walkersOutUpdates(self, fps=None):  # fps = 1/self.framerate
-        self.walkersOut[0].walk_to_a_building((globalVar.TILE_COUNT//2, globalVar.TILE_COUNT // 2 -4 ))
+    def walkersOutUpdates(self, exit=False):  # fps = 1/self.framerate
+        if exit:
+            self.walkersOut[0].get_out_city()
+        else:
+            self.walkersOut[0].walk_to_a_building((globalVar.TILE_COUNT//2, globalVar.TILE_COUNT // 2 -4 ))
         pass
 
     def remove_element(self, pos) -> str | None:
@@ -158,27 +161,16 @@ class Game:
             print("Not enough money")
             return None
         line, column = pos[0], pos[1]
-
-        road, tree, building = self.map.roads_layer.get_cell(line, column), self.map.trees_layer.get_cell(line, column), \
-                               self.map.buildings_layer.get_cell(line, column)
-
-        if road.dic["version"] != "null":
-            if self.map.roads_layer.remove_cell(line, column):
-                self.money -= removing_cost
-                return globalVar.LAYER4
-        elif tree.dic["version"] != "null":
-            if self.map.trees_layer.remove_cell(line, column):
-                self.money -= removing_cost
-                return globalVar.LAYER3
-        elif building.dic["version"] != "null":
-            if self.map.buildings_layer.remove_cell(line, column):
+        status, element_type, _element = self.map.remove_element_in_cell(line, column)
+        if status:
+            self.money -= removing_cost
+            if element_type == globalVar.LAYER5:
                 if self.buildinglist:
-                    self.buildinglist.remove(building)
-                self.money -= removing_cost
-                if type(building) == buildings.WaterStructure:
-                    self.water_structures_list.remove(building)
-                return globalVar.LAYER5
-        return None
+                    self.buildinglist.remove(_element)
+                if type(_element) == buildings.WaterStructure:
+                    self.water_structures_list.remove(_element)
+
+        return element_type
 
     def remove_elements_serie(self, start_pos, end_pos) -> set:
         """

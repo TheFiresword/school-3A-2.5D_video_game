@@ -3,14 +3,18 @@ from Services import servicesmMapSpriteToFile as mapping
 import CoreModules.TileManagement.tileManagementElement as element
 import random, math
 
+# global var
+max_burning_time = 60000000000000000000000000000000
 
 class Building(element.Element):
     def __init__(self, buildings_layer, _type, version="dwell"):
         self.risk_dico = {"fire" : 0, "collapse" : 0}
         self.risk_level_dico = {"fire": 0, "collapse" : 0} 
-        self.fire_level = 0
-        self.fire_risk_level = 0
-        self.collapse_score = 0
+
+        # A factor that will be used to control risk increasing speed -- It must takes account the structure level
+        # ie a building at level 4 will have a risk speed lower than a another at level 1
+        self.risk_increasing_speed = 1 if version == 'dwell' else 0.8
+
         # Structure level is a number that indicates the level of the building
         # in fact some buildings like farms, dwells, grow up or grow down very often
         # we have to save these evolutions; so we use an attribute
@@ -23,16 +27,22 @@ class Building(element.Element):
         self.randombuf = 0
 
         super().__init__(buildings_layer, _type, version)
-       
+
+
+    def update_risk_speed_with_level(self):
+        if self.structure_level == 0:
+            self.risk_increasing_speed = 1 if version == 'dwell' else 0.8
+        else:
+            self.risk_increasing_speed = 1/self.structure_level if version == 'dwell' else 0.8/self.structure_level
     def update_risk(self,risk):
         if risk == "fire" and self.isBurning:
-            if self.BurningTime <= 60000000000000000000000000000000:
+            if self.BurningTime <= max_burning_time:
                 self.BurningTime += 1
             else:
                 self.isDestroyed = True
                 self.isBurning = False
         else:
-            self.randombuf += random.random()
+            self.randombuf += random.random()*self.risk_increasing_speed
             if  self.randombuf> gdata.risk_random_ratio:
                 self.randombuf = 0
                 self.risk_dico[risk] += 5
