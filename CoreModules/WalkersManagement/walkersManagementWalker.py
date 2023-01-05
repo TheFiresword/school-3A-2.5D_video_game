@@ -246,7 +246,7 @@ class Walker:
 
         integer_array_associated_with_map = [
             [1 if self.map_associated.cell_is_walkable(row, column, can_walk_on_signal=True)
-            else  5 if self.map_associated.cell_is_walkable_desperately(row, column)
+            else  50 if self.map_associated.cell_is_walkable_desperately(row, column)
             else 0 for column in range(cst.TILE_COUNT)]
             for row in range(cst.TILE_COUNT)]
 
