@@ -227,12 +227,14 @@ class VisualMap:
             support_sprite = (self.get_sprite_associated(pos))
             sprite_pos_x,sprite_pos_y = support_sprite.center_x,support_sprite.center_y
             if mode == "build":
-                sprite = arcade.Sprite(filename=(gdata.building_dico[type.lower()]).spritepath[0][0],center_x= sprite_pos_x,center_y=sprite_pos_y,scale=self.map_scaling)
+                sprite = arcade.Sprite(filename=(gdata.building_dico[type.lower()]).spritepath,center_x= sprite_pos_x,center_y=sprite_pos_y,scale=self.map_scaling)
             else:
                 sprite = arcade.Sprite(filename=constantes.SPRITE_PATH + "Land/LandOverlay/Land2a_00001.png",center_x= sprite_pos_x,center_y=sprite_pos_y,scale=self.map_scaling)
             sprite_list.append(sprite)
 
-    def update_one_sprite(self,layer:arcade.SpriteList,position,update_type,new_texture_path=[]):
+    def update_one_sprite(self,layer:arcade.SpriteList,position,update_type: "building_destroy" or "building_fire" or
+                            "change_content" or "stat_inc" or "delete" or "stat_dec" or "reset", new_texture_path=[]):
+
         index = fct.get_sprite_list_index(position)
         support_sprite = (self.get_sprite_associated(position))
         sprite_pos_x,sprite_pos_y = support_sprite.center_x,support_sprite.center_y
@@ -261,12 +263,22 @@ class VisualMap:
                 sprite.append_texture(arcade.load_texture(k))
             sprite.append_texture(arcade.load_texture(self.destroyed))
             sprite.set_texture(0)
+
         if update_type == "stat_inc":
             ind = sprite.textures.index(sprite.texture)
             if sprite.textures[ind+1] == sprite.textures[-1]:
                 sprite.set_texture(0)
             else :
                 sprite.set_texture(ind+1)
+
+        if update_type == "stat_dec":
+            ind = sprite.textures.index(sprite.texture)
+            if ind > 0:
+                sprite.set_texture(ind-1)
+
+        if update_type == "reset":
+            sprite.set_texture(0)
+
         if update_type == "delete":
             sprite.visible = False
         sprite.scale = self.map_scaling

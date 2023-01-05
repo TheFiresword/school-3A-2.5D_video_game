@@ -175,6 +175,15 @@ class Layer:
         the element at position (line, column)
         The benefit of this method is that it works even for elements constitued with multiple parts like farms
         """
+        positions = self.get_all_positions_of_element(line, column)
+        if positions:
+            return len(positions)
+        return 0
+
+    def get_all_positions_of_element(self, line, column):
+        """
+            The benefit of this method is that it works even for elements constitued with multiple parts like farms
+        """
         if position_is_valid(line, column):
 
             id_for_search = self.array[line][column].id
@@ -183,8 +192,7 @@ class Layer:
             for i in range(globalVar.TILE_COUNT):
                 indexes_of_parts_of_the_element += [(i, index) for (index, element_part) in enumerate(self.array[i]) if
                                                     element_part.id == id_for_search]
-
-            return len(indexes_of_parts_of_the_element)
+            return indexes_of_parts_of_the_element
         return None
 
     def set_cell(self, line, column, element: Element, can_replace: bool = False, change_id=True) -> bool:

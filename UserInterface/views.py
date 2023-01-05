@@ -1,4 +1,5 @@
 import arcade
+import pyglet
 import arcade.gui
 from Services import servicesGlobalVariables as constantes
 import CoreModules.MapManagement.mapManagementMap as map
@@ -13,6 +14,10 @@ class MainWindow(arcade.Window):
     def __init__(self):
         super().__init__(constantes.DEFAULT_SCREEN_WIDTH, constantes.DEFAULT_SCREEN_HEIGHT, constantes.TITLE, fullscreen=True)
         self.set_update_rate(constantes.DEFAULT_FPS)
+
+        # the logo
+        logo = pyglet.resource.image(constantes.LOGO_PATH)
+        self.set_icon(logo)
 
         # Différents écrans:
         self.welcomescreen = wv.WelcomeScreen()

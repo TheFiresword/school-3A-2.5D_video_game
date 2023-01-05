@@ -10,15 +10,15 @@ def hollow_build(x, y, visualmap: UI_Visual_Map.VisualMap, building=None):
     (a, b) = visualmap.get_visual_sprite((x, y))
     spritepath = None
     if building:
-        spritepath = building.spritepath[0][0]
+        spritepath = building.spritepath
     else:
         # If it's not a building then it's a road
         spritepath = mapping.mapping_function(const.LAYER4, "00044")[0][0]
-
     sprite = arcade.Sprite(center_x=a, center_y=b)
     sprite.alpha = 180
     sprite.texture = arcade.load_texture(spritepath)
     sprite.scale = visualmap.map_scaling
+
     return sprite
 
 
