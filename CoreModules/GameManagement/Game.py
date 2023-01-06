@@ -247,6 +247,14 @@ class Game:
             case _:
                 building = buildings.Building(self.map.buildings_layer, globalVar.LAYER5, version)
 
+        if version in ["fruit_farm", "olive_farm", "vegetable_farm", "vine_farm", "wheat_farm"]:
+            # we should check if there is yellow grass on the future positions to check
+            cells_number = building.total_cells
+            can_build = all([self.map.grass_layer.cell_is_yellow_grass(line+i, column+j)
+                             for j in range(0, cells_number) for i in range(0, cells_number)])
+
+            if not can_build:
+                return False
         status = self.map.buildings_layer.set_cell_constrained_to_bottom_layer(self.map.collisions_layers, line, column,
                                                                                building)
 

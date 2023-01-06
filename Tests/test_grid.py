@@ -1,36 +1,13 @@
-my_array=[]
+from PIL import Image
+from Services import servicesGlobalVariables as cst
 
-my_array[2][1] ="raa"
-print(my_array)
+prefixe = 'C:/Users/Junior/Documents/3A/Programmation_Python/Projet_python/PythonProject/'
+path1 = prefixe +cst.SPRITE_PATH + "WaterEquipments/WaterEquipments_00002.png"
+path2 = prefixe+cst.SPRITE_PATH + "WaterEquipments/WaterEquipments_00003.png"
 
+img1 = Image.open(path1)
+img2 = Image.open(path2)
+img2 = img2.resize(img1.size)
 
-"""
-        # On ajoute une route en fonction de son voisinage
-        if left_version in ["normal", "00094"] or right_version in ["normal", "00094"]:
-            element = Element.Element(self, self.type, "00094")
-
-            self.array[line][column] = element
-            self.array[line][column].id = next(self.id_iterator)
-            self.array[line][column].position = (line, column)
-
-            if left_version == "normal":
-                element_at_left = Element.Element(self, self.type, "00094")
-                left_id = self.array[line][column - 1].id
-                element_at_left.id = left_id
-                element_at_left.position = (line, column - 1)
-
-                self.array[line][column - 1] = element_at_left
-
-            if right_version == "normal":
-                element_at_right = Element.Element(self, self.type, "00094")
-                right_id = self.array[line][column + 1].id
-                element_at_right.id = right_id
-                element_at_right.position = (line, column + 1)
-
-                self.array[line][column + 1] = element_at_right
-            return True
-
-        self.array[line][column] = element
-        self.array[line][column].id = next(self.id_iterator)
-        self.array[line][column].position = (line, column)
-        """
+im3 = Image.alpha_composite(img2, img1)
+im3.show()
