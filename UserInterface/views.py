@@ -22,7 +22,6 @@ class MainWindow(arcade.Window):
         #map1 = map.MapLogic()
         #self.gamescreen = gv.MapView(map1)
         self.gamescreen = rgv.GameView(_game=None)
-        self.loadedgame = None
 
     # Lancement
     def setup(self):
