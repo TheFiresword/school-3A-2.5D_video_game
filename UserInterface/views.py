@@ -1,4 +1,5 @@
 import arcade
+import pyglet
 import arcade.gui
 from Services import servicesGlobalVariables as constantes
 import CoreModules.MapManagement.mapManagementMap as map

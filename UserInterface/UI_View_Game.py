@@ -276,7 +276,8 @@ class GameView(arcade.View):
         if self.actual_pop_up.visible:
             self.actual_pop_up.draw_()
 
-            
+        # Testing something cool -- error message when building farm on non yellow grass
+        self.draw_message_for_farm_building()
 
     def on_update(self, delta_time: float):
         update = self.game.updategame()
@@ -355,6 +356,9 @@ class GameView(arcade.View):
                         if self.builder_content == "dwell":
                             self.add_multiple_one_sized_building()
                             self.dragged_sprite.clear()
+                        elif self.builder_content == "road":
+                            tmp_end_pos = Vec2(x, y) + self.map_camera.position
+                            self.add_roads_serie(self.init_mouse_pos, tmp_end_pos)
                     else:                      
                         if self.builder_content == "road":
                             self.add_road(self.mouse_pos)
@@ -380,8 +384,6 @@ class GameView(arcade.View):
                 if self.builder_content == "road":
                     if self.mouse_left_maintained:
                         self.add_roads_serie(self.init_mouse_pos, tmp_end_pos, True)
-                    else:
-                        self.add_roads_serie(self.init_mouse_pos, tmp_end_pos)
                 else:
                     self.get_surface_dragged(self.init_mouse_pos,tmp_end_pos)
                     self.dragged_sprite.clear()
@@ -452,6 +454,8 @@ class GameView(arcade.View):
             self.delete_game('game1')
         elif symbol == arcade.key.P:
             self.game.walkersOutUpdates()
+        elif symbol == arcade.key.E:
+            self.game.walkersOutUpdates(exit=True)
 
     def on_key_release(self, _symbol: int, _modifiers: int):
         if _symbol == arcade.key.UP:
@@ -594,6 +598,27 @@ class GameView(arcade.View):
             ret = True
         return ret
 
+    # ===============================================
+    # Message text
+    # ===============================================
+    def draw_message_for_farm_building(self):
+        start_y = constantes.DEFAULT_SCREEN_HEIGHT - 50
+        error_message = arcade.Text(
+            "Farms can only be built on yellow grass!!",
+            0, 0,
+            arcade.color.BLUE_GREEN,
+            15,
+            font_name=(
+                "Lato",
+                "Times New Roman",  # Comes with Windows
+                "Times",  # MacOS may sometimes have this variant
+                "Liberation Serif"  # Common on Linux systems
+            )
+        )
+        start_x = (constantes.DEFAULT_SCREEN_WIDTH - error_message.content_width) // 2
+        error_message.position = (start_x, start_y)
+        error_message.draw()
+
 
     # ===============================================
     # Side tab buttons functions (too hard to place anywhere else)
@@ -702,8 +727,14 @@ class GameView(arcade.View):
             print(_game)
 
     def update_treatment(self,update:updates.LogicUpdate):
-        for k in update.catchedfire:
-            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = k ,update_type="building_fire",new_texture_path=[])
-        for j in update.collapsed:
-            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = j ,update_type="building_destroy",new_texture_path=[])
-
+        """
+        This is the function that will really update graphically the sprites of the buildings
+        """
+        for j in update.catchedfire:
+            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = j ,update_type="building_fire")
+        for k in update.collapsed:
+            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = k ,update_type="building_destroy")
+        for l in update.has_evolved:
+            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = l ,update_type="stat_inc")
+        for m in update.has_devolved:
+            self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer, position=m, update_type="stat_dec")

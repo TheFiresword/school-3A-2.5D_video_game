@@ -30,6 +30,21 @@ class RoadLayer(layer.Layer):
         self.array[0][middle - 1].id = next(self.id_iterator)
         self.array[0][middle - 1].position = (0, middle - 1)
 
+    def get_entry_position(self):
+        for i in range(globalVar.TILE_COUNT):
+            for j in range(globalVar.TILE_COUNT):
+                if self.array[i][j].dic['version'] == "entry":
+                    return (i, j)
+        return None
+
+    def get_exit_position(self):
+        for i in range(globalVar.TILE_COUNT):
+            for j in range(globalVar.TILE_COUNT):
+                if self.array[i][j].dic['version'] == "exit":
+                    return (i, j)
+        return None
+
+
     def set_cell(self, line, column, recursively=True, can_replace=False, memorize=False) \
             -> bool:
         """
@@ -220,11 +235,11 @@ class RoadLayer(layer.Layer):
         self.original_roads['elements'].clear()
         self.original_roads['positions'].clear()
 
-    def cancel_roads_serie(self):
+    def cancel_roads_serie(self) -> int:
         """
-        cette fonction annule l'ajout d'une série de routes précédente
-        original_roads est un dictionnaire contenant un tableau des routes avant l'ajout
-        et un tableau de leurs positions dans l'ordre
+        This function cancels a serie of roads that has been built right before
+        In fact, original_roads is a dic with an array that contains the original version of the roads before the
+        construction; but also an array with their ordonned positions
         """
         count = 0
         for position in self.original_roads['positions']:
@@ -234,6 +249,7 @@ class RoadLayer(layer.Layer):
                                                                                   "resetting a road"
             count += 1
         self.reinitialize_buffer()
+        return count
 
     def add_roads_serie(self, start_pos, end_pos, collision_list, memorize=False) -> (bool, int):
         """
@@ -267,10 +283,7 @@ class RoadLayer(layer.Layer):
         else:
             hrange = range(column1, column2 - 1, -1)
 
-        if memorize:
-            self.cancel_roads_serie()
-        else:
-            self.reinitialize_buffer()
+        self.cancel_roads_serie()
 
         # a counter that will be returned as the number of roads added
         count = 0

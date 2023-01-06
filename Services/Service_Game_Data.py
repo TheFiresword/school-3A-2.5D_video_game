@@ -8,6 +8,7 @@ class Building_info:
         self.size = size
         self.name = sprite_name
         self.max_employs = max_employs
+
         if sprite_name != "":
             self.spritepath = mapping.mapping_function(const.LAYER5,sprite_name)
             if self.spritepath:
@@ -16,6 +17,7 @@ class Building_info:
             self.spritepath = mapping.mapping_function(const.LAYER5,"dwell")
             self.size = 1
         # (self.spritepath, self.cells_number) = mapping.mapping_function(const.LAYER5, sprite_type)
+
         self.road_dependency = road_dependency
         self.water_dependency = water_dependency
 
@@ -26,10 +28,10 @@ building_dico = {
     "actor colony": Building_info(50, -1, 5, "actor_colony", False, False),
     "architects guild": Building_info(200, -1, 8, "", False, False),
     "aqueduct": Building_info(40, -1, 10, "aqueduct", True, False),
-    "arena": Building_info(500, 4, 6,"arena", False, False),
+    #"arena": Building_info(500, 4, 6,"arena", False, False),
     "ares temple": Building_info(50, -1, 8, "ares_temple", False, False),
     "neptune temple": Building_info(50, -1, 8, "neptune_temple", False, False),
-    "mercury temple": Building_info(50, -1, 8, "mercure_temple", False, False),
+    "mercury temple": Building_info(50, -1, 8, "mercury_temple", False, False),
     "mars temple": Building_info(50, -1, 8, "mars_temple", False, False),
     "venus temple": Building_info(50, -1, 8, "venus_temple", False, False),
     "amphitheater": Building_info(100, -1, 12, "amphitheater", False, False),
@@ -87,8 +89,8 @@ building_dico = {
     "wine workshop": Building_info(40, -1, 10, "wine_workshop", True, False),
     "warehouse": Building_info(40, -1, 10, "warehouse", True, False),
     "work camp": Building_info(150, -1, 8, "", False, False),
-    "wall": Building_info(40, -1, 10, "wall", True, False),
-    "well": Building_info(40, -1, 10, "well", True, False)
+    "wall": Building_info(40, 1, 10, "wall", True, False),
+    "well": Building_info(40, 1, 10, "well", True, False)
 }
 
 road_dico = {'cost': 4}

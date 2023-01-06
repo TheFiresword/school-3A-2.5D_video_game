@@ -24,8 +24,7 @@ def hollow_build(x, y, visualmap: UI_Visual_Map.VisualMap, building=None):
         sprite.center_y += h/2
         sprite.center_x += (size-1)*const.TILE_WIDTH/2*visualmap.map_scaling
     sprite.alpha = 180
-    
-    
+
     return sprite
 
 
