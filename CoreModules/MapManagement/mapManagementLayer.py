@@ -171,6 +171,13 @@ class Layer:
 
     def cell_is_non_null(self, line, column):
         return self.array[line][column].dic["version"] != "null"
+
+    def cell_is_yellow_grass(self, line, column):
+        expected_grass = self.get_cell(line, column) if self.type == globalVar.LAYER1 else None
+        if expected_grass:
+            return  expected_grass.dic['version'] in [ "yellow"] + ["000" + str(i)for i in range(18, 30)]
+        return False
+
     def get_cells_number(self, line, column):
         """
         The implementation of this getter is to return the number of elements in the layer that have the same id as

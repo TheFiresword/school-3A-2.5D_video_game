@@ -269,7 +269,8 @@ class GameView(arcade.View):
         if self.actual_pop_up.visible:
             self.actual_pop_up.draw_()
 
-            
+        # Testing something cool -- error message when building farm on non yellow grass
+        self.draw_message_for_farm_building()
 
     def on_update(self, delta_time: float):
         update = self.game.updategame()
@@ -589,6 +590,27 @@ class GameView(arcade.View):
             self.visualmap.update_layers(self.visualmap.roads_layer, self.game.map.roads_layer.array)
             ret = True
         return ret
+
+    # ===============================================
+    # Message text
+    # ===============================================
+    def draw_message_for_farm_building(self):
+        start_y = constantes.DEFAULT_SCREEN_HEIGHT - 50
+        error_message = arcade.Text(
+            "Farms can only be built on yellow grass!!",
+            0, 0,
+            arcade.color.BLUE_GREEN,
+            15,
+            font_name=(
+                "Lato",
+                "Times New Roman",  # Comes with Windows
+                "Times",  # MacOS may sometimes have this variant
+                "Liberation Serif"  # Common on Linux systems
+            )
+        )
+        start_x = (constantes.DEFAULT_SCREEN_WIDTH - error_message.content_width) // 2
+        error_message.position = (start_x, start_y)
+        error_message.draw()
 
 
     # ===============================================

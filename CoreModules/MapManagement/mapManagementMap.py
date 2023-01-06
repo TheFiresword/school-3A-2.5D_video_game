@@ -22,12 +22,17 @@ class MapLogic:
         # GRASS
         self.grass_layer = overlay.Layer(globalVar.LAYER1)
 
-        possible_grass = ["00079", "yellow", "00082", "normal", "yellow", "00091", "buisson", "00114", "00094",
-                          "00027", "00070", "00221", "00274", "00239", "00081", "00244"]
+        possible_grass = ["00079", "00082", "normal", "00091", "buisson", "00114", "00094", "00070", "00221", "00274",
+                          "00239", "00081", "00244"]
+        possible_yellow_grass = [ "yellow"] + ["000" + str(i)for i in range(18, 30)]
 
         for i in range(0, globalVar.TILE_COUNT):
             for j in range(0, globalVar.TILE_COUNT):
-                random_version = random.choice(possible_grass)
+                if i > globalVar.TILE_COUNT//4 or j > 2*globalVar.TILE_COUNT//5:
+                    random_version = random.choice(possible_grass)
+                else:
+                    random_version = random.choice(possible_yellow_grass)
+
                 my_grass = element.Element(self.grass_layer, globalVar.LAYER1, random_version)
                 self.grass_layer.set_cell(i, j, my_grass)
 
