@@ -26,9 +26,13 @@ class Game:
 
         # some lists of specific buildings
         self.water_structures_list = []
-
-    def print_money(self):
-        print("#========You have " + str(self.money) + " left========#")
+        self.food_structures_list = []
+        self.temple_structures_list = []
+        self.education_structures_list = []
+        self.fountain_structures_list = []
+        self.basic_entertainment_structures_list = []
+        self.pottery_structures_list = []
+        self.bathhouse_structures_list = []
 
     def startGame(self):
         # ---------------------------------#
@@ -49,17 +53,67 @@ class Game:
     def updateReligion(self):
         pass
 
+
+    def update_requirements(self, of_what: 'water' or 'food' or 'temple' or 'education' or 'fountain' or
+                                         'basic_entertainment' or 'pottery' or 'bathhouse'):
+        """
+        This functions searches for water structures on the map and for each one look for dwell within the range of
+        the structure. If the dwell required a structure of this type, then its position will be added to the list of
+        buildings to update.
+        return: a set of positions of housings that will be updated, to avoid duplicate values
+        """
+        buildings_position_to_append_to_update_object = []
+        tmp = of_what+'_structures_list'
+        structures_list = getattr(self, tmp)
+
+        for structure in structures_list:
+            if not structure.is_functional():
+                continue
+            _range = structure.range
+            _position = structure.position
+            for i in range(-_range, _range+1, 1):
+                for j in range(-_range, _range + 1, 1):
+                    line, column = _position[0]+i, _position[1]+j
+                    real_building = self.map.buildings_layer.get_cell(line, column)
+                    if real_building.dic['version'] == "dwell" and real_building.is_required(of_what):
+                        real_building.update_with_supply(of_what)
+                        buildings_position_to_append_to_update_object.append(real_building.position)
+
+        return set(buildings_position_to_append_to_update_object)
+
     def updategame(self):
+        """
+        This function updates the game
+        In fact it updates the buildings of the game
+        Differents types of updates can occur: a building evolving, a building burning or a building collapsing
+        """
+
         update = updates.LogicUpdate()
+
+        update.has_evolved += self.update_requirements('water')
+        update.has_evolved += self.update_requirements('food')
+        update.has_evolved += self.update_requirements('temple')
+        update.has_evolved += self.update_requirements('education')
+        update.has_evolved += self.update_requirements('fountain')
+        update.has_evolved += self.update_requirements('basic_entertainment')
+        update.has_evolved += self.update_requirements('pottery')
+        update.has_evolved += self.update_requirements('bathhouse')
+
         for k in self.buildinglist:
             pos = k.position
             cases = []
+            # We don't want primitive housing (pannel) to burn or to collapse
+            if type(k) == buildings.Dwelling and not k.is_occupied():
+                continue
+
             if k.dic['cells_number'] != 1:
                 for i in range(0, k.dic['cells_number']):
                     for j in range(0, k.dic['cells_number']):
                         if (i, j) != (0, 0):
                             cases.append((pos[0] + i, pos[1] + j))
+
             building_update = self.updatebuilding(k)
+
             if building_update[0]:
                 update.catchedfire.append(k.position)
                 if k.dic['cells_number'] != 1:
@@ -74,7 +128,7 @@ class Game:
                         update.collapsed.append(i)
         return update
         # ---------------------------------#
-        pass
+
 
     def create_walker(self):
         self.walkersAll.append(
@@ -91,7 +145,11 @@ class Game:
             self.walkersOut.append(k)
         pass
 
-    def walkersOutUpdates(self, fps):  # fps = 1/self.framerate
+    def walkersOutUpdates(self, exit=False):  # fps = 1/self.framerate
+        if exit:
+            self.walkersOut[0].get_out_city()
+        else:
+            self.walkersOut[0].walk_to_a_building((globalVar.TILE_COUNT//2, globalVar.TILE_COUNT // 2 -4 ))
         pass
 
     def remove_element(self, pos) -> str | None:
@@ -103,25 +161,16 @@ class Game:
             print("Not enough money")
             return None
         line, column = pos[0], pos[1]
-
-        road, tree, building = self.map.roads_layer.get_cell(line, column), self.map.trees_layer.get_cell(line, column), \
-                               self.map.buildings_layer.get_cell(line, column)
-
-        if road.dic["version"] != "null":
-            if self.map.roads_layer.remove_cell(line, column):
-                self.money -= removing_cost
-                return globalVar.LAYER4
-        elif tree.dic["version"] != "null":
-            if self.map.trees_layer.remove_cell(line, column):
-                self.money -= removing_cost
-                return globalVar.LAYER3
-        elif building.dic["version"] != "null":
-            if self.map.buildings_layer.remove_cell(line, column):
+        status, element_type, _element = self.map.remove_element_in_cell(line, column)
+        if status:
+            self.money -= removing_cost
+            if element_type == globalVar.LAYER5:
                 if self.buildinglist:
-                    self.buildinglist.remove(building)
-                self.money -= removing_cost
-                return globalVar.LAYER5
-        return None
+                    self.buildinglist.remove(_element)
+                if type(_element) == buildings.WaterStructure:
+                    self.water_structures_list.remove(_element)
+
+        return element_type
 
     def remove_elements_serie(self, start_pos, end_pos) -> set:
         """
@@ -171,32 +220,46 @@ class Game:
         if self.money < estimated_counter_roads * road_dico['cost']:
             print("Not enough money")
             return False
-        status, count = self.map.roads_layer.add_roads_serie(start_pos, end_pos, self.map.collisions_layers,
-                                                             memorize=dynamically)
-        if status:
+
+        status, count = self.map.roads_layer.add_roads_serie(start_pos, end_pos,
+                    self.map.collisions_layers, memorize=dynamically)
+
+        if status and not dynamically:
             self.money -= road_dico['cost'] * count
         return status
 
     def add_building(self, line, column, version) -> bool:
-        if self.money < building_dico[version].cost:
+        txt= " ".join(version.split("_"))
+        if self.money < building_dico[txt].cost:
             print("Not enough money")
             return False
         # we have to determine the exact class of the building bcause they have not the same prototype
         match version:
             case 'dwell':
                 building = buildings.Dwelling(self.map.buildings_layer, globalVar.LAYER5)
+
             case "fruit_farm" | "olive_farm" | "pig_farm" | "vegetable_farm" | "vine_farm" | "wheat_farm":
                 building = buildings.Farm(self.map.buildings_layer, globalVar.LAYER5, version)
+
+            case "well" | "fountain"| "fountain1" | "fountain2" | "fountain3" | "fountain4" | "reservoir":
+                building = buildings.WaterStructure(self.map.buildings_layer, globalVar.LAYER5, version)
+
             case _:
                 building = buildings.Building(self.map.buildings_layer, globalVar.LAYER5, version)
 
+        if version in ["fruit_farm", "olive_farm", "vegetable_farm", "vine_farm", "wheat_farm"]:
+            # we should check if there is yellow grass on the future positions to check
+            cells_number = building.total_cells
+            can_build = all([self.map.grass_layer.cell_is_yellow_grass(line+i, column+j)
+                             for j in range(0, cells_number) for i in range(0, cells_number)])
+
+            if not can_build:
+                return False
         status = self.map.buildings_layer.set_cell_constrained_to_bottom_layer(self.map.collisions_layers, line, column,
                                                                                building)
 
         if status:
             match version:
-                case 'dwell':
-                    self.buildinglist.append(building)
                 case "fruit_farm" | "olive_farm" | "pig_farm" | "vegetable_farm" | "vine_farm" | "wheat_farm":
                     self.buildinglist.append(building.farm_at_02)
                     self.buildinglist.append(building.farm_at_12)
@@ -206,8 +269,8 @@ class Game:
                     self.buildinglist.append(building.foundation)
                 case _:
                     self.buildinglist.append(building)
+            self.money -= building_dico[txt].cost
+            if type(building) == buildings.WaterStructure:
+                self.water_structures_list.append(building)
+        return status
 
-            self.money -= building_dico[version].cost
-            if version in ["well"]:
-                self.water_structures_list.append((line, column))
-        return

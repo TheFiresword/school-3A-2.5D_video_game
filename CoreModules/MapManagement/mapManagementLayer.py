@@ -169,6 +169,41 @@ class Layer:
             return self.array[origin_x][origin_y]
         return None
 
+    def cell_is_non_null(self, line, column):
+        return self.array[line][column].dic["version"] != "null"
+
+    def cell_is_yellow_grass(self, line, column):
+        expected_grass = self.get_cell(line, column) if self.type == globalVar.LAYER1 else None
+        if expected_grass:
+            return  expected_grass.dic['version'] in [ "yellow"] + ["000" + str(i)for i in range(18, 30)]
+        return False
+
+    def get_cells_number(self, line, column):
+        """
+        The implementation of this getter is to return the number of elements in the layer that have the same id as
+        the element at position (line, column)
+        The benefit of this method is that it works even for elements constitued with multiple parts like farms
+        """
+        positions = self.get_all_positions_of_element(line, column)
+        if positions:
+            return len(positions)
+        return 0
+
+    def get_all_positions_of_element(self, line, column):
+        """
+            The benefit of this method is that it works even for elements constitued with multiple parts like farms
+        """
+        if position_is_valid(line, column):
+
+            id_for_search = self.array[line][column].id
+
+            indexes_of_parts_of_the_element = []
+            for i in range(globalVar.TILE_COUNT):
+                indexes_of_parts_of_the_element += [(i, index) for (index, element_part) in enumerate(self.array[i]) if
+                                                    element_part.id == id_for_search]
+            return indexes_of_parts_of_the_element
+        return None
+
     def set_cell(self, line, column, element: Element, can_replace: bool = False, change_id=True) -> bool:
         """
         _dic: Un dictionnaire avec une version et un nombre de cellules

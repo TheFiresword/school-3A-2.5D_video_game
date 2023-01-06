@@ -130,9 +130,9 @@ def mapping_function(element_type, type_version) -> [str, int]:
         elif type_version == "dock4":
             return [(const.SPRITE_PATH + "EngineeringStructures\EngineeringStructures_00009.png", 3)]
 
-        elif type_version == "theatre":
+        elif type_version == "theater":
             return [(const.SPRITE_PATH + "Entertainment\entertainment_00013.png", 2)]
-        elif type_version == "amphitheatre":
+        elif type_version == "amphitheater":
             return [(const.SPRITE_PATH + "Entertainment\entertainment_00001.png", 3)]
         elif type_version == "colosseum":
             return [(const.SPRITE_PATH + "Entertainment\entertainment_00036.png", 5)]
@@ -185,7 +185,8 @@ def mapping_function(element_type, type_version) -> [str, int]:
 
 
         elif type_version == "vegetable_farm":
-            return [(const.SPRITE_PATH + "Commerce\Commerce_00019.png", 1),
+            return [(const.SPRITE_PATH + "Commerce\Commerce_00018.png", 1),
+                    (const.SPRITE_PATH + "Commerce\Commerce_00019.png", 1),
                     (const.SPRITE_PATH + "Commerce\Commerce_00020.png", 1),
                     (const.SPRITE_PATH + "Commerce\Commerce_00021.png", 1),
                     (const.SPRITE_PATH + "Commerce\Commerce_00022.png", 1)]
@@ -206,11 +207,11 @@ def mapping_function(element_type, type_version) -> [str, int]:
                     (const.SPRITE_PATH + "Commerce\Commerce_00017.png", 1)]
 
         elif type_version == "iron_mine":
-            return [(const.SPRITE_PATH + "")]
+            return [(const.SPRITE_PATH + "", 0)]
         elif type_version == "timber_yard":
             return [(const.SPRITE_PATH + "Commerce\Commerce_00072.png", 2)]
         elif type_version == "marble_quarry":
-            return [(const.SPRITE_PATH + "")]
+            return [(const.SPRITE_PATH + "", 0)]
         elif type_version == "clay_pit":
             return [(const.SPRITE_PATH + "Commerce\Commerce_00061.png", 2)]
         elif type_version == "furniture_workshop":
@@ -218,21 +219,21 @@ def mapping_function(element_type, type_version) -> [str, int]:
         elif type_version == "oil_workshop":
             return [(const.SPRITE_PATH + "Commerce\Commerce_00099.png", 2)]
         elif type_version == "pottery_workshop":
-            return [(const.SPRITE_PATH + "")]
+            return [(const.SPRITE_PATH + "", 0)]
         elif type_version == "weapons_workshop":
-            return [(const.SPRITE_PATH + "")]
+            return [(const.SPRITE_PATH + "", 0)]
         elif type_version == "wine_workshop":
-            return [(const.SPRITE_PATH + "")]
+            return [(const.SPRITE_PATH + "", 0)]
         elif type_version == "market":
             return [(const.SPRITE_PATH + "Commerce\Commerce_00001.png", 2)]
         elif type_version == "granary":
             return [(const.SPRITE_PATH + "Commerce\Commerce_00141.png", 2)]
         elif type_version == "warehouse":
-            return [(const.SPRITE_PATH + "")]
+            return [(const.SPRITE_PATH + "", 0)]
         elif type_version == "wall":
-            return [(const.SPRITE_PATH + "")]
+            return [(const.SPRITE_PATH + "", 0)]
         elif type_version == "tower":
-            return [(const.SPRITE_PATH + "")]
+            return [(const.SPRITE_PATH + "", 0)]
 
         # Different aspects of a gatehouse (Same picture reverted)
         elif type_version == "gatehouse_left":
@@ -248,15 +249,15 @@ def mapping_function(element_type, type_version) -> [str, int]:
             return [(const.SPRITE_PATH + "Security\Security_00001.png", 3)]
 
         elif type_version == "reservoir": #empty reservoir
-            return [(const.SPRITE_PATH + "WaterEquipments/WaterEquipments_00002.png", 3),
-                    (const.SPRITE_PATH + "WaterEquipments/WaterEquipments_00003.png", 1),
-                    (const.SPRITE_PATH + "WaterEquipments/WaterEquipments_00004.png", 1),
-                    (const.SPRITE_PATH + "WaterEquipments/WaterEquipments_00005.png", 1),
-                    (const.SPRITE_PATH + "WaterEquipments/WaterEquipments_00006.png", 1),
-                    (const.SPRITE_PATH + "WaterEquipments/WaterEquipments_00007.png", 1),
-                    (const.SPRITE_PATH + "WaterEquipments/WaterEquipments_00008.png", 1),
-                    (const.SPRITE_PATH + "WaterEquipments/WaterEquipments_00009.png", 1),
-                    (const.SPRITE_PATH + "WaterEquipments/WaterEquipments_00010.png", 1)]
+            return [(const.SPRITE_PATH + "WaterEquipments\WaterEquipments_00002.png", 3),
+                    (const.SPRITE_PATH + "WaterEquipments\WaterEquipments_00003.png", 1),
+                    (const.SPRITE_PATH + "WaterEquipments\WaterEquipments_00004.png", 1),
+                    (const.SPRITE_PATH + "WaterEquipments\WaterEquipments_00005.png", 1),
+                    (const.SPRITE_PATH + "WaterEquipments\WaterEquipments_00006.png", 1),
+                    (const.SPRITE_PATH + "WaterEquipments\WaterEquipments_00007.png", 1),
+                    (const.SPRITE_PATH + "WaterEquipments\WaterEquipments_00008.png", 1),
+                    (const.SPRITE_PATH + "WaterEquipments\WaterEquipments_00009.png", 1),
+                    (const.SPRITE_PATH + "WaterEquipments\WaterEquipments_00010.png", 1)]
 
 
         #First type of fountain
@@ -321,23 +322,23 @@ def mapping_function(element_type, type_version) -> [str, int]:
             return [(const.SPRITE_PATH + "Security\Security_00009.png", 2)]
 
         #Temples of gods
-        elif type_version == "ceres":
+        elif type_version == "ares_temple":
             return [(const.SPRITE_PATH + "Temples\Temples_00001.png", 2),
                         (const.SPRITE_PATH + "Temples\Temples_00002.png", 3)]
 
-        elif type_version == "mars":
+        elif type_version == "mars_temple":
             return [(const.SPRITE_PATH + "Temples\Temples_00003.png", 2),
                         (const.SPRITE_PATH + "Temples\Temples_00004.png", 3)]
 
-        elif type_version == "mercure":
+        elif type_version == "mercury_temple":
             return [(const.SPRITE_PATH + "Temples\Temples_00005.png", 2),
                     (const.SPRITE_PATH + "Temples\Temples_00006.png", 3)]
 
-        elif type_version == "neptune":
+        elif type_version == "neptune_temple":
             return [(const.SPRITE_PATH + "Temples\Temples_00007.png", 2),
                     (const.SPRITE_PATH + "Temples\Temples_00008.png", 3)]
 
-        elif type_version == "venus":
+        elif type_version == "venus_temple":
             return [(const.SPRITE_PATH + "Temples\Temples_00009.png", 2),
                         (const.SPRITE_PATH + "Temples\Temples_00010.png", 3)]
 
@@ -345,4 +346,12 @@ def mapping_function(element_type, type_version) -> [str, int]:
             return [(const.SPRITE_PATH + "Temples\Temples_00011.png", 2)]
 
 def get_structures_range(element_type, type_version) -> int:
-    pass
+    if element_type != "buildings":
+        return 0
+    else:
+        if type_version == "well":
+            return 2
+        if type_version in ["fountain", "fountain1", "fountain2", "fountain3", "fountain4"]:
+            return 4
+        if type_version == "reservoir":
+            return 10
