@@ -164,8 +164,11 @@ class GameView(arcade.View):
         #self.buttons[8].on_click = UI_buttons.define_on_click_button_manager(self,"water")
         #self.buttons[9].on_click = UI_buttons.define_on_click_button_manager(self,"health")
         #self.buttons[10].
-        
-        
+        self.bar_manager = arcade.gui.UIManager()
+        self.load_button = UI_buttons.Text_Button_background(x=40,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height/2 -5,width=20,height=self.bar.height,texture=None,my_text="Load Game",color="black")
+        self.load_button.on_click = self.button_load_on_click
+        self.bar_manager.add(self.load_button)
+        self.bar_manager.enable()
         for k in self.buttons:
             self.right_panel_manager.add(k)
 
@@ -199,6 +202,8 @@ class GameView(arcade.View):
         pass
 
     def on_hide(self):
+        self.bar_manager.disable()
+        self.hide_all_manager()
         self.right_panel_manager.disable()
 
     def on_draw(self):
@@ -254,6 +259,8 @@ class GameView(arcade.View):
                                       )
         self.money_text.draw_()
         self.right_panel_manager.draw()
+        self.bar_manager.draw()
+        self.load_button.draw_()
         for manager in self.manager_state.items():
             if manager[1]:
                 if manager[0] in self.right_panel_manager_depth_one:
@@ -537,7 +544,6 @@ class GameView(arcade.View):
             #self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer, position = (line,column),
             #        update_type="change_content", new_texture_path=[path[0] for path in building.file_paths])
             self.visualmap.update_layers(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
-            self.visualmap.ri
             return True
         return False
 
@@ -652,7 +658,10 @@ class GameView(arcade.View):
             self.right_panel_manager_depth_one[manager[0]].disable()
             self.manager_state[manager[0]] = False
 
-    def button_click_depht(self, event , button):
+    def button_load_on_click(self,event):
+        window = arcade.get_window()
+        window.show_view(window.loadscreen)
+        window.loadscreen.fromview = "game"
         pass
     
     def get_surface_dragged(self,start,end):

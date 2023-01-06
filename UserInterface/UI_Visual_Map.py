@@ -86,8 +86,8 @@ class VisualMap:
         if layer == self.buildings_layer:
             self.fire_layer.clear()
             self.destroyed_layer.clear()
-            self.fire_risk_layer.clear()
-            self.collapse_layer.clear()
+            #self.fire_risk_layer.clear()
+            #self.collapse_layer.clear()
         layer.clear()
         k = constantes.TILE_COUNT**2 -1
         for i in range(0, len(array)):  # I=On parcout le tableau logique du bas vers le haut
@@ -144,6 +144,7 @@ class VisualMap:
         self.fire_risk_layer.clear()
         self.collapse_risk_layer.clear()
         for building in game.building_list:
+            pass
             
 
     def update_walker_list(self, walkersout):

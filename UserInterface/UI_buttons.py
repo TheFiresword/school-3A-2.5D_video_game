@@ -67,6 +67,7 @@ class LoadGameButton(Text_Button_background):
     def on_click(self, event: arcade.gui.UIOnClickEvent):
         window = arcade.get_window()
         window.show_view(window.loadscreen)
+        window.loadscreen.fromview = "welcome"
 
 
 
