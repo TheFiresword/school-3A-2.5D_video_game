@@ -10,7 +10,7 @@ def hollow_build(x, y, visualmap: UI_Visual_Map.VisualMap, building=None):
     (a, b) = visualmap.get_visual_sprite((x, y))
     spritepath = None
     if building:
-        spritepath = building.spritepath[0][0]
+        spritepath = building.spritepath
         size = building.size
     else:
         # If it's not a building then it's a road

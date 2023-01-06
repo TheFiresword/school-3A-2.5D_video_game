@@ -10,11 +10,11 @@ class Building_info:
         self.max_employs = max_employs
 
         if sprite_name != "":
-            self.spritepath = mapping.mapping_function(const.LAYER5,sprite_name)
+            self.spritepath = mapping.mapping_function(const.LAYER5,sprite_name)[0][0]
             if self.spritepath:
                 self.size = mapping.mapping_function(const.LAYER5,sprite_name)[0][1]
         else :
-            self.spritepath = mapping.mapping_function(const.LAYER5,"dwell")
+            self.spritepath = mapping.mapping_function(const.LAYER5,"dwell")[0][0]
             self.size = 1
         # (self.spritepath, self.cells_number) = mapping.mapping_function(const.LAYER5, sprite_type)
 
