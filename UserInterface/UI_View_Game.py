@@ -152,6 +152,7 @@ class GameView(arcade.View):
         self.money_box = arcade.load_texture(constantes.SPRITE_PATH + "PanelsOther/paneling_00015.png")
         self.actual_pop_up = pop.create_PoP_Up(image= constantes.SPRITE_PATH + "Pictures/panelwindows_00021.png" ,title="AU FEU",normal_text="tchoupi",carved_text="Y'a le feu quelque part allez éteindre ça\n je suis sur ca marche",top_left_corner=(0,constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]),order=["title_zone","image_zone","carved_text_zone","button_zone"])
         self.money_text = None
+        self.fps_text = None
         buttons_render = UI_buttons.buttons
         self.buttons = [arcade.gui.UITextureButton(x=b0, y=b1, texture=b2, texture_hovered=b3, texture_pressed=b4,
                                                    scale=constantes.SPRITE_SCALING) for
@@ -183,8 +184,16 @@ class GameView(arcade.View):
         self.collapse_layer_button.on_click = self.button_collapse_layer_on_click
         self.bar_manager.add(self.load_button)
         self.bar_manager.enable()
+        
+        self.fps_up = arcade.gui.UITextureButton(x=constantes.DEFAULT_SCREEN_WIDTH - 162 + 10,y=constantes.DEFAULT_SCREEN_HEIGHT-700,texture=arcade.load_texture(constantes.SPRITE_PATH+ "Panel/Panel42/paneling_00249.png"),width = 25,height=15)
+        self.fps_down = arcade.gui.UITextureButton(x=constantes.DEFAULT_SCREEN_WIDTH -162 + 35,y=constantes.DEFAULT_SCREEN_HEIGHT-700,texture=arcade.load_texture(constantes.SPRITE_PATH+ "Panel/Panel43/paneling_00253.png"),width = 25,height=15)
+
+        self.fps_up.on_click = self.button_fps_up_on_click
+        self.fps_down.on_click = self.button_fps_down_on_click
         for k in self.buttons:
             self.right_panel_manager.add(k)
+        self.right_panel_manager.add(self.fps_up)
+        self.right_panel_manager.add(self.fps_down)
         self.right_panel_manager.add(self.layer_button)
 
         # =======================================
@@ -205,6 +214,7 @@ class GameView(arcade.View):
         self.game.create_walker()
         self.game.walkersGetOut()
         self.money_text=text.Sprite_sentence("Dn: " +str(self.game.money),"white",(205,constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4))
+        self.fps_text=text.Sprite_sentence( str(int(self.game.framerate * 100/constantes.DEFAULT_FPS)) + "%","black",(constantes.DEFAULT_SCREEN_WIDTH -162 + 85,constantes.DEFAULT_SCREEN_HEIGHT-690))
         self.visualmap.setup(self.game)
         self.center_map()
         self.builder_content = ""
@@ -272,7 +282,10 @@ class GameView(arcade.View):
                                       width=162, height=constantes.DEFAULT_SCREEN_HEIGHT / 2,
                                       texture=self.tab
                                       )
+        arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH - 81,center_y=constantes.DEFAULT_SCREEN_HEIGHT - 285 + 97- constantes.DEFAULT_SCREEN_HEIGHT / 2,width=162,height=100,texture=arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel46.png"))
+
         self.money_text.draw_()
+        self.fps_text.draw_()
         self.right_panel_manager.draw()
         self.right_panel_manager.children[0][-1].draw_()
         self.bar_manager.draw()
@@ -311,7 +324,7 @@ class GameView(arcade.View):
             walker.walk(self.visualmap.map_scaling)
         self.visualmap.update_walker_list(self.game.walkersOut)
         self.money_text = text.Sprite_sentence("Dn: " +str(self.game.money),"white",(320-(len(self.money_text.sentence)+5) * constantes.FONT_WIDTH/4,constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4))
-        
+        self.fps_text=text.Sprite_sentence( str(int(self.game.framerate * 100/constantes.DEFAULT_FPS)) + "%","black",(constantes.DEFAULT_SCREEN_WIDTH -162 + 85,constantes.DEFAULT_SCREEN_HEIGHT-690))
 
     # =======================================
     #  Mouse Related Fuctions
@@ -719,6 +732,12 @@ class GameView(arcade.View):
         self.layer_manager.enable()
         self.layer_manager_show = True
     
+    def button_fps_up_on_click(self,event):
+        pass
+
+    def button_fps_down_on_click(self,event):
+        pass
+
     def button_fire_layer_on_click(self,event):
         self.visualmap.buildings_layer.visible = False
         self.visualmap.fire_risk_layer_show = True
