@@ -55,12 +55,17 @@ class Game:
         pass
 
     def updatebuilding(self, building: buildings.Building):
-        current_state = (building.isBurning, building.isDestroyed)
+        current_state = (building.isBurning, building.isDestroyed,building.risk_level_dico["fire"],building.risk_level_dico["collapse"])
         if not building.isDestroyed:
             building.update_risk("fire")
             building.update_risk("collapse")
-        updated_state = (building.isBurning, building.isDestroyed)
-        return (current_state[0] != updated_state[0], current_state[1] != updated_state[1])
+        updated_state = (building.isBurning, building.isDestroyed,building.risk_level_dico["fire"],building.risk_level_dico["collapse"])
+        dico_change = {"fire": current_state[0] != updated_state[0],
+                       "collapse" : current_state[1] != updated_state[1],
+                       "fire_level" : (current_state[2] != updated_state[2],building.risk_level_dico["fire"]),
+                       "collapse_level"  : (current_state[3] != updated_state[3],building.risk_level_dico["collapse"])
+                      }
+        return  dico_change
 
     def updateReligion(self):
         pass
@@ -149,18 +154,23 @@ class Game:
 
             building_update = self.updatebuilding(k)
 
-            if building_update[0]:
+            if building_update["fire"]:
                 update.catchedfire.append(k.position)
                 if k.dic['cells_number'] != 1:
                     for i in cases:
                         self.map.buildings_layer.array[i[0]][i[1]].isBurning = True
                         update.catchedfire.append(i)
-            if building_update[1]:
+            if building_update["collapse"]:
                 update.collapsed.append(k.position)
                 if k.dic['cells_number'] != 1:
                     for i in cases:
                         self.map.buildings_layer.array[i[0]][i[1]].isDestroyed = True
                         update.collapsed.append(i)
+
+            if building_update["fire_level"][0]:
+                update.fire_level_change.append((k.position,building_update["fire_level"][1]))
+            if building_update["collapse_level"][0]:
+                update.collapse_level_change.append((k.position,building_update["collapse_level"][1]))
 
         return update
         # ---------------------------------#

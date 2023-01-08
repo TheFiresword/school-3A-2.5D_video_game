@@ -161,6 +161,7 @@ class GameView(arcade.View):
         self.money_box = arcade.load_texture(constantes.SPRITE_PATH + "PanelsOther/paneling_00015.png")
         self.actual_pop_up = pop.create_PoP_Up(image= constantes.SPRITE_PATH + "Pictures/panelwindows_00021.png" ,title="AU FEU",normal_text="tchoupi",carved_text="Y'a le feu quelque part allez éteindre ça\n je suis sur ca marche",top_left_corner=(0,constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]),order=["title_zone","image_zone","carved_text_zone","button_zone"])
         self.money_text = None
+        self.fps_text = None
         buttons_render = UI_buttons.buttons
         self.buttons = [arcade.gui.UITextureButton(x=b0, y=b1, texture=b2, texture_hovered=b3, texture_pressed=b4,
                                                    scale=constantes.SPRITE_SCALING) for
@@ -174,12 +175,35 @@ class GameView(arcade.View):
         #self.buttons[9].on_click = UI_buttons.define_on_click_button_manager(self,"health")
         #self.buttons[10].
         self.bar_manager = arcade.gui.UIManager()
-        self.load_button = UI_buttons.Text_Button_background(x=40,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height/2 -5,width=20,height=self.bar.height,texture=None,my_text="Load Game",color="black")
+        self.load_button = UI_buttons.Text_Button_background(x=40,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height -5,width=20,height=self.bar.height,texture=None,my_text="Load Game",color="black")
         self.load_button.on_click = self.button_load_on_click
+        self.layer_button = UI_buttons.Text_Button_background(x=constantes.DEFAULT_SCREEN_WIDTH-300,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height -100,width=70,height=50,texture=UI_buttons.texture_panel11,my_text="Overlays",color="black")
+        self.layer_button.on_click = self.button_layer_on_click
+        self.layer_manager = arcade.gui.UIManager()
+        self.layer_manager_show = False
+        
+        self.normal_layer_button = UI_buttons.Text_Button_background(x=constantes.DEFAULT_SCREEN_WIDTH-300,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height -150,width=70,height=50,texture=UI_buttons.texture_panel11,my_text="Normal",color="black")
+        self.layer_manager.add(self.normal_layer_button)
+        self.normal_layer_button.on_click = self.button_normal_layer_on_click
+        self.fire_layer_button = UI_buttons.Text_Button_background(x=constantes.DEFAULT_SCREEN_WIDTH-300,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height -200,width=70,height=50,texture=UI_buttons.texture_panel11,my_text="Fire",color="black")
+        self.layer_manager.add(self.fire_layer_button)
+        self.fire_layer_button.on_click = self.button_fire_layer_on_click
+        self.collapse_layer_button = UI_buttons.Text_Button_background(x=constantes.DEFAULT_SCREEN_WIDTH-300,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height -250,width=70,height=50,texture=UI_buttons.texture_panel11,my_text="Collapse",color="black")
+        self.layer_manager.add(self.collapse_layer_button)
+        self.collapse_layer_button.on_click = self.button_collapse_layer_on_click
         self.bar_manager.add(self.load_button)
         self.bar_manager.enable()
+        
+        self.fps_up = arcade.gui.UITextureButton(x=constantes.DEFAULT_SCREEN_WIDTH - 162 + 10,y=constantes.DEFAULT_SCREEN_HEIGHT-700,texture=arcade.load_texture(constantes.SPRITE_PATH+ "Panel/Panel42/paneling_00249.png"),width = 25,height=15)
+        self.fps_down = arcade.gui.UITextureButton(x=constantes.DEFAULT_SCREEN_WIDTH -162 + 35,y=constantes.DEFAULT_SCREEN_HEIGHT-700,texture=arcade.load_texture(constantes.SPRITE_PATH+ "Panel/Panel43/paneling_00253.png"),width = 25,height=15)
+
+        self.fps_up.on_click = self.button_fps_up_on_click
+        self.fps_down.on_click = self.button_fps_down_on_click
         for k in self.buttons:
             self.right_panel_manager.add(k)
+        self.right_panel_manager.add(self.fps_up)
+        self.right_panel_manager.add(self.fps_down)
+        self.right_panel_manager.add(self.layer_button)
 
         # =======================================
         # Map related Visuals elements 
@@ -198,6 +222,7 @@ class GameView(arcade.View):
         self.game.create_walker()
         self.game.walkersGetOut()
         self.money_text=text.Sprite_sentence("Dn: " +str(self.game.money),"white",(205,constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4))
+        self.fps_text=text.Sprite_sentence( str(int(self.game.framerate * 100/constantes.DEFAULT_FPS)) + "%","black",(constantes.DEFAULT_SCREEN_WIDTH -162 + 85,constantes.DEFAULT_SCREEN_HEIGHT-690))
         self.visualmap.setup(self.game)
         self.center_map()
         self.builder_content = ""
@@ -266,8 +291,12 @@ class GameView(arcade.View):
                                       width=162, height=constantes.DEFAULT_SCREEN_HEIGHT / 2,
                                       texture=self.tab
                                       )
+        arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH - 81,center_y=constantes.DEFAULT_SCREEN_HEIGHT - 285 + 97- constantes.DEFAULT_SCREEN_HEIGHT / 2,width=162,height=100,texture=arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel46.png"))
+
         self.money_text.draw_()
+        self.fps_text.draw_()
         self.right_panel_manager.draw()
+        self.right_panel_manager.children[0][-1].draw_()
         self.bar_manager.draw()
         self.load_button.draw_()
         for manager in self.manager_state.items():
@@ -282,6 +311,10 @@ class GameView(arcade.View):
                     real_man.draw()
                 else:
                     print("no manager")
+        if self.layer_manager_show:
+            self.layer_manager.draw()
+            for but in self.layer_manager.children[0]:
+                but.draw_()
         if self.actual_pop_up.visible:
             self.actual_pop_up.draw_()
 
@@ -307,8 +340,7 @@ class GameView(arcade.View):
                 walker.walk(self.visualmap.map_scaling)
             self.visualmap.update_walker_list(self.game.walkersOut)
             self.money_text = text.Sprite_sentence("Dn: " +str(self.game.money),"white",(320-(len(self.money_text.sentence)+5) * constantes.FONT_WIDTH/4,constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4))
-
-
+            self.fps_text=text.Sprite_sentence( str(int(self.game.framerate * 100/constantes.DEFAULT_FPS)) + "%","black",(constantes.DEFAULT_SCREEN_WIDTH -162 + 85,constantes.DEFAULT_SCREEN_HEIGHT-690))
 
     # =======================================
     #  Mouse Related Fuctions
@@ -385,7 +417,7 @@ class GameView(arcade.View):
                 self.mouse_left_maintained = False
 
             if button == arcade.MOUSE_BUTTON_RIGHT:
-                self.hide_all_manager()
+                self.hide_all_manager()             
                 self.mouse_right_pressed = False
                 self.mouse_right_maintained = False
                 # self.red_sprite.visible = False
@@ -488,6 +520,7 @@ class GameView(arcade.View):
             self.game.walkersOutUpdates()
         elif symbol == arcade.key.E:
             self.game.walkersOutUpdates(exit=True)
+            
 
     def on_key_release(self, _symbol: int, _modifiers: int):
         if _symbol == arcade.key.UP:
@@ -498,6 +531,8 @@ class GameView(arcade.View):
             self.left_pressed = False
         elif _symbol == arcade.key.RIGHT:
             self.right_pressed = False
+            
+            
 
     # =======================================
     #  Camera Related Fuctions
@@ -667,6 +702,7 @@ class GameView(arcade.View):
         
     def button_click_shovel(self, event):
         self.builder_mode = False
+        self.dragged_sprite.clear()
         # We replace the cursor with a shovel image
         arcade.get_window().set_mouse_visible(False)
         self.remove_mode = True
@@ -714,6 +750,8 @@ class GameView(arcade.View):
         for manager in self.manager_state.items():
             self.right_panel_manager_depth_one[manager[0]].disable()
             self.manager_state[manager[0]] = False
+        self.layer_manager_show = False
+        self.layer_manager.disable()
 
     def button_load_on_click(self,event):
         window = arcade.get_window()
@@ -721,6 +759,41 @@ class GameView(arcade.View):
         window.loadscreen.fromview = "game"
         pass
     
+    def button_layer_on_click(self,event):
+        self.layer_manager.enable()
+        self.layer_manager_show = True
+    
+    def button_fps_up_on_click(self,event):
+        pass
+
+    def button_fps_down_on_click(self,event):
+        pass
+
+    def button_fire_layer_on_click(self,event):
+        self.visualmap.buildings_layer.visible = False
+        self.visualmap.fire_risk_layer_show = True
+        self.visualmap.collapse_risk_layer_show = False
+        self.visualmap.destroyed_layer_show = False
+        self.visualmap.fire_layer_show = False
+    
+    def button_collapse_layer_on_click(self,event):
+        self.visualmap.buildings_layer.visible = False
+        self.visualmap.fire_risk_layer_show = False
+        self.visualmap.collapse_risk_layer_show = True
+        self.visualmap.destroyed_layer_show = False
+        self.visualmap.fire_layer_show = False
+    
+    def button_normal_layer_on_click(self,event):
+        self.visualmap.buildings_layer.visible = True
+        self.visualmap.fire_risk_layer_show = False
+        self.visualmap.collapse_risk_layer_show = False
+        self.visualmap.destroyed_layer_show = True
+        self.visualmap.fire_layer_show = True
+        self.visualmap.update_layers(self.visualmap.buildings_layer,self.game.map.buildings_layer.array)
+
+
+    
+
     def get_surface_dragged(self,start,end):
         line1, column1 = self.visualmap.get_sprite_at_screen_coordinates(start)
         line2, column2 = self.visualmap.get_sprite_at_screen_coordinates(end)
@@ -761,6 +834,7 @@ class GameView(arcade.View):
         """
         This is the function that will really update graphically the sprites of the buildings
         """
+  
         for j in update.catchedfire:
             self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = j ,update_type="building_fire")
         for k in update.collapsed:
@@ -771,3 +845,19 @@ class GameView(arcade.View):
             self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer, position=m, update_type="stat_dec")
         for n in update.removed:
             self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer, position=n, update_type="delete")
+
+        for bcfire in update.catchedfire:
+            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = bcfire ,update_type="building_fire")
+        for bcollapse in update.collapsed:
+            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = bcollapse ,update_type="building_destroy")
+        for bevol in update.has_evolved:
+            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = bevol ,update_type="stat_inc")
+        for bdevol in update.has_devolved:
+            self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer, position=bdevol, update_type="stat_dec")
+        for briskfire in update.fire_level_change:
+            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer, position = briskfire[0],update_type="risk_update",special_value=("fire",briskfire[1]))
+        for briskcollapse in update.collapse_level_change:
+            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position= briskcollapse[0],update_type="risk_update",special_value=("collapse",briskcollapse[1]))
+
+
+

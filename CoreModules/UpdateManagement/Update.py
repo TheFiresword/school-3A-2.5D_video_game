@@ -8,4 +8,6 @@ class LogicUpdate():
         self.catchedfire = []
         self.collapsed = []
         self.removed = []
+        self.fire_level_change = []
+        self.collapse_level_change = []
         pass
