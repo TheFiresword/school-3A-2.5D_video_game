@@ -27,9 +27,18 @@ class GameView(arcade.View):
 
     def __init__(self, _game):
         super().__init__()
+
         self.game = None
         if _game:
             self.game = _game
+
+        # =======================================
+        # the game status (played or not)
+        # =======================================
+        self.is_paused = False
+        self.count_pauses = 0
+        self.p_key_pressed = False
+
         # =======================================
         # Intels about the current player action
         # =======================================
@@ -206,7 +215,6 @@ class GameView(arcade.View):
         # Preliminary actions
         # =======================================
         self.setup()
-        pass
 
     def setup(self):
         if not self.game:
@@ -232,6 +240,7 @@ class GameView(arcade.View):
         self.right_panel_manager.disable()
 
     def on_draw(self):
+
         self.clear()
         # =======================================
         # Display Map related content
@@ -313,18 +322,25 @@ class GameView(arcade.View):
         self.draw_message_for_farm_building()
 
     def on_update(self, delta_time: float):
-        update = self.game.updategame()
-        self.update_treatment(update)
-        self.visualmap.fire_count += 1
-        for sprite in self.visualmap.fire_layer:
-            sprite.set_texture(self.visualmap.fire_count % len(sprite.textures))
+        if self.is_paused:
+            arcade.get_window().set_update_rate(0)
+        else:
+            if self.p_key_pressed:
+                arcade.get_window().set_update_rate(self.game.framerate)
+                self.p_key_pressed = False
 
-        self.move_map_camera_with_keys()
-        for walker in self.game.walkersOut:
-            walker.walk(self.visualmap.map_scaling)
-        self.visualmap.update_walker_list(self.game.walkersOut)
-        self.money_text = text.Sprite_sentence("Dn: " +str(self.game.money),"white",(320-(len(self.money_text.sentence)+5) * constantes.FONT_WIDTH/4,constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4))
-        self.fps_text=text.Sprite_sentence( str(int(self.game.framerate * 100/constantes.DEFAULT_FPS)) + "%","black",(constantes.DEFAULT_SCREEN_WIDTH -162 + 85,constantes.DEFAULT_SCREEN_HEIGHT-690))
+            update = self.game.updategame()
+            self.update_treatment(update)
+            self.visualmap.fire_count += 1
+            for sprite in self.visualmap.fire_layer:
+                sprite.set_texture(self.visualmap.fire_count % len(sprite.textures))
+
+            self.move_map_camera_with_keys()
+            for walker in self.game.walkersOut:
+                walker.walk(self.visualmap.map_scaling)
+            self.visualmap.update_walker_list(self.game.walkersOut)
+            self.money_text = text.Sprite_sentence("Dn: " +str(self.game.money),"white",(320-(len(self.money_text.sentence)+5) * constantes.FONT_WIDTH/4,constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4))
+            self.fps_text=text.Sprite_sentence( str(int(self.game.framerate * 100/constantes.DEFAULT_FPS)) + "%","black",(constantes.DEFAULT_SCREEN_WIDTH -162 + 85,constantes.DEFAULT_SCREEN_HEIGHT-690))
 
     # =======================================
     #  Mouse Related Fuctions
@@ -485,7 +501,22 @@ class GameView(arcade.View):
         # press D to delete game1
         elif symbol == arcade.key.D:
             self.delete_game('game1')
+
+        # press P to pause the game
         elif symbol == arcade.key.P:
+            self.p_key_pressed = True
+            if self.count_pauses % 2 == 0:
+                self.is_paused = True
+            else:
+                self.is_paused = False
+            self.count_pauses += 1
+
+        # testing press A to accelerate
+        elif symbol == arcade.key.A:
+            self.game.change_game_speed(1.5)
+
+        #Testing pathfinding
+        elif symbol == arcade.key.M:
             self.game.walkersOutUpdates()
         elif symbol == arcade.key.E:
             self.game.walkersOutUpdates(exit=True)
@@ -799,11 +830,22 @@ class GameView(arcade.View):
         for _game in saveload.list_saved_games():
             # do whatever u want with that
             print(_game)
-
     def update_treatment(self,update:updates.LogicUpdate):
         """
         This is the function that will really update graphically the sprites of the buildings
         """
+  
+        for j in update.catchedfire:
+            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = j ,update_type="building_fire")
+        for k in update.collapsed:
+            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = k ,update_type="building_destroy")
+        for l in update.has_evolved:
+            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = l ,update_type="stat_inc")
+        for m in update.has_devolved:
+            self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer, position=m, update_type="stat_dec")
+        for n in update.removed:
+            self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer, position=n, update_type="delete")
+
         for bcfire in update.catchedfire:
             self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = bcfire ,update_type="building_fire")
         for bcollapse in update.collapsed:
@@ -816,5 +858,6 @@ class GameView(arcade.View):
             self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer, position = briskfire[0],update_type="risk_update",special_value=("fire",briskfire[1]))
         for briskcollapse in update.collapse_level_change:
             self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position= briskcollapse[0],update_type="risk_update",special_value=("collapse",briskcollapse[1]))
+
 
 

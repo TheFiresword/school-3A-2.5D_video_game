@@ -6,6 +6,7 @@ from CoreModules.WalkersManagement import walkersManagementWalker as walkers
 
 INIT_MONEY = 1000000000
 
+import time
 
 class Game:
     def __init__(self, _map, name="save"):
@@ -34,9 +35,20 @@ class Game:
         self.pottery_structures_list = []
         self.bathhouse_structures_list = []
 
+        # Timer
+        self.init_time = time.time()
+        self.current_time = self.init_time
+        self.duration = int(self.current_time-self.init_time)
+
+        # a dic of timers to track dwells with no roads
+        # it associates each position of dwell with a timer
+        self.timer_track_dwells = {}
+
     def startGame(self):
         # ---------------------------------#
         pass
+    def change_game_speed(self, factor):
+        self.framerate /= factor
 
     def foodproduction(self):
         # ---------------------------------#
@@ -92,6 +104,8 @@ class Game:
         In fact it updates the buildings of the game
         Differents types of updates can occur: a building evolving, a building burning or a building collapsing
         """
+        self.current_time += self.framerate
+        self.duration = int(self.current_time - self.init_time)
 
         update = updates.LogicUpdate()
 
@@ -104,12 +118,33 @@ class Game:
         update.has_evolved += self.update_requirements('pottery')
         update.has_evolved += self.update_requirements('bathhouse')
 
+        # update of buildings
         for k in self.buildinglist:
+
             pos = k.position
             cases = []
             # We don't want primitive housing (pannel) to burn or to collapse
             if type(k) == buildings.Dwelling and not k.is_occupied():
-                continue
+
+                # we check if a road is next to this dwelling, if not we remove it after 5s
+                removable = True
+                line, column = k.position
+                for i in range(-2, 2+1):
+                    for j in range(-2, 2+1):
+                        if self.map.roads_layer.is_real_road(line + i, column + j):
+                            removable = False
+                            break
+                # update tracktimer of dwells
+                built_since = int(self.current_time - self.timer_track_dwells[pos]) if pos in self.timer_track_dwells else 0
+                if removable and built_since > 5:
+                    # to avoid decreasing money
+                    self.money += removing_cost
+                    self.remove_element(pos)
+                    update.removed.append(pos)
+                    self.timer_track_dwells.pop(pos)
+
+                elif built_since > 5:
+                    self.timer_track_dwells.pop(pos)
 
             if k.dic['cells_number'] != 1:
                 for i in range(0, k.dic['cells_number']):
@@ -131,10 +166,12 @@ class Game:
                     for i in cases:
                         self.map.buildings_layer.array[i[0]][i[1]].isDestroyed = True
                         update.collapsed.append(i)
+
             if building_update["fire_level"][0]:
                 update.fire_level_change.append((k.position,building_update["fire_level"][1]))
             if building_update["collapse_level"][0]:
                 update.collapse_level_change.append((k.position,building_update["collapse_level"][1]))
+
         return update
         # ---------------------------------#
 
@@ -175,10 +212,14 @@ class Game:
             self.money -= removing_cost
             if element_type == globalVar.LAYER5:
                 if self.buildinglist:
+                    """
+                    # to remove the time tracker if the building is removed before 5s
+                    if pos in self.timer_track_dwells:
+                        self.timer_track_dwells.pop(pos)
+                    """
                     self.buildinglist.remove(_element)
                 if type(_element) == buildings.WaterStructure:
                     self.water_structures_list.remove(_element)
-
         return element_type
 
     def remove_elements_serie(self, start_pos, end_pos) -> set:
@@ -278,6 +319,12 @@ class Game:
                     self.buildinglist.append(building.foundation)
                 case _:
                     self.buildinglist.append(building)
+
+            if version == "dwell":
+                # if user just built a dwell we associate a timer so that the dwell can be removed after x seconds
+                self.timer_track_dwells[(line, column)] = time.time()
+
+
             self.money -= building_dico[txt].cost
             if type(building) == buildings.WaterStructure:
                 self.water_structures_list.append(building)

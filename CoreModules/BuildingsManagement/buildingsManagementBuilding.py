@@ -13,7 +13,7 @@ class Building(element.Element):
 
         # A factor that will be used to control risk increasing speed -- It must takes account the structure level
         # ie a building at level 4 will have a risk speed lower than a another at level 1
-        self.risk_increasing_speed = 1 if version == 'dwell' else 0.8
+        self.risk_increasing_speed = 0
 
         # Structure level is a number that indicates the level of the building
         # in fact some buildings like farms, dwells, grow up or grow down very often
@@ -25,16 +25,20 @@ class Building(element.Element):
         self.BurningTime = 0
         self.isDestroyed = False
         self.randombuf = 0
+        self.update_risk_speed_with_level()
 
         super().__init__(buildings_layer, _type, version)
 
 
     def update_risk_speed_with_level(self):
         if self.structure_level == 0:
-            self.risk_increasing_speed = 1 if version == 'dwell' else 0.8
+            self.risk_increasing_speed = 0 if self.dic['version'] == 'dwell' else 0.8
         else:
-            self.risk_increasing_speed = 1/self.structure_level if version == 'dwell' else 0.8/self.structure_level
+            self.risk_increasing_speed = 1/self.structure_level if self.dic['version'] == 'dwell' else 0.8/self.structure_level
     def update_risk(self,risk):
+        # As update_risk function is called very often we use this to update risk_speed simultaneously
+        self.update_risk_speed_with_level()
+
         if risk == "fire" and self.isBurning:
             if self.BurningTime <= max_burning_time:
                 self.BurningTime += 1
