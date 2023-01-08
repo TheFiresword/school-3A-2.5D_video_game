@@ -165,12 +165,27 @@ class GameView(arcade.View):
         #self.buttons[9].on_click = UI_buttons.define_on_click_button_manager(self,"health")
         #self.buttons[10].
         self.bar_manager = arcade.gui.UIManager()
-        self.load_button = UI_buttons.Text_Button_background(x=40,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height/2 -5,width=20,height=self.bar.height,texture=None,my_text="Load Game",color="black")
+        self.load_button = UI_buttons.Text_Button_background(x=40,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height -5,width=20,height=self.bar.height,texture=None,my_text="Load Game",color="black")
         self.load_button.on_click = self.button_load_on_click
+        self.layer_button = UI_buttons.Text_Button_background(x=constantes.DEFAULT_SCREEN_WIDTH-300,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height -100,width=70,height=50,texture=UI_buttons.texture_panel11,my_text="Overlays",color="black")
+        self.layer_button.on_click = self.button_layer_on_click
+        self.layer_manager = arcade.gui.UIManager()
+        self.layer_manager_show = False
+        
+        self.normal_layer_button = UI_buttons.Text_Button_background(x=constantes.DEFAULT_SCREEN_WIDTH-300,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height -150,width=70,height=50,texture=UI_buttons.texture_panel11,my_text="Normal",color="black")
+        self.layer_manager.add(self.normal_layer_button)
+        self.normal_layer_button.on_click = self.button_normal_layer_on_click
+        self.fire_layer_button = UI_buttons.Text_Button_background(x=constantes.DEFAULT_SCREEN_WIDTH-300,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height -200,width=70,height=50,texture=UI_buttons.texture_panel11,my_text="Fire",color="black")
+        self.layer_manager.add(self.fire_layer_button)
+        self.fire_layer_button.on_click = self.button_fire_layer_on_click
+        self.collapse_layer_button = UI_buttons.Text_Button_background(x=constantes.DEFAULT_SCREEN_WIDTH-300,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height -250,width=70,height=50,texture=UI_buttons.texture_panel11,my_text="Collapse",color="black")
+        self.layer_manager.add(self.collapse_layer_button)
+        self.collapse_layer_button.on_click = self.button_collapse_layer_on_click
         self.bar_manager.add(self.load_button)
         self.bar_manager.enable()
         for k in self.buttons:
             self.right_panel_manager.add(k)
+        self.right_panel_manager.add(self.layer_button)
 
         # =======================================
         # Map related Visuals elements 
@@ -259,6 +274,7 @@ class GameView(arcade.View):
                                       )
         self.money_text.draw_()
         self.right_panel_manager.draw()
+        self.right_panel_manager.children[0][-1].draw_()
         self.bar_manager.draw()
         self.load_button.draw_()
         for manager in self.manager_state.items():
@@ -273,6 +289,10 @@ class GameView(arcade.View):
                     real_man.draw()
                 else:
                     print("no manager")
+        if self.layer_manager_show:
+            self.layer_manager.draw()
+            for but in self.layer_manager.children[0]:
+                but.draw_()
         if self.actual_pop_up.visible:
             self.actual_pop_up.draw_()
 
@@ -368,7 +388,7 @@ class GameView(arcade.View):
                 self.mouse_left_maintained = False
 
             if button == arcade.MOUSE_BUTTON_RIGHT:
-                self.hide_all_manager()
+                self.hide_all_manager()             
                 self.mouse_right_pressed = False
                 self.mouse_right_maintained = False
                 # self.red_sprite.visible = False
@@ -456,6 +476,7 @@ class GameView(arcade.View):
             self.game.walkersOutUpdates()
         elif symbol == arcade.key.E:
             self.game.walkersOutUpdates(exit=True)
+            
 
     def on_key_release(self, _symbol: int, _modifiers: int):
         if _symbol == arcade.key.UP:
@@ -466,6 +487,8 @@ class GameView(arcade.View):
             self.left_pressed = False
         elif _symbol == arcade.key.RIGHT:
             self.right_pressed = False
+            
+            
 
     # =======================================
     #  Camera Related Fuctions
@@ -635,6 +658,7 @@ class GameView(arcade.View):
         
     def button_click_shovel(self, event):
         self.builder_mode = False
+        self.dragged_sprite.clear()
         # We replace the cursor with a shovel image
         arcade.get_window().set_mouse_visible(False)
         self.remove_mode = True
@@ -682,6 +706,8 @@ class GameView(arcade.View):
         for manager in self.manager_state.items():
             self.right_panel_manager_depth_one[manager[0]].disable()
             self.manager_state[manager[0]] = False
+        self.layer_manager_show = False
+        self.layer_manager.disable()
 
     def button_load_on_click(self,event):
         window = arcade.get_window()
@@ -689,6 +715,35 @@ class GameView(arcade.View):
         window.loadscreen.fromview = "game"
         pass
     
+    def button_layer_on_click(self,event):
+        self.layer_manager.enable()
+        self.layer_manager_show = True
+    
+    def button_fire_layer_on_click(self,event):
+        self.visualmap.buildings_layer.visible = False
+        self.visualmap.fire_risk_layer_show = True
+        self.visualmap.collapse_risk_layer_show = False
+        self.visualmap.destroyed_layer_show = False
+        self.visualmap.fire_layer_show = False
+    
+    def button_collapse_layer_on_click(self,event):
+        self.visualmap.buildings_layer.visible = False
+        self.visualmap.fire_risk_layer_show = False
+        self.visualmap.collapse_risk_layer_show = True
+        self.visualmap.destroyed_layer_show = False
+        self.visualmap.fire_layer_show = False
+    
+    def button_normal_layer_on_click(self,event):
+        self.visualmap.buildings_layer.visible = True
+        self.visualmap.fire_risk_layer_show = False
+        self.visualmap.collapse_risk_layer_show = False
+        self.visualmap.destroyed_layer_show = True
+        self.visualmap.fire_layer_show = True
+        self.visualmap.update_layers(self.visualmap.buildings_layer,self.game.map.buildings_layer.array)
+
+
+    
+
     def get_surface_dragged(self,start,end):
         line1, column1 = self.visualmap.get_sprite_at_screen_coordinates(start)
         line2, column2 = self.visualmap.get_sprite_at_screen_coordinates(end)
@@ -730,11 +785,17 @@ class GameView(arcade.View):
         """
         This is the function that will really update graphically the sprites of the buildings
         """
-        for j in update.catchedfire:
-            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = j ,update_type="building_fire")
-        for k in update.collapsed:
-            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = k ,update_type="building_destroy")
-        for l in update.has_evolved:
-            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = l ,update_type="stat_inc")
-        for m in update.has_devolved:
-            self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer, position=m, update_type="stat_dec")
+        for bcfire in update.catchedfire:
+            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = bcfire ,update_type="building_fire")
+        for bcollapse in update.collapsed:
+            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = bcollapse ,update_type="building_destroy")
+        for bevol in update.has_evolved:
+            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = bevol ,update_type="stat_inc")
+        for bdevol in update.has_devolved:
+            self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer, position=bdevol, update_type="stat_dec")
+        for briskfire in update.fire_level_change:
+            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer, position = briskfire[0],update_type="risk_update",special_value=("fire",briskfire[1]))
+        for briskcollapse in update.collapse_level_change:
+            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position= briskcollapse[0],update_type="risk_update",special_value=("collapse",briskcollapse[1]))
+
+
