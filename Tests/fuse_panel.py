@@ -2,6 +2,7 @@ from PIL import Image
 import os
 
 print()
+count = 0
 def get_files_line_by_line(path,per_line):
     temp_files = os.listdir(path)
     files = [path+"/"+k for k in temp_files]
@@ -29,6 +30,33 @@ def fuse_horizontally(line):
         image_ligne.paste(k,(buffer_size,0))
         buffer_size += k.size[0]
     return image_ligne
+
+def fuse_2_sprites_by_center(path1, path2, merged_name):
+    global count
+    im1 = Image.open(path1)
+    im2 = Image.open(path2)
+
+    largeur1, hauteur1 = im1.size[0], im1.size[1]
+    largeur2, hauteur2 = im2.size[0], im2.size[1]
+
+
+    left_corner_x = 60
+    left_corner_y = 90
+
+    fused_image = Image.new('RGBA',(largeur1, hauteur1))
+    fused_image.paste(im1, (0, 0))
+    fused_image.paste(im2, (left_corner_x, left_corner_y))
+
+
+    if count == 0:
+        fused_image.show()
+    count += 1
+    prefixe = "C:/Users/Junior/Documents/3A/Programmation_Python/Projet_python/PythonProject/Assets/sprites/C32/tmp"
+    if os.getcwd() != prefixe:
+        os.chdir(prefixe)
+    _name = merged_name.replace('Commerce', 'bof')
+    fused_image.save(_name)
+    pass
 
 def fuse_vertically(lines):
     largeur=max([k.size[0] for k in lines])
@@ -64,4 +92,10 @@ process("Assets/sprites/C32/Panel/Panel46",7,"panel46.png")
 process("Assets/sprites/C32/Panel/Panel47",3,"panel47.png")
 process("Assets/sprites/C32/Panel/Panel48",3,"panel48.png")
 """
-process("Assets/sprites/C32/Panel/Panel0",6,"panel0.png")
+#process("Assets/sprites/C32/Panel/Panel0",6,"panel0.png")
+engineer = "C:/Users/Junior/Documents/3A/Programmation_Python/Projet_python/PythonProject/Assets/sprites/C32/tmp/"
+prefixe = "C:/Users/Junior/Documents/3A/Programmation_Python/Projet_python/PythonProject/Assets/sprites/C32/tmp/"
+paths = ["Commerce_00"+str(k)+".png" for k in range(142, 146)]
+
+#for image_path in paths:
+fuse_2_sprites_by_center(engineer+"bof_00142.png", engineer+"Commerce_00143.png", "Commerce_00142.png")

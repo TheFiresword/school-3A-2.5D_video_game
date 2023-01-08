@@ -7,4 +7,5 @@ class LogicUpdate():
         self.has_devolved = []
         self.catchedfire = []
         self.collapsed = []
+        self.removed = []
         pass

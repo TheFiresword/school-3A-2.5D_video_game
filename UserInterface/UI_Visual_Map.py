@@ -294,6 +294,8 @@ class VisualMap:
 
         if update_type == "delete":
             sprite.visible = False
+            sprite.kill()
+
         sprite.scale = self.map_scaling
     
     def fire_sprite(self,pos):
