@@ -132,6 +132,8 @@ class Game:
                 # update tracktimer of dwells
                 built_since = int(self.current_time - self.timer_track_dwells[pos]) if pos in self.timer_track_dwells else 0
                 if removable and built_since > 5:
+                    # to avoid decreasing money
+                    self.money += removing_cost
                     self.remove_element(pos)
                     update.removed.append(pos)
                     self.timer_track_dwells.pop(pos)

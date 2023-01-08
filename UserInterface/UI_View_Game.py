@@ -770,5 +770,4 @@ class GameView(arcade.View):
         for m in update.has_devolved:
             self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer, position=m, update_type="stat_dec")
         for n in update.removed:
-            self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer, position=n,
-                                                 update_type="delete")
+            self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer, position=n, update_type="delete")
