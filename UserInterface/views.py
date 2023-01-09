@@ -32,7 +32,7 @@ class MainWindow(arcade.Window):
         self.set_update_rate(0)
 
     def on_show(self):
-        self.set_update_rate(constantes.DEFAULT_FPS)
+        self.set_update_rate(1/constantes.DEFAULT_FPS)
 
     # Fonctions d'acquisition d'action joueur
     # Deplacement de la souris dans la fenetre
