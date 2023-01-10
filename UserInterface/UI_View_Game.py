@@ -38,6 +38,8 @@ class GameView(arcade.View):
         self.is_paused = False
         self.count_pauses = 0
         self.p_key_pressed = False
+        # speed in percentage
+        self.speed_ratio = 100
 
         # =======================================
         # Intels about the current player action
@@ -219,10 +221,11 @@ class GameView(arcade.View):
     def setup(self):
         if not self.game:
             self.game = game.Game(map.MapLogic())
+            self.speed_ratio = self.game.framerate * 100 / constantes.DEFAULT_FPS
         self.game.create_walker()
         self.game.walkersGetOut()
         self.money_text=text.Sprite_sentence("Dn: " +str(self.game.money),"white",(205,constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4))
-        self.fps_text=text.Sprite_sentence( str(int(self.game.framerate * 100/constantes.DEFAULT_FPS)) + "%","black",(constantes.DEFAULT_SCREEN_WIDTH -162 + 85,constantes.DEFAULT_SCREEN_HEIGHT-690))
+        self.fps_text=text.Sprite_sentence( str(self.speed_ratio) + "%","black",(constantes.DEFAULT_SCREEN_WIDTH -162 + 85,constantes.DEFAULT_SCREEN_HEIGHT-690))
         self.visualmap.setup(self.game)
         self.center_map()
         self.builder_content = ""
@@ -325,9 +328,8 @@ class GameView(arcade.View):
         if self.is_paused:
             arcade.get_window().set_update_rate(0)
         else:
-            if self.p_key_pressed:
-                arcade.get_window().set_update_rate(self.game.framerate)
-                self.p_key_pressed = False
+            arcade.get_window().set_update_rate(1/self.game.framerate)
+            self.p_key_pressed = False
 
             update = self.game.updategame()
             self.update_treatment(update)
@@ -340,7 +342,7 @@ class GameView(arcade.View):
                 walker.walk(self.visualmap.map_scaling)
             self.visualmap.update_walker_list(self.game.walkersOut)
             self.money_text = text.Sprite_sentence("Dn: " +str(self.game.money),"white",(320-(len(self.money_text.sentence)+5) * constantes.FONT_WIDTH/4,constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4))
-            self.fps_text=text.Sprite_sentence( str(int(self.game.framerate * 100/constantes.DEFAULT_FPS)) + "%","black",(constantes.DEFAULT_SCREEN_WIDTH -162 + 85,constantes.DEFAULT_SCREEN_HEIGHT-690))
+            self.fps_text=text.Sprite_sentence( str(int(self.speed_ratio)) + "%","black",(constantes.DEFAULT_SCREEN_WIDTH -162 + 85,constantes.DEFAULT_SCREEN_HEIGHT-690))
 
     # =======================================
     #  Mouse Related Fuctions
@@ -510,10 +512,6 @@ class GameView(arcade.View):
             else:
                 self.is_paused = False
             self.count_pauses += 1
-
-        # testing press A to accelerate
-        elif symbol == arcade.key.A:
-            self.game.change_game_speed(1.5)
 
         #Testing pathfinding
         elif symbol == arcade.key.M:
@@ -764,9 +762,13 @@ class GameView(arcade.View):
         self.layer_manager_show = True
     
     def button_fps_up_on_click(self,event):
+        self.game.change_game_speed(1)
+        self.speed_ratio = self.game.framerate * 100 / constantes.DEFAULT_FPS
         pass
 
     def button_fps_down_on_click(self,event):
+        self.game.change_game_speed(-1)
+        self.speed_ratio = self.game.framerate * 100 / constantes.DEFAULT_FPS
         pass
 
     def button_fire_layer_on_click(self,event):

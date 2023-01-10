@@ -25,10 +25,22 @@ class Building(element.Element):
         self.BurningTime = 0
         self.isDestroyed = False
         self.randombuf = 0
-        self.update_risk_speed_with_level()
+
+        # when it's constructed, a building is non functional (ex: farm, granary, prefecture, even dwell)
+        self.functional = False
 
         super().__init__(buildings_layer, _type, version)
 
+    def is_functional(self):
+        return self.functional
+
+    def set_functional(self, value: bool):
+        if value and not self.functional:
+            self.update_level("stat_inc")
+            self.functional = value
+        elif not value and self.functional:
+            self.update_level("reset")
+            self.functional = value
 
     def update_risk_speed_with_level(self):
         if self.structure_level == 0:
@@ -38,6 +50,13 @@ class Building(element.Element):
     def update_risk(self,risk):
         # As update_risk function is called very often we use this to update risk_speed simultaneously
         self.update_risk_speed_with_level()
+        if self.is_functional():
+            if self.dic['version'] != 'dwell':
+                if self.dic['version'] in ["fruit_farm", "olive_farm", "pig_farm", "vegetable_farm", "vine_farm",
+                                           "wheat_farm"]:
+                    self.update_functional_building_animation(0)
+                else:
+                    self.update_functional_building_animation(1)
 
         if risk == "fire" and self.isBurning:
             if self.BurningTime <= max_burning_time:
@@ -71,14 +90,20 @@ class Building(element.Element):
     def updateLikeability(self):
         pass
 
+    def update_functional_building_animation(self, start):
+        self.structure_level += 1
+        if self.structure_level == self.max_level:
+            assert (start <= self.max_level-1)
+            self.structure_level = start
+
     def update_level(self, update_type: "stat_inc" or 'change_content' or 'stat_dec' or 'reset'):
         if update_type == "change_content":
             self.structure_level = 0
             # self.file_path = something
 
         elif update_type == "stat_inc":
-            self.structure_level += 1
-            self.structure_level %= self.max_level
+            if self.structure_level < self.max_level:
+                self.structure_level += 1
 
         elif update_type == "stat_dec":
             if self.structure_level > 0:
@@ -202,10 +227,4 @@ class WaterStructure(Building):
         self.range = mapping.get_structures_range(_type, version)
         if version == "well":
             self.functional = True
-        else:
-            self.functional = False
 
-    def is_functional(self):
-        return self.functional
-    def set_functional(self, value: bool):
-        self.functional = value
