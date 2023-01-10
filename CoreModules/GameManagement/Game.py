@@ -139,6 +139,7 @@ class Game:
 
         for buil in self.updated:
             update.has_evolved.append(buil.position)
+
         self.updated.clear()
         for k in self.buildinglist:
 
@@ -351,3 +352,5 @@ class Game:
                 self.water_structures_list.append(building)
         return status
 
+    def update_likability(self):
+        pass

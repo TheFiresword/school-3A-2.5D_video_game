@@ -26,9 +26,9 @@ MAP_CAMERA_SPEED = 0.5
 
 class GameView(arcade.View):
 
-    def __init__(self, _game):
+    def __init__(self, _game, name = "save_1"):
         super().__init__()
-
+        self.name = name
         self.game = None
         if _game:
             self.game = _game
@@ -221,9 +221,12 @@ class GameView(arcade.View):
 
     def setup(self):
         if not self.game:
-            self.game = game.Game(map.MapLogic())
+            self.game = game.Game(map.MapLogic(),name = self.name)
+        else :
+            self.name = self.game.name
         self.money_text=text.Sprite_sentence("Dn: " +str(self.game.money),"white",(205,constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4))
         self.fps_text=text.Sprite_sentence( str(self.speed_ratio) + "%","black",(constantes.DEFAULT_SCREEN_WIDTH -162 + 85,constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT/2 +10))
+        self.population_text=text.Sprite_sentence("Pop :"+ str(len(self.game.walkersAll)),"white",(505,constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]/4))
         self.visualmap.setup(self.game)
         self.center_map()
         self.visualmap.buildings_layer.visible = True
@@ -292,7 +295,11 @@ class GameView(arcade.View):
                                       center_y=constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4,
                                       width=(len(self.money_text.sentence)+5) * constantes.FONT_WIDTH/2, height=self.bar.image.size[1]/2,
                                       texture=self.money_box)
-        arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH - 81,
+        arcade.draw_texture_rectangle(center_x=500,
+                                      center_y=constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4,
+                                      width=(len(self.money_text.sentence)+5) * constantes.FONT_WIDTH/2, height=self.bar.image.size[1]/2,
+                                      texture=self.money_box)
+        arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH - 81 ,
                                       center_y=constantes.DEFAULT_SCREEN_HEIGHT - 285 + 47,
                                       width=162, height=constantes.DEFAULT_SCREEN_HEIGHT / 2,
                                       texture=self.tab
@@ -301,6 +308,7 @@ class GameView(arcade.View):
         arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH - 81,center_y=constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT/2-23 -50 -200 ,width=162,height=200,texture=arcade.load_texture(constantes.SPRITE_PATH + "Map_panels/map_panels_00002.png"))
         self.money_text.draw_()
         self.fps_text.draw_()
+        self.population_text.draw_()
         self.right_panel_manager.draw()
         self.right_panel_manager.children[0][-1].draw_()
         self.bar_manager.draw()
@@ -346,6 +354,7 @@ class GameView(arcade.View):
             self.visualmap.update_walker_list(self.game.walkersOut)
             self.money_text = text.Sprite_sentence("Dn: " +str(self.game.money),"white",(320-(len(self.money_text.sentence)+5) * constantes.FONT_WIDTH/4,constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4))
             self.fps_text=text.Sprite_sentence( str(self.speed_ratio) + "%","black",(constantes.DEFAULT_SCREEN_WIDTH -162 + 85,constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT/2 +10))
+            self.population_text=text.Sprite_sentence("Pop :"+ str(len(self.game.walkersAll)),"white",(505 - (len(self.population_text.sentence)),constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]/4))
     # =======================================
     #  Mouse Related Fuctions
     # =======================================
@@ -498,13 +507,15 @@ class GameView(arcade.View):
         # Testing
         # press S to save your game
         elif symbol == arcade.key.S:
-            self.save_game('game1')
+            self.save_game(self.name)
         # press L to load game1
         elif symbol == arcade.key.L:
-            self.load_game('game1')
+            window = arcade.get_window()
+            window.show_view(window.loadscreen)
+            window.loadscreen.fromview = "game"
         # press D to delete game1
         elif symbol == arcade.key.D:
-            self.delete_game('game1')
+            self.delete_game('self.name')
 
         # press P to pause the game
         elif symbol == arcade.key.P:
