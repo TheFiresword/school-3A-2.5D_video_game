@@ -9,7 +9,7 @@ from UserInterface import UI_PoP_Up as pop
 
 import CoreModules.GameManagement.Game as game
 import CoreModules.MapManagement.mapManagementMap as map
-from CoreModules.UpdateManagement import Update as updates
+from CoreModules.GameManagement import Update as updates
 
 from Services import servicesGlobalVariables as constantes
 from Services import Service_Game_Data as gdata
