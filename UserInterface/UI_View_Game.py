@@ -226,6 +226,11 @@ class GameView(arcade.View):
         self.fps_text=text.Sprite_sentence( str(self.speed_ratio) + "%","black",(constantes.DEFAULT_SCREEN_WIDTH -162 + 85,constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT/2 +10))
         self.visualmap.setup(self.game)
         self.center_map()
+        self.visualmap.buildings_layer.visible = True
+        self.visualmap.fire_risk_layer_show = False
+        self.visualmap.collapse_risk_layer_show = False
+        self.visualmap.destroyed_layer_show = True
+        self.visualmap.fire_layer_show = True
         self.builder_content = ""
         
 
@@ -847,6 +852,7 @@ class GameView(arcade.View):
 
         for bcfire in update.catchedfire:
             self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = bcfire ,update_type="building_fire")
+            print("pris feu",self.game.duration)
         for bcollapse in update.collapsed:
             self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = bcollapse ,update_type="building_destroy")
         for bevol in update.has_evolved:

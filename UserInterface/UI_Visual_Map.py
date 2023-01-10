@@ -263,8 +263,6 @@ class VisualMap:
         sprite = layer[constantes.TILE_COUNT**2 - index -1]
         fire_risk_sprite = self.fire_risk_layer[constantes.TILE_COUNT**2 - index -1]
         collapse_risk_sprite = self.collapse_risk_layer[constantes.TILE_COUNT**2 - index -1]
-        if not sprite.visible:
-            sprite.visible = True
         if update_type == "building_destroy":
             firesprite= self.look_sprite_list(support_sprite.center_x,support_sprite.center_y,self.fire_layer)
             if firesprite:
@@ -276,10 +274,12 @@ class VisualMap:
             sprite.visible = False
             firesprite= self.look_sprite_list(support_sprite.center_x,support_sprite.center_y,self.fire_layer)
             if firesprite:
-                firesprite.visible = not firesprite.visible
+                #firesprite.visible = not firesprite.visible
+                print("changement")
             else:
                 firesprite= self.fire_sprite((sprite_pos_x,sprite_pos_y))
                 self.fire_layer.append(firesprite)
+                firesprite.visible = True
         if update_type == "change_content":
             sprite.textures = []
             for k in new_texture_path:
