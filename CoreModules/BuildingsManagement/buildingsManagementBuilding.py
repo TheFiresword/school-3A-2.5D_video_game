@@ -25,10 +25,22 @@ class Building(element.Element):
         self.BurningTime = 0
         self.isDestroyed = False
         self.randombuf = 0
-        self.update_risk_speed_with_level()
+
+        # when it's constructed, a building is non functional (ex: farm, granary, prefecture, even dwell)
+        self.functional = False
 
         super().__init__(buildings_layer, _type, version)
 
+    def is_functional(self):
+        return self.functional
+
+    def set_functional(self, value: bool):
+        if value and not self.functional:
+            self.update_level("stat_inc")
+            self.functional = value
+        elif not value and self.functional:
+            self.update_level("reset")
+            self.functional = value
 
     def update_risk_speed_with_level(self):
         if self.structure_level == 0:

@@ -175,27 +175,27 @@ class GameView(arcade.View):
         #self.buttons[9].on_click = UI_buttons.define_on_click_button_manager(self,"health")
         #self.buttons[10].
         self.bar_manager = arcade.gui.UIManager()
-        self.load_button = UI_buttons.Text_Button_background(x=40,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height -5,width=20,height=self.bar.height,texture=None,my_text="Load Game",color="black")
+        self.load_button = UI_buttons.Text_Button_background(x=40,y = constantes.DEFAULT_SCREEN_HEIGHT - 3*self.bar.height/4,width=20,height=self.bar.height,texture=None,my_text="Load Game",color="black")
         self.load_button.on_click = self.button_load_on_click
-        self.layer_button = UI_buttons.Text_Button_background(x=constantes.DEFAULT_SCREEN_WIDTH-300,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height -100,width=70,height=50,texture=UI_buttons.texture_panel11,my_text="Overlays",color="black")
+        self.layer_button = UI_buttons.Text_Button_background(x=constantes.DEFAULT_SCREEN_WIDTH-162 + 3,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height-1,width=120,height=25,texture=UI_buttons.texture_panel11,my_text="Overlays",color="black")
         self.layer_button.on_click = self.button_layer_on_click
         self.layer_manager = arcade.gui.UIManager()
         self.layer_manager_show = False
         
-        self.normal_layer_button = UI_buttons.Text_Button_background(x=constantes.DEFAULT_SCREEN_WIDTH-300,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height -150,width=70,height=50,texture=UI_buttons.texture_panel11,my_text="Normal",color="black")
+        self.normal_layer_button = UI_buttons.Text_Button_background(x=constantes.DEFAULT_SCREEN_WIDTH-282,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height -1,width=120,height=25,texture=UI_buttons.texture_panel11,my_text="Normal",color="black")
         self.layer_manager.add(self.normal_layer_button)
         self.normal_layer_button.on_click = self.button_normal_layer_on_click
-        self.fire_layer_button = UI_buttons.Text_Button_background(x=constantes.DEFAULT_SCREEN_WIDTH-300,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height -200,width=70,height=50,texture=UI_buttons.texture_panel11,my_text="Fire",color="black")
+        self.fire_layer_button = UI_buttons.Text_Button_background(x=constantes.DEFAULT_SCREEN_WIDTH-282,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height -26,width=120,height=25,texture=UI_buttons.texture_panel11,my_text="Fire",color="black")
         self.layer_manager.add(self.fire_layer_button)
         self.fire_layer_button.on_click = self.button_fire_layer_on_click
-        self.collapse_layer_button = UI_buttons.Text_Button_background(x=constantes.DEFAULT_SCREEN_WIDTH-300,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height -250,width=70,height=50,texture=UI_buttons.texture_panel11,my_text="Collapse",color="black")
+        self.collapse_layer_button = UI_buttons.Text_Button_background(x=constantes.DEFAULT_SCREEN_WIDTH-282,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height -51,width=120,height=25,texture=UI_buttons.texture_panel11,my_text="Collapse",color="black")
         self.layer_manager.add(self.collapse_layer_button)
         self.collapse_layer_button.on_click = self.button_collapse_layer_on_click
         self.bar_manager.add(self.load_button)
         self.bar_manager.enable()
         
-        self.fps_up = arcade.gui.UITextureButton(x=constantes.DEFAULT_SCREEN_WIDTH - 162 + 10,y=constantes.DEFAULT_SCREEN_HEIGHT-700,texture=arcade.load_texture(constantes.SPRITE_PATH+ "Panel/Panel42/paneling_00249.png"),width = 25,height=15)
-        self.fps_down = arcade.gui.UITextureButton(x=constantes.DEFAULT_SCREEN_WIDTH -162 + 35,y=constantes.DEFAULT_SCREEN_HEIGHT-700,texture=arcade.load_texture(constantes.SPRITE_PATH+ "Panel/Panel43/paneling_00253.png"),width = 25,height=15)
+        self.fps_up = arcade.gui.UITextureButton(x=constantes.DEFAULT_SCREEN_WIDTH - 162 + 10,y=constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT/2,texture=arcade.load_texture(constantes.SPRITE_PATH+ "Panel/Panel42/paneling_00249.png"),width = 25,height=15)
+        self.fps_down = arcade.gui.UITextureButton(x=constantes.DEFAULT_SCREEN_WIDTH -162 + 35,y=constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT/2,texture=arcade.load_texture(constantes.SPRITE_PATH+ "Panel/Panel43/paneling_00253.png"),width = 25,height=15)
 
         self.fps_up.on_click = self.button_fps_up_on_click
         self.fps_down.on_click = self.button_fps_down_on_click
@@ -222,7 +222,7 @@ class GameView(arcade.View):
         self.game.create_walker()
         self.game.walkersGetOut()
         self.money_text=text.Sprite_sentence("Dn: " +str(self.game.money),"white",(205,constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4))
-        self.fps_text=text.Sprite_sentence( str(int(self.game.framerate * 100/constantes.DEFAULT_FPS)) + "%","black",(constantes.DEFAULT_SCREEN_WIDTH -162 + 85,constantes.DEFAULT_SCREEN_HEIGHT-690))
+        self.fps_text=text.Sprite_sentence( str(int(self.game.framerate * 100/constantes.DEFAULT_FPS)) + "%","black",(constantes.DEFAULT_SCREEN_WIDTH -162 + 85,constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT/2 +10))
         self.visualmap.setup(self.game)
         self.center_map()
         self.builder_content = ""
@@ -291,8 +291,8 @@ class GameView(arcade.View):
                                       width=162, height=constantes.DEFAULT_SCREEN_HEIGHT / 2,
                                       texture=self.tab
                                       )
-        arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH - 81,center_y=constantes.DEFAULT_SCREEN_HEIGHT - 285 + 97- constantes.DEFAULT_SCREEN_HEIGHT / 2,width=162,height=100,texture=arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel46.png"))
-
+        arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH - 81,center_y=constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT/2-23 -50 ,width=162,height=200,texture=arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel46.png"))
+        arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH - 81,center_y=constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT/2-23 -50 -200 ,width=162,height=200,texture=arcade.load_texture(constantes.SPRITE_PATH + "Map_panels/map_panels_00002.png"))
         self.money_text.draw_()
         self.fps_text.draw_()
         self.right_panel_manager.draw()
@@ -340,7 +340,7 @@ class GameView(arcade.View):
                 walker.walk(self.visualmap.map_scaling)
             self.visualmap.update_walker_list(self.game.walkersOut)
             self.money_text = text.Sprite_sentence("Dn: " +str(self.game.money),"white",(320-(len(self.money_text.sentence)+5) * constantes.FONT_WIDTH/4,constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4))
-            self.fps_text=text.Sprite_sentence( str(int(self.game.framerate * 100/constantes.DEFAULT_FPS)) + "%","black",(constantes.DEFAULT_SCREEN_WIDTH -162 + 85,constantes.DEFAULT_SCREEN_HEIGHT-690))
+            self.fps_text=text.Sprite_sentence( str(int(self.game.framerate * 100/constantes.DEFAULT_FPS)) + "%","black",(constantes.DEFAULT_SCREEN_WIDTH -162 + 85,constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT/2 +10))
 
     # =======================================
     #  Mouse Related Fuctions
