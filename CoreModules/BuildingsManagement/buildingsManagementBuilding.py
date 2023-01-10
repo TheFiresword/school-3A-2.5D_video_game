@@ -63,6 +63,8 @@ class Building(element.Element):
                 self.BurningTime += 1
             else:
                 self.isDestroyed = True
+                self.risk_dico["fire"],self.risk_level_dico = 0,0
+                self.risk_dico["collapse"],self.risk_level_dico = 0,0
                 self.isBurning = False
         else:
             self.randombuf += random.random()*self.risk_increasing_speed
@@ -115,8 +117,8 @@ class Building(element.Element):
 class Dwelling(Building):
     def __init__(self, buildings_layer, _type):
         super().__init__(buildings_layer, _type, "dwell")
-        self.current_population = None
-        self.max_population = None
+        self.current_population = 0
+        self.max_population = 0
         """
         Desirability can prevent a house from evolving. In order to evolve, a house also must have a certain 
         desirability in addition to more services. Desirability is calculated from the nearby buildings. 
