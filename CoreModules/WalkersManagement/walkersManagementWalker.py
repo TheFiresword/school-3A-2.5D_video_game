@@ -1,6 +1,7 @@
 import random
 from Services import servicesGlobalVariables as cst
 from Services import Service_Walker_Sprite_To_File as wstf
+from CoreModules.BuildingsManagement.buildingsManagementBuilding import Dwelling
 
 # ============================================#
 # Relative to pathfinding--We use the library pathfinding
@@ -41,13 +42,14 @@ class Walker:
     def __init__(self, pos_ligne, pos_col, house, fps, zoom, game):
 
         self.map_associated = game.map
+        self.game = game
         # some layers we need
         self.road_layer = game.map.roads_layer
         self.building_layer = game.map.buildings_layer
 
         self.fps = fps
         self.zoom = zoom
-        self.head = left
+        self.head = right
         self.init_pos = (pos_ligne, pos_col)
         self.dest_pos = None
         self.compteur = 0
@@ -149,6 +151,7 @@ class Walker:
                     if self.dest_compteur == len(self.current_path_to_follow) - 1:
                         self.dest_compteur = 0
                         self.current_path_to_follow.clear()
+                        self.initiate_work(self.__class__.__name__)
                     else:
                         self.dest_compteur += 1
 
@@ -279,7 +282,17 @@ class Walker:
             self.current_path_to_follow[count] = tuple(reversed(self.current_path_to_follow[count]))
 
         return
-    def work(self):
+
+    def initiate_work(self,_type):
+        match _type:
+            case "Immigrant":
+                self.work()
+            case "Prefect":
+                for building in self.game.buildinglist:
+                    if building.isBurning:
+                        self.work(building)
+
+    def work(self, building=None):
         pass
 
     def variation_pos_visuel(self, depart, arrive):
@@ -294,18 +307,35 @@ class Walker:
 
 
 class Engineer(Walker):
-    def work(self):
+    def work(self, building):
         pass
 
 
 class Prefect(Walker):
-    def work(self):
-        pass
+    def work(self, building):
+        self.walk_to_a_building(building.position)
 
 
 class Immigrant(Walker):
+
+    def __init__(self,pos_ligne, pos_col, house, fps, zoom, game):
+        super(Immigrant, self).__init__(pos_ligne, pos_col, house, fps, zoom, game)
+        self.find_house()
+    def work(self, building=None):
+        self.game.walkersOut.remove(self)
+        self.house.structure_level = 1
+        self.game.updated.append(self.house)
+
     def find_house(self):
         # Parcourir la liste des maisons, trouver celle dans lesquelle peut s'installer(nombre d'habitant, niveau d'habitaion)
+        for building in self.game.buildinglist:
+            if type(building) == Dwelling and building.current_population<building.max_population:
+                self.walk_to_a_building(building.position)
+                self.house = building
+                building.current_population += 1
+            if self.house:
+                return
+
         pass
 
 

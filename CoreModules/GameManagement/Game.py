@@ -23,6 +23,7 @@ class Game:
         self.walkersAll = []
         self.walkersOut = []
         self.framerate = globalVar.DEFAULT_FPS
+        self.updated = []
 
         # some lists of specific buildings
         self.water_structures_list = []
@@ -99,12 +100,19 @@ class Game:
         update.has_evolved += self.update_requirements('pottery')
         update.has_evolved += self.update_requirements('bathhouse')
 
+        for buil in self.updated:
+            update.has_evolved.append(buil.position)
+        self.updated.clear()
+
         for k in self.buildinglist:
             pos = k.position
             cases = []
             # We don't want primitive housing (pannel) to burn or to collapse
-            if type(k) == buildings.Dwelling and not k.is_occupied():
-                continue
+            print(k)
+            if type(k) == buildings.Dwelling and k.current_population < k.max_population:
+                while k.current_population < k.max_population:
+                    self.create_walker()
+                    print(1)
 
             if k.dic['cells_number'] != 1:
                 for i in range(0, k.dic['cells_number']):
@@ -131,25 +139,21 @@ class Game:
 
 
     def create_walker(self):
-        self.walkersAll.append(
-            walkers.Walker(globalVar.TILE_COUNT - 1, 20, None, 1 / self.framerate, globalVar.SPRITE_SCALING, self))
-        self.walkersAll.append(
-            walkers.Engineer(globalVar.TILE_COUNT - 3, 20, None, 1 / self.framerate, globalVar.SPRITE_SCALING, self))
-        self.walkersAll.append(
-            walkers.Prefect(globalVar.TILE_COUNT - 5, 20, None, 1 / self.framerate, globalVar.SPRITE_SCALING, self))
-        self.walkersAll.append(
-            walkers.Immigrant(1, 20, None, 1 / self.framerate, globalVar.SPRITE_SCALING, self))
+        walker = walkers.Immigrant(0, 20, None, 1 / self.framerate, globalVar.DEFAULT_FPS, self)
+        self.walkersAll.append(walker)
+        self.walkersGetOut(walker)
 
-    def walkersGetOut(self):
-        for k in self.walkersAll:
-            self.walkersOut.append(k)
+    def walkersGetOut(self, walker):
+        self.walkersOut.append(walker)
         pass
 
     def walkersOutUpdates(self, exit=False):  # fps = 1/self.framerate
         if exit:
-            self.walkersOut[0].get_out_city()
+            for walker in self.walkersOut:
+                walker.get_out_city()
         else:
-            self.walkersOut[0].walk_to_a_building((globalVar.TILE_COUNT//2, globalVar.TILE_COUNT // 2 -4 ))
+            for walker in self.walkersOut:
+                walker.walk_to_a_building((globalVar.TILE_COUNT//2, globalVar.TILE_COUNT // 2 -4 ))
         pass
 
     def remove_element(self, pos) -> str | None:
