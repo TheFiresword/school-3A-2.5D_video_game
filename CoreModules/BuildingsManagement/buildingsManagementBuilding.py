@@ -65,6 +65,8 @@ class Building(element.Element):
                 self.BurningTime += 1
             else:
                 self.isDestroyed = True
+                self.risk_dico["fire"],self.risk_level_dico = 0,0
+                self.risk_dico["collapse"],self.risk_level_dico = 0,0
                 self.isBurning = False
         else:
             self.randombuf += random.random()*self.risk_increasing_speed
