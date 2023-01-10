@@ -1,5 +1,5 @@
 import pyglet
-
+from uuid import uuid4
 from UserInterface import UI_Section as uis
 from UserInterface import UI_buttons
 from UserInterface import UI_HUD_Build as hudb
@@ -22,6 +22,12 @@ import arcade.gui
 from pyglet.math import Vec2
 
 MAP_CAMERA_SPEED = 0.5
+
+MINIMAP_BACKGROUND_COLOR = arcade.get_four_byte_color(arcade.color.BLACK)
+MINIMAP_WIDTH = 154
+MINIMAP_HEIGHT = 170
+MAP_WIDTH = 2048
+MAP_HEIGHT = 2048
 
 class GameView(arcade.View):
 
@@ -114,7 +120,10 @@ class GameView(arcade.View):
         #self.buttons[8].on_click = UI_buttons.define_on_click_button_manager(self,"water")
         #self.buttons[9].on_click = UI_buttons.define_on_click_button_manager(self,"health")
         #self.buttons[10].
-        
+
+        self.minimap_sprite_list = None
+        self.minimap_texture = None
+        self.minimap_sprite = None
         
         for k in self.buttons:
             self.right_panel_manager.add(k)
@@ -130,6 +139,9 @@ class GameView(arcade.View):
         # =======================================
         self.setup()
         pass
+###############################################################
+
+
 
     def setup(self):
         if not self.game:
@@ -140,7 +152,26 @@ class GameView(arcade.View):
         self.visualmap.setup(self.game)
         self.center_map()
         self.builder_content = ""
-        
+
+        # Construct the minimap
+        size = (MINIMAP_WIDTH, MINIMAP_HEIGHT)
+        self.minimap_texture = arcade.Texture.create_empty(str(uuid4()), size)
+        self.minimap_sprite = arcade.Sprite(center_x=(constantes.DEFAULT_SCREEN_WIDTH-MINIMAP_WIDTH/2),
+                                            center_y=(constantes.DEFAULT_SCREEN_HEIGHT - MINIMAP_HEIGHT /2),
+                                            texture=self.minimap_texture)
+        self.minimap_sprite_list = arcade.SpriteList()
+        self.minimap_sprite_list.append(self.minimap_sprite)
+
+
+    def update_minimap(self):
+        proj = 0, constantes.DEFAULT_SCREEN_WIDTH, 0, constantes.DEFAULT_SCREEN_HEIGHT
+        with self.minimap_sprite_list.atlas.render_into(self.minimap_texture, projection=proj) as fbo:
+            fbo.clear(MINIMAP_BACKGROUND_COLOR)
+            self.visualmap.grass_layer.draw()
+            self.visualmap.roads_layer.draw()
+            self.visualmap.buildings_layer.draw()
+            self.visualmap.hills_layer.draw()
+
 
     # =======================================
     #  View Related Fuctions
@@ -218,8 +249,13 @@ class GameView(arcade.View):
                     print("no manager")
         if self.actual_pop_up.visible:
             self.actual_pop_up.draw_()
-        
-            
+
+
+        # Update the minimap
+        self.update_minimap()
+
+        # Draw the minimap
+        self.minimap_sprite_list.draw()
 
     def on_update(self, delta_time: float):
         update = self.game.updategame()
