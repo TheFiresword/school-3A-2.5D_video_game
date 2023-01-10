@@ -1,6 +1,6 @@
 from Services import servicesGlobalVariables as globalVar
 from Services.Service_Game_Data import building_dico, road_dico, removing_cost
-from CoreModules.UpdateManagement import Update as updates
+from CoreModules.GameManagement import Update as updates
 from CoreModules.BuildingsManagement import buildingsManagementBuilding as buildings
 from CoreModules.WalkersManagement import walkersManagementWalker as walkers
 
