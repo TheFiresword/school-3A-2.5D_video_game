@@ -1,5 +1,6 @@
 import pyglet
 
+from CoreModules.WalkersManagement.walkersManagementWalker import Immigrant
 from UserInterface import UI_Section as uis
 from UserInterface import UI_buttons
 from UserInterface import UI_HUD_Build as hudb
@@ -221,9 +222,6 @@ class GameView(arcade.View):
     def setup(self):
         if not self.game:
             self.game = game.Game(map.MapLogic())
-            self.speed_ratio = self.game.framerate * 100 / constantes.DEFAULT_FPS
-        self.game.create_walker()
-        self.game.walkersGetOut()
         self.money_text=text.Sprite_sentence("Dn: " +str(self.game.money),"white",(205,constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4))
         self.fps_text=text.Sprite_sentence( str(self.speed_ratio) + "%","black",(constantes.DEFAULT_SCREEN_WIDTH -162 + 85,constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT/2 +10))
         self.visualmap.setup(self.game)

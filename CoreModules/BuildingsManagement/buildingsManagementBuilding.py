@@ -122,8 +122,8 @@ class Building(element.Element):
 class Dwelling(Building):
     def __init__(self, buildings_layer, _type):
         super().__init__(buildings_layer, _type, "dwell")
-        self.current_population = None
-        self.max_population = None
+        self.current_population = 0
+        self.max_population = 5
         """
         Desirability can prevent a house from evolving. In order to evolve, a house also must have a certain 
         desirability in addition to more services. Desirability is calculated from the nearby buildings. 
