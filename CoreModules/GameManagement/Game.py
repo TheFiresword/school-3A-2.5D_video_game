@@ -47,8 +47,26 @@ class Game:
     def startGame(self):
         # ---------------------------------#
         pass
-    def change_game_speed(self, factor):
-        self.framerate /= factor
+    def change_game_speed(self, step):
+        """
+        A step of 1 indicates incremental speed
+        And -1 indicates decremental speed
+        """
+        if self.framerate > globalVar.DEFAULT_FPS:
+            if step == 1 and self.framerate < 10*globalVar.DEFAULT_FPS:
+                self.framerate += globalVar.DEFAULT_FPS
+            elif step == -1:
+                self.framerate -= globalVar.DEFAULT_FPS
+        elif self.framerate < globalVar.DEFAULT_FPS:
+            if step == 1:
+                self.framerate += 0.1*globalVar.DEFAULT_FPS
+            elif step == -1 and self.framerate > 0.1*globalVar.DEFAULT_FPS:
+                self.framerate -= 0.1*globalVar.DEFAULT_FPS
+        else:
+            if step == 1:
+                self.framerate += globalVar.DEFAULT_FPS
+            elif step == -1:
+                self.framerate -= 0.1*globalVar.DEFAULT_FPS
 
     def foodproduction(self):
         # ---------------------------------#
@@ -104,7 +122,7 @@ class Game:
         In fact it updates the buildings of the game
         Differents types of updates can occur: a building evolving, a building burning or a building collapsing
         """
-        self.current_time += self.framerate
+        self.current_time += 1/self.framerate
         self.duration = int(self.current_time - self.init_time)
 
         update = updates.LogicUpdate()
@@ -178,20 +196,20 @@ class Game:
 
     def create_walker(self):
         self.walkersAll.append(
-            walkers.Walker(globalVar.TILE_COUNT - 1, 20, None, 1 / self.framerate, globalVar.SPRITE_SCALING, self))
+            walkers.Walker(globalVar.TILE_COUNT - 1, 20, None, 0.5*globalVar.DEFAULT_FPS, globalVar.SPRITE_SCALING, self))
         self.walkersAll.append(
-            walkers.Engineer(globalVar.TILE_COUNT - 3, 20, None, 1 / self.framerate, globalVar.SPRITE_SCALING, self))
+            walkers.Engineer(globalVar.TILE_COUNT - 3, 20, None, 0.5*globalVar.DEFAULT_FPS, globalVar.SPRITE_SCALING, self))
         self.walkersAll.append(
-            walkers.Prefect(globalVar.TILE_COUNT - 5, 20, None, 1 / self.framerate, globalVar.SPRITE_SCALING, self))
+            walkers.Prefect(globalVar.TILE_COUNT - 5, 20, None, 0.5*globalVar.DEFAULT_FPS, globalVar.SPRITE_SCALING, self))
         self.walkersAll.append(
-            walkers.Immigrant(1, 20, None, 1 / self.framerate, globalVar.SPRITE_SCALING, self))
+            walkers.Immigrant(1, 20, None, globalVar.DEFAULT_FPS, 0.5*globalVar.SPRITE_SCALING, self))
 
     def walkersGetOut(self):
         for k in self.walkersAll:
             self.walkersOut.append(k)
         pass
 
-    def walkersOutUpdates(self, exit=False):  # fps = 1/self.framerate
+    def walkersOutUpdates(self, exit=False):  # fps = self.framerate
         if exit:
             self.walkersOut[0].get_out_city()
         else:
