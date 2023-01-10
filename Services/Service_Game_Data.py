@@ -10,9 +10,13 @@ class Building_info:
         self.max_employs = max_employs
 
         if sprite_name != "":
-            self.spritepath, self.size = mapping.mapping_function(const.LAYER5, sprite_name)[0]
+            self.spritepath = mapping.mapping_function(const.LAYER5,sprite_name)[0][0]
+            if self.spritepath:
+                self.size = mapping.mapping_function(const.LAYER5,sprite_name)[0][1]
         else :
-            self.spritepath, self.size = mapping.mapping_function(const.LAYER5,"dwell")[0]
+            self.spritepath = mapping.mapping_function(const.LAYER5,"dwell")[0][0]
+            self.size = 1
+        # (self.spritepath, self.cells_number) = mapping.mapping_function(const.LAYER5, sprite_type)
 
         self.road_dependency = road_dependency
         self.water_dependency = water_dependency
@@ -32,7 +36,7 @@ building_dico = {
     "venus temple": Building_info(50, -1, 8, "venus_temple", False, False),
     "amphitheater": Building_info(100, -1, 12, "amphitheater", False, False),
     "barber": Building_info(25, -1, 2, "barber", True, False),
-    "baths": Building_info(50, -1, 10, "baths", False, True),
+    "normal_bath": Building_info(50, -1, 10, "normal_bath", False, True),
     "barracks": Building_info(150, -1, 10, "barracks", False, True),
     "clay pit": Building_info(40, -1, 10, "clay_pit", True, False),
     "colosseum": Building_info(500, -1, 25, "colosseum", False, False),

@@ -11,6 +11,7 @@ from UserInterface import UI_Text_Display as texts
 class LoadScreen(arcade.View):
     def __init__(self):
         super().__init__()
+        self.fromview = ""
         # =======================================
         # Intels about the current player action
         # =======================================
@@ -105,11 +106,14 @@ class LoadScreen(arcade.View):
     def leave_button_on_click(self,event):
         window = arcade.get_window()
         window.settingscreen.setup()
-        window.show_view(window.welcomescreen)
+        if self.fromview == "welcome":
+            window.show_view(window.welcomescreen)
+        if self.fromview == "game":
+            window.show_view(window.gamescreen)
     
     def validate_button_on_click(self,event):
         window = arcade.get_window()
         window.settingscreen.setup()
         if self.selected_game != "":
-            window.loadedgame = rgv.GameView(_game=sal.load_game(self.selected_game.split(".")[0]))
-            window.show_view(window.loadedgame)
+            window.gamescreen = rgv.GameView(_game=sal.load_game(self.selected_game.split(".")[0]))
+            window.show_view(window.gamescreen)

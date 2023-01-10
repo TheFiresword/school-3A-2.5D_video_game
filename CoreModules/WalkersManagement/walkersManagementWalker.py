@@ -179,6 +179,10 @@ class Walker:
         line, column = building_target_pos
 
         cells_number = self.building_layer.get_cells_number(line, column)
+
+        # If the building is a dwell then the walker can walk to it if there is a road in a range of 2 cells
+        building = self.building_layer.get_cell(line, column)
+        dwell = building.dic['version'] == 'dwell'
         assert cells_number
 
         path_founds = []
@@ -187,15 +191,25 @@ class Walker:
         for i in range(cells_number):
             if self.road_layer.is_real_road(line + i, column - 1):
                 possible_cells_to_approch_target.append((line + i, column - 1))
+            # If the building is a dwell then the walker can walk to it if there is a road in a range of 2 cells
+            elif self.road_layer.is_real_road(line + i, column - 2) and dwell:
+                possible_cells_to_approch_target.append((line + i, column - 2))
 
             if self.road_layer.is_real_road(line - 1, column + i):
                 possible_cells_to_approch_target.append((line - 1, column + i))
+            elif self.road_layer.is_real_road(line - 2, column + i) and dwell:
+                possible_cells_to_approch_target.append((line - 2, column + i))
+
 
             if self.road_layer.is_real_road(line + cells_number, column + i):
                 possible_cells_to_approch_target.append((line + cells_number, column + i))
+            elif self.road_layer.is_real_road(line + cells_number + 1, column + i) and dwell:
+                possible_cells_to_approch_target.append((line + cells_number + 1, column + i))
 
             if self.road_layer.is_real_road(line + i, column + cells_number):
                 possible_cells_to_approch_target.append((line + i, column + cells_number))
+            elif self.road_layer.is_real_road(line + i, column + cells_number+1) and dwell:
+                possible_cells_to_approch_target.append((line + i, column + cells_number+1))
 
         # we have to take in consideration the case where the walker is already walking to a random destination
         # then the start position for the pathfinding is considered to be this destination
