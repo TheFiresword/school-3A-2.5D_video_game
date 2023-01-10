@@ -349,7 +349,7 @@ class VisualMap:
         return sprite
     
     def collumn_sprite(self,pos,level=0):
-        textures = [arcade.load_texture(constantes.SPRITE_PATH + "Land/LandOverlay/Land2a_00037.png")] #+ [arcade.load_texture(constantes.SPRITE_PATH + "Statues/"+str(10*i) +".png") for i in range(1,10,2)]
+        textures = [arcade.load_texture(constantes.SPRITE_PATH + "Land/LandOverlay/Land2a_00037.png")] + [arcade.load_texture(constantes.SPRITE_PATH + "Statues/"+str(10*i) +".png") for i in range(1,10,2)]
         sprite= arcade.Sprite()
         sprite.center_x = pos[0]
         sprite.center_y = pos[1]
