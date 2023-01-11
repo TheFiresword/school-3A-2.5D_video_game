@@ -1,6 +1,6 @@
 import Services.servicesGlobalVariables as globalVar
 import Services.servicesmMapSpriteToFile as mapping
-import CoreModules.TileManagement.tileManagementElement as Element
+import CoreModules.MapManagement.tileManagementElement as Element
 from CoreModules.BuildingsManagement.buildingsManagementBuilding import *
 
 # PROBLEME Les lignes et les colonnes sont inversées je ne sais pas pourquoi

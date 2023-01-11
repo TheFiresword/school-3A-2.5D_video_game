@@ -531,7 +531,7 @@ class GameView(arcade.View):
 
         #Testing pathfinding
         elif symbol == arcade.key.M:
-            self.game.walkersOutUpdates()
+            self.game.print_building_list()
         elif symbol == arcade.key.E:
             self.game.walkersOutUpdates(exit=True)
             
@@ -854,10 +854,13 @@ class GameView(arcade.View):
             self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = j ,update_type="building_fire")
         for k in update.collapsed:
             self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = k ,update_type="building_destroy")
-        for l in update.has_evolved:
-            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = l[0] ,update_type="stat_inc",special_value=l[1])
+
+        # Devolve before evolved -- order is important
         for m in update.has_devolved:
             self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer, position=m[0], update_type="stat_dec", special_value=m[1])
+        for l in update.has_evolved:
+            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = l[0] ,update_type="stat_inc",special_value=l[1])
+
         for n in update.removed:
             self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer, position=n, update_type="delete")
         for briskfire in update.fire_level_change:
