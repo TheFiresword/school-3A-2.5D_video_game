@@ -352,5 +352,26 @@ class Game:
                 self.water_structures_list.append(building)
         return status
 
-    def update_likability(self):
-        pass
+    def update_likability(self,building):
+        voisins = self.get_voisins(building)
+        score = 0
+        for voisin in voisins:
+            version = voisin.dic["version"]
+            if version not in ["null"]:
+                if version == "dwell":
+                    voisins.
+                    
+
+    def get_voisins(self,building):
+        voisins = set()
+        cases = []
+        pos = building.position
+        for i in range(0, building.dic['cells_number']):
+                    for j in range(0, building.dic['cells_number']):
+                        if (i, j) != (0, 0):
+                            cases.append(self.map.buildinglayer((pos[0] + i, pos[1] + j)))
+        for case in cases:
+            for i in range(-2,2):
+                for j in range(-2,2):
+                                    voisins.add(self.map.buildinglayer.array[case[0] + i][case[1] + j])
+        return voisins
