@@ -7,9 +7,12 @@ from CoreModules.WalkersManagement import walkersManagementWalker as walkers
 import copy
 
 INIT_MONEY = 1000000000
-
+TIME_BEFORE_REMOVING_DWELL = 3 #seconds
 import time
 
+"""
+ATTENTION: Building en feu pourrait etre updated
+"""
 class Game:
     def __init__(self, _map, name="save"):
         self.name = name
@@ -95,60 +98,56 @@ class Game:
         pass
 
 
-    def update_requirements(self, of_what: 'water' or 'food' or 'temple' or 'education' or 'fountain' or
+    def print_building_list(self):
+        for b in self.buildinglist:
+            print(b.dic['version'])
+    def update_supply_requirements(self, of_what: 'water' or 'food' or 'temple' or 'education' or 'fountain' or
                                          'basic_entertainment' or 'pottery' or 'bathhouse'):
         """
-        This functions searches for water structures on the map and for each one look for dwell within the range of
+        This functions searches for supply structures on the map and for each one look for dwell within the range of
         the structure. If the dwell required a structure of this type, then its position will be added to the list of
         buildings to update.
         return: a set of positions of housings that will be updated, to avoid duplicate values
         """
+
         buildings_position_to_append_to_update_object = []
         tmp = of_what+'_structures_list'
         structures_list = getattr(self, tmp)
         for structure in structures_list:
             if not structure.is_functional():
                 continue
-            _range = structure.range
-            _position = structure.position
-            for i in range(-_range, _range+1, 1):
-                for j in range(-_range, _range + 1, 1):
-                    line, column = _position[0]+i, _position[1]+j
-                    real_building = self.map.buildings_layer.get_cell(line, column)
-                    if real_building.dic['version'] == "dwell":
-                        # update of the requirements of the building
-                        real_building.update_requirements()
-                        if not real_building.has_access(of_what):
-                            real_building.update_with_supply(of_what)
-                            buildings_position_to_append_to_update_object.append((real_building.position,
-                                                                                  real_building.structure_level))
+            buildings_position_to_append_to_update_object += list(self.intermediate_update_supply_function(of_what,
+                                                                                        structure, evolvable=True))
         return set(buildings_position_to_append_to_update_object)
 
-    def reset_supply_requirement(self, of_what: 'water' or 'food' or 'temple' or 'education' or 'fountain' or
-                                           'basic_entertainment' or 'pottery' or 'bathhouse'):
+    def intermediate_update_supply_function(self, of_what: 'water' or 'food' or 'temple' or 'education' or 'fountain' or
+                                           'basic_entertainment' or 'pottery' or 'bathhouse', structure, evolvable=True):
 
         buildings_position_to_append_to_update_object = []
-
-        tmp = 'last_'+of_what + '_structure_removed'
-        structure = getattr(self, tmp)
-        if structure: # None
+        if structure:  # None
             if structure.is_functional():
                 _range = structure.range
                 _position = structure.position
-                tmp_list = list(self.update_requirements(of_what))
-                for i in range(-_range, _range + 1, 1):
-                    for j in range(-_range, _range + 1, 1):
-                        line, column = _position[0] + i, _position[1] + j
-                        real_building = self.map.buildings_layer.get_cell(line, column)
-                        if real_building.dic['version'] == "dwell":
-                            if not real_building.position in tmp_list:
-                                # update of the requirements of the building
-                                real_building.update_requirements()
-                                real_building.update_with_supply(of_what, evolvable=False)
-                                buildings_position_to_append_to_update_object.append((real_building.position,
-                                                                                              real_building.structure_level))
-            setattr(self, tmp, None)
+
+                for building in self.buildinglist:
+                    line, column = building.position
+                    if -_range + _position[0] <= line < _range + 1 + _position[0] and -_range + _position[1] <= column \
+                            < _range + 1 + _position[1] and building.dic['version'] == "dwell":
+                        building.update_requirements()
+                        status = building.update_with_supply(of_what, evolvable=evolvable)
+                        if status:
+                            buildings_position_to_append_to_update_object.append((building.position,
+                                                                                  building.structure_level))
         return set(buildings_position_to_append_to_update_object)
+
+    def downgrade_supply_requirement(self, of_what: 'water' or 'food' or 'temple' or 'education' or 'fountain' or
+                                           'basic_entertainment' or 'pottery' or 'bathhouse'):
+        tmp = 'last_'+of_what + '_structure_removed'
+        structure = getattr(self, tmp)
+        buildings_position_to_append_to_update_object = list(self.intermediate_update_supply_function(of_what, structure,
+                                                                                                      evolvable=False))
+        setattr(self, tmp, None)
+        return buildings_position_to_append_to_update_object
 
 
     def updategame(self):
@@ -169,21 +168,20 @@ class Game:
         self.updated.clear()
 
         #
-        update.has_devolved += list(self.reset_supply_requirement('water'))
+        update.has_devolved += list(self.downgrade_supply_requirement('water'))
 
-        update.has_evolved += list(self.update_requirements('water'))
-        update.has_evolved += list(self.update_requirements('food'))
-        update.has_evolved += list(self.update_requirements('temple'))
-        update.has_evolved += list(self.update_requirements('education'))
-        update.has_evolved += list(self.update_requirements('fountain'))
-        update.has_evolved += list(self.update_requirements('basic_entertainment'))
-        update.has_evolved += list(self.update_requirements('pottery'))
-        update.has_evolved += list(self.update_requirements('bathhouse'))
+        update.has_evolved += list(self.update_supply_requirements('water'))
+        update.has_evolved += list(self.update_supply_requirements('food'))
+        update.has_evolved += list(self.update_supply_requirements('temple'))
+        update.has_evolved += list(self.update_supply_requirements('education'))
+        update.has_evolved += list(self.update_supply_requirements('fountain'))
+        update.has_evolved += list(self.update_supply_requirements('basic_entertainment'))
+        update.has_evolved += list(self.update_supply_requirements('pottery'))
+        update.has_evolved += list(self.update_supply_requirements('bathhouse'))
 
         update.has_evolved = list(set(update.has_evolved))
         update.has_devolved = list(set(update.has_devolved))
-        if len(update.has_evolved) != 0:
-            print(update.has_evolved)
+
 
         for k in self.buildinglist:
             # Update of the risk speed level
@@ -195,8 +193,6 @@ class Game:
                 update.has_evolved.append((pos, k.structure_level))
 
             cases = []
-            if type(k) == buildings.Dwelling:
-                print(k.structure_level)
             # Creation of walkers
             if type(k) == buildings.Dwelling and k.current_population < k.max_population:
                 while k.current_population < k.max_population:
@@ -215,16 +211,18 @@ class Game:
                             break
                 # update tracktimer of dwells
                 built_since = int(self.current_time - self.timer_track_dwells[pos]) if pos in self.timer_track_dwells else 0
-                if removable and built_since > 1:
+                if removable and built_since > TIME_BEFORE_REMOVING_DWELL:
                     # to avoid decreasing money
                     self.money += removing_cost
                     self.remove_element(pos)
                     update.removed.append(pos)
                     self.timer_track_dwells.pop(pos)
 
-                elif built_since > 5:
+                elif built_since > TIME_BEFORE_REMOVING_DWELL:
                     self.timer_track_dwells.pop(pos)
 
+            # ---------------------------------------------------------#
+            # Update of burnt and collapsed buildings
             if k.dic['cells_number'] != 1:
                 for i in range(0, k.dic['cells_number']):
                     for j in range(0, k.dic['cells_number']):
@@ -250,13 +248,12 @@ class Game:
                 update.fire_level_change.append((k.position,building_update["fire_level"][1]))
             if building_update["collapse_level"][0]:
                 update.collapse_level_change.append((k.position,building_update["collapse_level"][1]))
-
         return update
         # ---------------------------------#
 
 
     def create_walker(self):
-        walker = walkers.Immigrant(0, 20, None, 1 / self.framerate, globalVar.DEFAULT_FPS, self)
+        walker = walkers.Immigrant(0, 20, None, globalVar.DEFAULT_FPS, globalVar.DEFAULT_FPS, self)
         self.walkersAll.append(walker)
         self.walkersGetOut(walker)
 
@@ -288,15 +285,16 @@ class Game:
             if element_type == globalVar.LAYER5:
                 if self.buildinglist:
                     """
-                    # to remove the time tracker if the building is removed before 5s
+                    # to remove the time tracker if the building is removed before 3s
                     if pos in self.timer_track_dwells:
                         self.timer_track_dwells.pop(pos)
                     """
                     self.buildinglist.remove(_element)
-                if type(_element) == buildings.WaterStructure:
-                    # we must copy the element because if will potentially be  removed or changed in memory
-                    self.last_water_structure_removed = copy.copy(_element)
-                    self.water_structures_list.remove(_element)
+                    if type(_element) == buildings.WaterStructure:
+                        # we must copy the element because if will potentially be  removed or changed in memory
+                        self.last_water_structure_removed = copy.copy(_element)
+                        self.water_structures_list.remove(_element)
+                    del _element
         return element_type
 
     def remove_elements_serie(self, start_pos, end_pos) -> set:

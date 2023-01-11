@@ -337,8 +337,15 @@ class Immigrant(Walker):
         self.find_house()
     def work(self, building=None):
         self.game.walkersOut.remove(self)
-        self.house.structure_level = 1
-        self.game.updated.append(self.house)
+        # As many immigrants are created when a dwell is built the dwell state must be modified only by the first one
+        # but we should also verify that the dwell is not removed before the immigrant goes in
+        print(self.house)
+        if self.house.dic['version']=="null":
+            print("no")
+        elif self.house.structure_level == 0:
+            self.house.structure_level = 1
+            self.house.functional = True
+            self.game.updated.append(self.house)
 
     def find_house(self):
         # Parcourir la liste des maisons, trouver celle dans lesquelle peut s'installer(nombre d'habitant, niveau d'habitaion)

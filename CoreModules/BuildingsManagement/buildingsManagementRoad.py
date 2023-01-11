@@ -1,6 +1,6 @@
 import CoreModules.MapManagement.mapManagementLayer as layer
 import Services.servicesGlobalVariables as globalVar
-import CoreModules.TileManagement.tileManagementElement as Element
+import CoreModules.MapManagement.tileManagementElement as Element
 
 def position_is_valid(i, j):
     return (0 <= i < globalVar.TILE_COUNT) and (0 <= j < globalVar.TILE_COUNT)

@@ -296,14 +296,15 @@ class VisualMap:
             sprite.set_texture(0)
 
         if update_type in ["stat_inc", "stat_dec"]:
-            #print(special_value)
             sprite.set_texture(special_value)
 
         if update_type == "reset":
             sprite.set_texture(0)
 
         if update_type == "delete":
-            sprite.visible = False
+            sprite.kill()
+            layer[constantes.TILE_COUNT ** 2 - index - 1] = arcade.Sprite()
+            #sprite.visible = False
 
         if update_type == "risk_update":
             if special_value[0] == "fire":

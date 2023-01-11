@@ -3,7 +3,7 @@ import random
 from CoreModules.MapManagement import mapManagementLayer as overlay
 import CoreModules.BuildingsManagement.buildingsManagementBuilding as building
 import CoreModules.BuildingsManagement.buildingsManagementRoad as roadoverlay
-import CoreModules.TileManagement.tileManagementElement as element
+import CoreModules.MapManagement.tileManagementElement as element
 import Services.servicesGlobalVariables as globalVar
 
 

@@ -1,6 +1,6 @@
 from Services import Service_Game_Data as gdata
 from Services import servicesmMapSpriteToFile as mapping
-import CoreModules.TileManagement.tileManagementElement as element
+import CoreModules.MapManagement.tileManagementElement as element
 import random, math
 
 # global var
@@ -186,10 +186,18 @@ class Dwelling(Building):
         setattr(self, tmp, value)
 
     def update_with_supply(self, supply: 'water' or 'food' or 'temple' or 'education' or 'fountain' or
-                                         'basic_entertainment' or 'pottery' or 'bathhouse', evolvable=True):
+                                         'basic_entertainment' or 'pottery' or 'bathhouse', evolvable=True) ->bool:
         """
+        This functions receives a supply type and check the requirements of the dwell
+        When all requirements needed for its level are satisfied then the dwell is updated with stat_inc
+        Its level increases by 1
+        Else if he just loses a requirement needed for a previous level then the dwell is downgraded with stat_dec
+        Its level decreases by 1
+        return: True when the dwell level is changed
+        """
+        if not self.is_occupied():
+            return False
 
-        """
         self.set_access(supply, evolvable)
 
         # a building is downgraded when one of its needs of previous level is satisfied no more
@@ -199,13 +207,15 @@ class Dwelling(Building):
             for previous_requirement in previous_requirements:
                 if not self.has_access(previous_requirement):
                     self.update_level('stat_dec')
-                    return
+                    return True
         else:
             for requirement in self.all_requirements_for_level:
                 if not self.has_access(requirement):
-                    return
+                    return False
             # building has access to all requirements
             self.update_level('stat_inc')
+            return True
+        return False
 
 
     def is_occupied(self):
