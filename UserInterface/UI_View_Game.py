@@ -1,6 +1,10 @@
 import pyglet
 
+from uuid import uuid4
+
+
 from CoreModules.WalkersManagement.walkersManagementWalker import Immigrant
+
 from UserInterface import UI_Section as uis
 from UserInterface import UI_buttons
 from UserInterface import UI_HUD_Build as hudb
@@ -23,6 +27,12 @@ import arcade.gui
 from pyglet.math import Vec2
 
 MAP_CAMERA_SPEED = 0.5
+
+MINIMAP_BACKGROUND_COLOR = arcade.get_four_byte_color(arcade.color.BLACK)
+MINIMAP_WIDTH = 154
+MINIMAP_HEIGHT = 170
+MAP_WIDTH = 2048
+MAP_HEIGHT = 2048
 
 class GameView(arcade.View):
 
@@ -177,6 +187,12 @@ class GameView(arcade.View):
         #self.buttons[8].on_click = UI_buttons.define_on_click_button_manager(self,"water")
         #self.buttons[9].on_click = UI_buttons.define_on_click_button_manager(self,"health")
         #self.buttons[10].
+
+
+        self.minimap_sprite_list = None
+        self.minimap_texture = None
+        self.minimap_sprite = None
+
         self.bar_manager = arcade.gui.UIManager()
         self.load_button = UI_buttons.Text_Button_background(x=40,y = constantes.DEFAULT_SCREEN_HEIGHT - 3*self.bar.height/4,width=20,height=self.bar.height,texture=None,my_text="Load Game",color="black")
         self.load_button.on_click = self.button_load_on_click
@@ -196,6 +212,7 @@ class GameView(arcade.View):
         self.collapse_layer_button.on_click = self.button_collapse_layer_on_click
         self.bar_manager.add(self.load_button)
         self.bar_manager.enable()
+
         
         self.fps_up = arcade.gui.UITextureButton(x=constantes.DEFAULT_SCREEN_WIDTH - 162 + 10,y=constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT/2,texture=arcade.load_texture(constantes.SPRITE_PATH+ "Panel/Panel42/paneling_00249.png"),width = 25,height=15)
         self.fps_down = arcade.gui.UITextureButton(x=constantes.DEFAULT_SCREEN_WIDTH -162 + 35,y=constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT/2,texture=arcade.load_texture(constantes.SPRITE_PATH+ "Panel/Panel43/paneling_00253.png"),width = 25,height=15)
@@ -219,6 +236,8 @@ class GameView(arcade.View):
         # =======================================
         self.setup()
 
+
+
     def setup(self):
         if not self.game:
             self.game = game.Game(map.MapLogic(),name = self.name)
@@ -236,7 +255,26 @@ class GameView(arcade.View):
         self.visualmap.destroyed_layer_show = True
         self.visualmap.fire_layer_show = True
         self.builder_content = ""
-        
+
+        # Construct the minimap
+        size = (MINIMAP_WIDTH, MINIMAP_HEIGHT)
+        self.minimap_texture = arcade.Texture.create_empty(str(uuid4()), size)
+        self.minimap_sprite = arcade.Sprite(center_x=(constantes.DEFAULT_SCREEN_WIDTH-MINIMAP_WIDTH/2),
+                                            center_y=(constantes.DEFAULT_SCREEN_HEIGHT - MINIMAP_HEIGHT /2),
+                                            texture=self.minimap_texture)
+        self.minimap_sprite_list = arcade.SpriteList()
+        self.minimap_sprite_list.append(self.minimap_sprite)
+
+
+    def update_minimap(self):
+        proj = 0, constantes.DEFAULT_SCREEN_WIDTH, 0, constantes.DEFAULT_SCREEN_HEIGHT
+        with self.minimap_sprite_list.atlas.render_into(self.minimap_texture, projection=proj) as fbo:
+            fbo.clear(MINIMAP_BACKGROUND_COLOR)
+            self.visualmap.grass_layer.draw()
+            self.visualmap.roads_layer.draw()
+            self.visualmap.buildings_layer.draw()
+            self.visualmap.hills_layer.draw()
+
 
     # =======================================
     #  View Related Fuctions
@@ -333,6 +371,15 @@ class GameView(arcade.View):
                 but.draw_()
         if self.actual_pop_up.visible:
             self.actual_pop_up.draw_()
+
+
+
+        # Update the minimap
+        self.update_minimap()
+
+        # Draw the minimap
+        self.minimap_sprite_list.draw()
+
 
         # Testing something cool -- error message when building farm on non yellow grass
         self.draw_message_for_farm_building()
