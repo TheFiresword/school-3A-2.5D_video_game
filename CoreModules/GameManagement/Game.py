@@ -196,11 +196,19 @@ class Game:
 
             cases = []
             if type(k) == buildings.Dwelling:
-                print(k.structure_level)
+                #print(k.structure_level)
+                pass
             # Creation of walkers
             if type(k) == buildings.Dwelling and k.current_population < k.max_population:
+                remove = []
                 while k.current_population < k.max_population:
                     self.create_walker()
+                    if not self.walkersAll[-1].current_path_to_follow:
+                        w = self.walkersAll.pop(-1)
+                        if w in self.walkersOut:
+                            self.walkersOut.remove(w)
+                        remove.append(w)
+                k.current_population -= len(remove) 
 
             # We don't want primitive housing (pannel) to burn or to collapse
             if type(k) == buildings.Dwelling and not k.is_occupied():
@@ -216,6 +224,7 @@ class Game:
                 # update tracktimer of dwells
                 built_since = int(self.current_time - self.timer_track_dwells[pos]) if pos in self.timer_track_dwells else 0
                 if removable and built_since > 1:
+                    print(built_since)
                     # to avoid decreasing money
                     self.money += removing_cost
                     self.remove_element(pos)
@@ -256,7 +265,7 @@ class Game:
 
 
     def create_walker(self):
-        walker = walkers.Immigrant(0, 20, None, 1 / self.framerate, globalVar.DEFAULT_FPS, self)
+        walker = walkers.Immigrant(0, 20, None, self.framerate, globalVar.DEFAULT_FPS, self)
         self.walkersAll.append(walker)
         self.walkersGetOut(walker)
 
@@ -407,5 +416,26 @@ class Game:
                 self.water_structures_list.append(building)
         return status
 
-    def update_likability(self):
-        pass
+    def update_likability(self,building):
+        voisins = self.get_voisins(building)
+        score = 0
+        for voisin in voisins:
+            version = voisin.dic["version"]
+            if version not in ["null"]:
+                if version == "dwell":
+                    pass
+                    
+
+    def get_voisins(self,building):
+        voisins = set()
+        cases = []
+        pos = building.position
+        for i in range(0, building.dic['cells_number']):
+                    for j in range(0, building.dic['cells_number']):
+                        if (i, j) != (0, 0):
+                            cases.append(self.map.buildinglayer((pos[0] + i, pos[1] + j)))
+        for case in cases:
+            for i in range(-2,2):
+                for j in range(-2,2):
+                                    voisins.add(self.map.buildinglayer.array[case[0] + i][case[1] + j])
+        return voisins

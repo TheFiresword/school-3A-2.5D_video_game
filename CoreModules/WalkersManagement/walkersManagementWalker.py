@@ -335,6 +335,7 @@ class Immigrant(Walker):
     def __init__(self,pos_ligne, pos_col, house, fps, zoom, game):
         super(Immigrant, self).__init__(pos_ligne, pos_col, house, fps, zoom, game)
         self.find_house()
+        
     def work(self, building=None):
         self.game.walkersOut.remove(self)
         self.house.structure_level = 1
