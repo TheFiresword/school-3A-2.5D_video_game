@@ -196,11 +196,19 @@ class Game:
 
             cases = []
             if type(k) == buildings.Dwelling:
-                print(k.structure_level)
+                #print(k.structure_level)
+                pass
             # Creation of walkers
             if type(k) == buildings.Dwelling and k.current_population < k.max_population:
+                remove = []
                 while k.current_population < k.max_population:
                     self.create_walker()
+                    if not self.walkersAll[-1].current_path_to_follow:
+                        w = self.walkersAll.pop(-1)
+                        if w in self.walkersOut:
+                            self.walkersOut.remove(w)
+                        remove.append(w)
+                k.current_population -= len(remove) 
 
             # We don't want primitive housing (pannel) to burn or to collapse
             if type(k) == buildings.Dwelling and not k.is_occupied():
@@ -216,6 +224,7 @@ class Game:
                 # update tracktimer of dwells
                 built_since = int(self.current_time - self.timer_track_dwells[pos]) if pos in self.timer_track_dwells else 0
                 if removable and built_since > 1:
+                    print(built_since)
                     # to avoid decreasing money
                     self.money += removing_cost
                     self.remove_element(pos)
@@ -256,7 +265,7 @@ class Game:
 
 
     def create_walker(self):
-        walker = walkers.Immigrant(0, 20, None, 1 / self.framerate, globalVar.DEFAULT_FPS, self)
+        walker = walkers.Immigrant(0, 20, None, self.framerate, globalVar.DEFAULT_FPS, self)
         self.walkersAll.append(walker)
         self.walkersGetOut(walker)
 
@@ -414,7 +423,7 @@ class Game:
             version = voisin.dic["version"]
             if version not in ["null"]:
                 if version == "dwell":
-                    voisins.
+                    pass
                     
 
     def get_voisins(self,building):
