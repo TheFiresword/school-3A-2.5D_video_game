@@ -40,16 +40,23 @@ class LoadScreen(arcade.View):
         self.validate_button = arcade.gui.UITextureButton(x=constantes.DEFAULT_SCREEN_WIDTH/2 + (self.box.image.size[0]/2) - 160,
                                                        y= constantes.DEFAULT_SCREEN_HEIGHT/2 - (self.box.image.size[1]/2) + 20,
                                                        texture= arcade.load_texture(constantes.SPRITE_PATH + "Panel\Panel40\paneling_00239.png")
-                                                       ,scale=3/4 )                                               
+                                                       ,scale=3/4 )     
+        self.reload_button = arcade.gui.UITextureButton(x=constantes.DEFAULT_SCREEN_WIDTH/2 + (self.box.image.size[0]/2) - 160 - 150,
+                                                        y= constantes.DEFAULT_SCREEN_HEIGHT/2 - (self.box.image.size[1]/2) + 20,
+                                                        texture= arcade.load_texture(constantes.SPRITE_PATH + "Panel\Panel17\paneling_00092.png")
+                                                        ,scale=3/4 )
+
+                                          
         self.leave_button.on_click = self.leave_button_on_click
         self.validate_button.on_click = self.validate_button_on_click
+        self.reload_button.on_click = self.reload_button_on_click
         self.saved_game = sal.list_saved_games()
-        for k in range(0,len(self.saved_game)):
-            button = but.Text_Button_background(x=constantes.MIDDLE[0]-150,y=constantes.MIDDLE[1]+(self.box.image.size[1]/2)-80 - k*24 ,texture= but.texture_panel46,my_text=self.saved_game[k], width=150, height=24,color="black")
-            button.on_click = but.define_on_click_button_selected(self,button)
-            self.selec_manager.add(button)
+        
         self.text = texts.Sprite_sentence("Selected game :  " + self.selected_game,"black",(constantes.DEFAULT_SCREEN_WIDTH/2 - (self.box.image.size[0]/2)+30,constantes.MIDDLE[1]+(self.box.image.size[1]/2)-30))
-
+        self.manager.add(self.input)
+        self.manager.add(self.validate_button)
+        self.manager.add(self.leave_button)
+        self.manager.add(self.reload_button)
 
         # =======================================
         # Preliminary actions
@@ -59,9 +66,8 @@ class LoadScreen(arcade.View):
         
     
     def setup(self):
-        self.manager.add(self.input)
-        self.manager.add(self.validate_button)
-        self.manager.add(self.leave_button)
+        pass
+        
         
     def on_show_view(self):
         self.manager.enable()
@@ -103,6 +109,19 @@ class LoadScreen(arcade.View):
         self.manager.disable()
         self.selec_manager.disable()
     
+    def reload_list(self):
+        self.saved_game = sal.list_saved_games()
+        self.selec_manager = arcade.gui.UIManager()
+        for k in range(0,len(self.saved_game)):
+            button = but.Text_Button_background(x=constantes.MIDDLE[0]-150,y=constantes.MIDDLE[1]+(self.box.image.size[1]/2)-80 - k*24 ,texture= but.texture_panel46,my_text=self.saved_game[k], width=150, height=24,color="black")
+            button.on_click = but.define_on_click_button_selected(self,button)
+            self.selec_manager.add(button)
+        self.selec_manager.enable()
+        
+
+    def reload_button_on_click(self, event):
+        self.reload_list()
+
     def leave_button_on_click(self,event):
         window = arcade.get_window()
         window.settingscreen.setup()

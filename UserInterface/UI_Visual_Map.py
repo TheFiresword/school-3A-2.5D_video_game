@@ -282,7 +282,8 @@ class VisualMap:
             sprite.visible = False
             firesprite= self.look_sprite_list(support_sprite.center_x,support_sprite.center_y,self.fire_layer)
             if firesprite:
-                firesprite.visible = not firesprite.visible
+                #firesprite.visible = not firesprite.visible
+                print("changement")
             else:
                 firesprite= self.fire_sprite((sprite_pos_x,sprite_pos_y))
                 self.fire_layer.append(firesprite)

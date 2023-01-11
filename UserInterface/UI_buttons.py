@@ -54,9 +54,6 @@ class SettingButton(Text_Button_background):
         window.show_view(window.settingscreen)
 
 
-
-
-
 class NewGameButton(Text_Button_background):
     def on_click(self, event: arcade.gui.UIOnClickEvent):
         window = arcade.get_window()

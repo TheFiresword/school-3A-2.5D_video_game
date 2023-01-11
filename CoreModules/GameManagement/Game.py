@@ -162,6 +162,7 @@ class Game:
 
         update = updates.LogicUpdate()
 
+
         # Update dwell that just set functional (immigrant live in)
         for building in self.updated:
             update.has_evolved.append((building.position, building.structure_level))
@@ -406,3 +407,5 @@ class Game:
                 self.water_structures_list.append(building)
         return status
 
+    def update_likability(self):
+        pass
