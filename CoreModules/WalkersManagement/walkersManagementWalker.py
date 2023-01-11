@@ -335,6 +335,7 @@ class Immigrant(Walker):
     def __init__(self,pos_ligne, pos_col, house, fps, zoom, game):
         super(Immigrant, self).__init__(pos_ligne, pos_col, house, fps, zoom, game)
         self.find_house()
+        
     def work(self, building=None):
         self.game.walkersOut.remove(self)
         # As many immigrants are created when a dwell is built the dwell state must be modified only by the first one

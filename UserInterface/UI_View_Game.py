@@ -227,6 +227,7 @@ class GameView(arcade.View):
         self.money_text=text.Sprite_sentence("Dn: " +str(self.game.money),"white",(205,constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4))
         self.fps_text=text.Sprite_sentence( str(self.speed_ratio) + "%","black",(constantes.DEFAULT_SCREEN_WIDTH -162 + 85,constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT/2 +10))
         self.population_text=text.Sprite_sentence("Pop :"+ str(len(self.game.walkersAll)),"white",(505,constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]/4))
+        self.fps_text2=text.Sprite_sentence("Pop :"+ str(self.game.framerate),"white",(605 - (len(self.population_text.sentence)),constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]/4))
         self.visualmap.setup(self.game)
         self.center_map()
         self.visualmap.buildings_layer.visible = True
@@ -310,6 +311,7 @@ class GameView(arcade.View):
         self.fps_text.draw_()
         self.population_text.draw_()
         self.right_panel_manager.draw()
+        self.fps_text2.draw_()
         self.right_panel_manager.children[0][-1].draw_()
         self.bar_manager.draw()
         self.load_button.draw_()
@@ -355,6 +357,7 @@ class GameView(arcade.View):
             self.money_text = text.Sprite_sentence("Dn: " +str(self.game.money),"white",(320-(len(self.money_text.sentence)+5) * constantes.FONT_WIDTH/4,constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4))
             self.fps_text=text.Sprite_sentence( str(self.speed_ratio) + "%","black",(constantes.DEFAULT_SCREEN_WIDTH -162 + 85,constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT/2 +10))
             self.population_text=text.Sprite_sentence("Pop :"+ str(len(self.game.walkersAll)),"white",(505 - (len(self.population_text.sentence)),constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]/4))
+            self.fps_text2=text.Sprite_sentence("Fps:"+ str(1/delta_time),"white",(605 - (len(self.population_text.sentence)),constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]/4))
     # =======================================
     #  Mouse Related Fuctions
     # =======================================
