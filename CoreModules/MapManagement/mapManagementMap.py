@@ -3,7 +3,7 @@ import random
 from CoreModules.MapManagement import mapManagementLayer as overlay
 import CoreModules.BuildingsManagement.buildingsManagementBuilding as building
 import CoreModules.BuildingsManagement.buildingsManagementRoad as roadoverlay
-import CoreModules.TileManagement.tileManagementElement as element
+import CoreModules.MapManagement.tileManagementElement as element
 import Services.servicesGlobalVariables as globalVar
 
 
@@ -22,12 +22,17 @@ class MapLogic:
         # GRASS
         self.grass_layer = overlay.Layer(globalVar.LAYER1)
 
-        possible_grass = ["00079", "yellow", "00082", "normal", "yellow", "00091", "buisson", "00114", "00094",
-                          "00027", "00070", "00221", "00274", "00239", "00081", "00244"]
+        possible_grass = ["00079", "00082", "normal", "00091", "buisson", "00114", "00094", "00070", "00221", "00274",
+                          "00239", "00081", "00244"]
+        possible_yellow_grass = [ "yellow"] + ["000" + str(i)for i in range(18, 30)]
 
         for i in range(0, globalVar.TILE_COUNT):
             for j in range(0, globalVar.TILE_COUNT):
-                random_version = random.choice(possible_grass)
+                if i > globalVar.TILE_COUNT//4 or j > 2*globalVar.TILE_COUNT//5:
+                    random_version = random.choice(possible_grass)
+                else:
+                    random_version = random.choice(possible_yellow_grass)
+
                 my_grass = element.Element(self.grass_layer, globalVar.LAYER1, random_version)
                 self.grass_layer.set_cell(i, j, my_grass)
 
@@ -115,21 +120,49 @@ class MapLogic:
         # BUILDINGS
         self.buildings_layer = overlay.Layer(globalVar.LAYER5)
 
-        for i in range(0, 10):
-            my_dwelling = building.Dwelling(self.buildings_layer, globalVar.LAYER5)
-            self.buildings_layer.set_cell_constrained_to_bottom_layer([self.hills_layer, self.trees_layer,
-                                                                       self.roads_layer], globalVar.TILE_COUNT - 3,
-                                                                      2 + i, my_dwelling)
-        for i in range(0, 20, 4):
-            my_dwelling = building.Dwelling(self.buildings_layer, globalVar.LAYER5)
-            my_wheat_farm = building.Farm(self.buildings_layer, globalVar.LAYER5)
-            self.buildings_layer.set_cell_constrained_to_bottom_layer([self.hills_layer, self.trees_layer,
-                                                                       self.roads_layer], 3, i, my_wheat_farm)
+        my_dwelling = building.Dwelling(self.buildings_layer, globalVar.LAYER5)
+        self.buildings_layer.set_cell_constrained_to_bottom_layer([self.hills_layer, self.trees_layer,
+                                                                   self.roads_layer], globalVar.TILE_COUNT//2,
+                                                                  globalVar.TILE_COUNT // 2 -4 , my_dwelling)
 
-        # liste de Walker()
-        self.walkers_list = []
+        # -------------------------------------------------------------------------------------------------------------#
         # A list of layers to check for collision
         self.collisions_layers = [self.buildings_layer, self.hills_layer, self.trees_layer, self.roads_layer]
-        # -------------------------------------------------------------------------------------------------------------#
-        # Test logiques
-        # self.buildings_layer.print_currents_elements()
+
+    def get_element_in_cell(self, line, column):
+        """
+        This function returns the highest level element on a cell
+        Priority of elements is as follows: building - road - tree - hill - grass
+        return: the type of this element
+        """
+        if self.buildings_layer.array[line][column].dic['version'] != "null":
+            return globalVar.LAYER5
+        elif self.roads_layer.array[line][column].dic['version'] != "null":
+            return globalVar.LAYER4
+        elif self.trees_layer.array[line][column].dic['version'] != "null":
+            return globalVar.LAYER3
+        elif self.hills_layer.array[line][column].dic['version'] != "null":
+            return globalVar.LAYER2
+        return globalVar.LAYER1
+
+    def remove_element_in_cell(self, line, column):
+        """
+        Remove if only it is not grass, not hill
+        """
+        type = self.get_element_in_cell(line, column)
+        for layer in [self.roads_layer, self.buildings_layer, self.trees_layer] :
+            if layer.type == type:
+                _element = layer.get_cell(line, column)
+                status = layer.remove_cell(line, column)
+                return status, type, _element
+        return False, None, None
+    def cell_is_walkable(self, line, column, can_walk_on_signal=False):
+        """A cell is walkable when it contains a valid road"""
+        if can_walk_on_signal:
+            return self.get_element_in_cell(line, column) == globalVar.LAYER4
+        return self.get_element_in_cell(line, column) == globalVar.LAYER4 and self.roads_layer.is_real_road(line,
+                                                                                                            column)
+
+    def cell_is_walkable_desperately(self, line, column):
+        """A cell is walkable desperately when it is just a grass"""
+        return self.get_element_in_cell(line, column) == globalVar.LAYER1

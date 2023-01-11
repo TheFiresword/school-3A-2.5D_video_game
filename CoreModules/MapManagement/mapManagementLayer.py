@@ -1,6 +1,6 @@
 import Services.servicesGlobalVariables as globalVar
 import Services.servicesmMapSpriteToFile as mapping
-import CoreModules.TileManagement.tileManagementElement as Element
+import CoreModules.MapManagement.tileManagementElement as Element
 from CoreModules.BuildingsManagement.buildingsManagementBuilding import *
 
 # PROBLEME Les lignes et les colonnes sont inversées je ne sais pas pourquoi
@@ -169,7 +169,42 @@ class Layer:
             return self.array[origin_x][origin_y]
         return None
 
-    def set_cell(self, line, column, element: Element, can_replace: bool = False, change_id=True) -> bool:
+    def cell_is_non_null(self, line, column):
+        return self.array[line][column].dic["version"] != "null"
+
+    def cell_is_yellow_grass(self, line, column):
+        expected_grass = self.get_cell(line, column) if self.type == globalVar.LAYER1 else None
+        if expected_grass:
+            return  expected_grass.dic['version'] in [ "yellow"] + ["000" + str(i)for i in range(18, 30)]
+        return False
+
+    def get_cells_number(self, line, column):
+        """
+        The implementation of this getter is to return the number of elements in the layer that have the same id as
+        the element at position (line, column)
+        The benefit of this method is that it works even for elements constitued with multiple parts like farms
+        """
+        positions = self.get_all_positions_of_element(line, column)
+        if positions:
+            return len(positions)
+        return 0
+
+    def get_all_positions_of_element(self, line, column):
+        """
+            The benefit of this method is that it works even for elements constitued with multiple parts like farms
+        """
+        if position_is_valid(line, column):
+
+            id_for_search = self.array[line][column].id
+
+            indexes_of_parts_of_the_element = []
+            for i in range(globalVar.TILE_COUNT):
+                indexes_of_parts_of_the_element += [(i, index) for (index, element_part) in enumerate(self.array[i]) if
+                                                    element_part.id == id_for_search]
+            return indexes_of_parts_of_the_element
+        return None
+
+    def set_cell(self, line, column, element: Element, can_replace: bool = False, change_id=True,bottom_layers_list =[]) -> bool:
         """
         _dic: Un dictionnaire avec une version et un nombre de cellules
         can_replace: Un booléen qui dit si on peut remplacer une cellule existante
@@ -182,11 +217,17 @@ class Layer:
         # Preconditions: the element has to occupy at least 1 case and the position (line, column) has to be valid
         cells_number = element.dic['cells_number']
         assert cells_number > 0
-
         # Precondition: the current cell cant be modified
         if not self.changeable(line, column, cells_number, can_replace):
             return False
-
+        for i in range(0, cells_number):
+            for j in range(0, cells_number):
+                if (i, j) == (0, 0):
+                    continue
+                else:
+                    for layer in bottom_layers_list:
+                        if layer.array[line + i][column + j].dic["version"] != "null":
+                            return False
         if type(element) not in [Farm]:
             # On copie les informations de l'Element dans la case correspondante--On garde l'id de la case
             self.array[line][column] = element
@@ -203,6 +244,7 @@ class Layer:
                 for j in range(0, cells_number):
                     if (i, j) == (0, 0):
                         continue
+
                     else:
                         self.array[line + i][column + j].dic['version'] = "occupied"
                         # The id of the additionnal elements are set to the same as the first part because they are
@@ -217,12 +259,12 @@ class Layer:
             multi_part_element.id = next(self.id_iterator)
             self.current_id = multi_part_element.id
 
-            return self.set_cell(line, column, element.farm_at_00, can_replace, change_id=False) and \
-            self.set_cell(line, column+1, element.farm_at_01, can_replace, change_id=False)      and \
-            self.set_cell(line, column+2, element.farm_at_02, can_replace, change_id=False)      and \
-            self.set_cell(line+1, column + 2, element.farm_at_12, can_replace, change_id=False)  and \
-            self.set_cell(line+2, column + 2, element.farm_at_22, can_replace, change_id=False)  and \
-            self.set_cell(line + 1, column, element.foundation, can_replace, change_id=False)
+            return self.set_cell(line, column, element.farm_at_00, can_replace, change_id=False,bottom_layers_list = bottom_layers_list) and \
+            self.set_cell(line, column+1, element.farm_at_01, can_replace, change_id=False,bottom_layers_list = bottom_layers_list)      and \
+            self.set_cell(line, column+2, element.farm_at_02, can_replace, change_id=False,bottom_layers_list = bottom_layers_list)      and \
+            self.set_cell(line+1, column + 2, element.farm_at_12, can_replace, change_id=False,bottom_layers_list = bottom_layers_list)  and \
+            self.set_cell(line+2, column + 2, element.farm_at_22, can_replace, change_id=False,bottom_layers_list = bottom_layers_list)  and \
+            self.set_cell(line + 1, column, element.foundation, can_replace, change_id=False,bottom_layers_list = bottom_layers_list)
 
     def set_cell_constrained_to_bottom_layer(self, bottom_layers_list, line, column, element,
                                              can_replace=False, change_id=True) -> bool:
@@ -234,7 +276,7 @@ class Layer:
         for i in range(count):
             if bottom_layers_list[i].array[line][column].dic["version"] != "null":
                 return False
-        return self.set_cell(line, column, element, can_replace, change_id)
+        return self.set_cell(line, column, element, can_replace, change_id,bottom_layers_list)
 
     def add_elements_serie(self, start_pos, end_pos, element, collision_list) -> (bool, int):
         """

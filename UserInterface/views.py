@@ -1,4 +1,5 @@
 import arcade
+import pyglet
 import arcade.gui
 from Services import servicesGlobalVariables as constantes
 import CoreModules.MapManagement.mapManagementMap as map
@@ -13,15 +14,14 @@ class MainWindow(arcade.Window):
     def __init__(self):
         super().__init__(constantes.DEFAULT_SCREEN_WIDTH, constantes.DEFAULT_SCREEN_HEIGHT, constantes.TITLE, fullscreen=True)
         self.set_update_rate(constantes.DEFAULT_FPS)
-
+        self.name="save_1"
         # Différents écrans:
         self.welcomescreen = wv.WelcomeScreen()
         self.settingscreen = sv.SettingScreen()
         self.loadscreen = lv.LoadScreen()
         #map1 = map.MapLogic()
         #self.gamescreen = gv.MapView(map1)
-        self.gamescreen = rgv.GameView(_game=None)
-        self.loadedgame = None
+        self.gamescreen = rgv.GameView(_game=None,name=self.name)
 
     # Lancement
     def setup(self):
@@ -32,7 +32,7 @@ class MainWindow(arcade.Window):
         self.set_update_rate(0)
 
     def on_show(self):
-        self.set_update_rate(constantes.DEFAULT_FPS)
+        self.set_update_rate(1/constantes.DEFAULT_FPS)
 
     # Fonctions d'acquisition d'action joueur
     # Deplacement de la souris dans la fenetre
@@ -50,6 +50,9 @@ class MainWindow(arcade.Window):
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
             case _: pass
+    
+    def update_name(self,name):
+        self.gamescreen = rgv.GameView(_game=None,name=name)
 
 
 

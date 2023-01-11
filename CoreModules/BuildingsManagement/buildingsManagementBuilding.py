@@ -1,40 +1,64 @@
 from Services import Service_Game_Data as gdata
-
-import CoreModules.TileManagement.tileManagementElement as element
+from Services import servicesmMapSpriteToFile as mapping
+import CoreModules.MapManagement.tileManagementElement as element
 import random, math
 
+# global var
+max_burning_time = 60000000000000000000000000000000
 
 class Building(element.Element):
     def __init__(self, buildings_layer, _type, version="dwell"):
         self.risk_dico = {"fire" : 0, "collapse" : 0}
         self.risk_level_dico = {"fire": 0, "collapse" : 0} 
-        self.fire_level = 0
-        self.fire_risk_level = 0
-        self.collapse_score = 0
+
+        # A factor that will be used to control risk increasing speed -- It must takes account the structure level
+        # ie a building at level 4 will have a risk speed lower than a another at level 1
+        self.risk_increasing_speed = 0
+
         # Structure level is a number that indicates the level of the building
         # in fact some buildings like farms, dwells, grow up or grow down very often
         # we have to save these evolutions; so we use an attribute
-        # value -1 indicates the building is destroyed and value -2 indicates the building is burned/burning
-        self.structure_level = 1
-
-        self.max_level = 1
+        self.structure_level = 0
+        self.max_level = len(mapping.mapping_function(_type, version))
 
         self.isBurning = False
         self.BurningTime = 0
         self.isDestroyed = False
         self.randombuf = 0
 
+        # when it's constructed, a building is non functional (ex: farm, granary, prefecture, even dwell)
+        self.functional = True
+
         super().__init__(buildings_layer, _type, version)
-       
+
+    def is_functional(self):
+        return self.functional
+
+    def set_functional(self, value: bool):
+        if value and not self.functional:
+            self.update_level("stat_inc")
+            self.functional = value
+        elif not value and self.functional:
+            self.update_level("reset")
+            self.functional = value
+
+    def update_risk_speed_with_level(self):
+        if self.structure_level == 0:
+            self.risk_increasing_speed = 0 if self.dic['version'] == 'dwell' else 0.8
+        else:
+            self.risk_increasing_speed = 1/self.structure_level if self.dic['version'] == 'dwell' else 0.8/self.structure_level
     def update_risk(self,risk):
+
         if risk == "fire" and self.isBurning:
-            if self.BurningTime <= 60000000000000000000000000000000:
+            if self.BurningTime <= max_burning_time:
                 self.BurningTime += 1
             else:
                 self.isDestroyed = True
+                self.risk_dico["fire"],self.risk_level_dico = 0,0
+                self.risk_dico["collapse"],self.risk_level_dico = 0,0
                 self.isBurning = False
         else:
-            self.randombuf += random.random()
+            self.randombuf += random.random()*self.risk_increasing_speed
             if  self.randombuf> gdata.risk_random_ratio:
                 self.randombuf = 0
                 self.risk_dico[risk] += 5
@@ -52,36 +76,57 @@ class Building(element.Element):
                 if risk == "fire":
                     self.isBurning = True
                     self.BurningTime = 0
-                    print("j ai pris feu",self.position)
                 else :
                     self.isDestroyed = True
                     self.isBurning = False
-                    print("Destroyed")
 
     def updateLikeability(self):
         pass
 
-    def update_level(self, update_type):
-        if update_type == "destroy":
-            self.structure_level = -1
-        elif update_type == "burn":
-            self.structure_level = -2
-        elif update_type == "change_content":
+    def update_functional_building_animation(self) ->bool:
+        """
+        This function will change the structure_level in a circular way so that the visual animation of the building
+        can be obtained
+        """
+        # the animation of functional buildings
+        if self.is_functional():
+            if self.dic['version'] != 'dwell' and self.max_level > 1:
+                self.structure_level += 1
+                if self.structure_level == self.max_level:
+                    if self.dic['version'] in ["fruit_farm", "olive_farm", "pig_farm", "vegetable_farm", "vine_farm",
+                                               "wheat_farm"]:
+                        self.structure_level = 0
+                    else:
+                        self.structure_level = 1
+                assert (self.structure_level <= self.max_level - 1)
+                return True
+        return False
+
+
+
+
+
+    def update_level(self, update_type: "stat_inc" or 'change_content' or 'stat_dec' or 'reset'):
+        if update_type == "change_content":
             self.structure_level = 0
-            self.file_path = 'something'
+            # self.file_path = something
+
         elif update_type == "stat_inc":
-            ind = sprite.textures.index(sprite.texture)
-            if self.structure_level == len(self.file_path):
-                self.structure_level = 0
-            else :
+            if self.structure_level < self.max_level:
                 self.structure_level += 1
 
+        elif update_type == "stat_dec":
+            if self.structure_level > 0:
+                self.structure_level -= 1
+
+        elif update_type == "reset":
+            self.structure_level = 0
 
 class Dwelling(Building):
     def __init__(self, buildings_layer, _type):
         super().__init__(buildings_layer, _type, "dwell")
-        self.current_population = None
-        self.max_population = None
+        self.current_population = 0
+        self.max_population = 5
         """
         Desirability can prevent a house from evolving. In order to evolve, a house also must have a certain 
         desirability in addition to more services. Desirability is calculated from the nearby buildings. 
@@ -94,14 +139,87 @@ class Dwelling(Building):
         """
         The general progression of housing is as follows:
 
-        Tents: Basic housing, very prone to fires. Large tents need a water supply.
+        * Tents: Basic housing, very prone to fires. Large tents need a water supply.
         
-        Shacks: Shacks require food provided from a market.
+        * Shacks: Shacks require food provided from a market.
         
-        Hovels: Hovels require basic temple access.
+        * Hovels: Hovels require basic temple access.
+        
+        * Casas: Small casas are 'bread and butter' housing, requiring only food, basic education, fountain access 
+        and basic entertainment. Large casas require pottery and bathhouse access.
+
+        * Insulae: Medium insulae require furniture, and Large insulae, oil. Large insulae require at least a 2x2 plot of 
+        land, and will expand if necessary to do so. Grand Insulae will require access to a library, school, barber, 
+        doctor, two food types and 'some access' to entertainment venues (e.g. theatre + amphitheatre + 2 shows + 
+        average overall city entertainment coverage.) Grand insulae are the most developed form of plebian housing.
+
+        * Villas and Palaces: Small villas require wine and access to temples to 2 different Gods. Large villas will 
+        expand to 3x3 plots. Grand Villas will require access to a hospital, academy, and temples to 3 different Gods. 
+        Small palaces will require a second source of wine (imported if the city's primary source of wine is local, 
+        or vice-versa.) Large palaces will expand to 4x4 plots. Steadily increasing entertainment values are the main 
+        requirement for patrician housing to develop, and those for a Luxury Palace are near-perfect.
+        
         """
         # attributes will be added following our progression in the code
-        self.water_supply = 0
+        self.water_access = False
+        self.food_access = False
+        self.temple_access = False
+        self.education_access = False
+        self.fountain_access = False
+        self.basic_entertainment_access = False
+        self.pottery_access = False
+        self.bathhouse_access = False
+
+        self.all_requirements_for_level = None
+
+
+    def update_requirements(self):
+        self.all_requirements_for_level = gdata.get_housing_requirements(self.structure_level)
+
+    def has_access(self, supply: 'water' or 'food' or 'temple' or 'education' or 'fountain' or
+                                          'basic_entertainment' or 'pottery' or 'bathhouse'):
+        tmp = supply + '_access'
+        return getattr(self, tmp)
+    def set_access(self, supply: 'water' or 'food' or 'temple' or 'education' or 'fountain' or
+                                          'basic_entertainment' or 'pottery' or 'bathhouse', value:bool):
+        tmp = supply + '_access'
+        setattr(self, tmp, value)
+
+    def update_with_supply(self, supply: 'water' or 'food' or 'temple' or 'education' or 'fountain' or
+                                         'basic_entertainment' or 'pottery' or 'bathhouse', evolvable=True) ->bool:
+        """
+        This functions receives a supply type and check the requirements of the dwell
+        When all requirements needed for its level are satisfied then the dwell is updated with stat_inc
+        Its level increases by 1
+        Else if he just loses a requirement needed for a previous level then the dwell is downgraded with stat_dec
+        Its level decreases by 1
+        return: True when the dwell level is changed
+        """
+        if not self.is_occupied():
+            return False
+
+        self.set_access(supply, evolvable)
+
+        # a building is downgraded when one of its needs of previous level is satisfied no more
+        # So we check if it just loose access to a supply in which case we downgrade it
+        if not evolvable:
+            previous_requirements = gdata.get_housing_requirements(self.structure_level-1)
+            for previous_requirement in previous_requirements:
+                if not self.has_access(previous_requirement):
+                    self.update_level('stat_dec')
+                    return True
+        else:
+            for requirement in self.all_requirements_for_level:
+                if not self.has_access(requirement):
+                    return False
+            # building has access to all requirements
+            self.update_level('stat_inc')
+            return True
+        return False
+
+
+    def is_occupied(self):
+        return self.structure_level > 0
 
 class Farm(Building):
     def __init__(self, buildings_layer, _type, production="wheat_farm"):
@@ -121,3 +239,18 @@ class Farm(Building):
         self.total_cells = int(math.sqrt(self.total_cells))
         # we change the cells_number attribute so that to have the exact cells number
         self.dic['cells_number'] = self.total_cells
+
+    def reset_farm(self):
+        self.farm_at_00.update_level('reset')
+        self.farm_at_01.update_level('reset')
+        self.farm_at_02.update_level('reset')
+        self.farm_at_12.update_level('reset')
+        self.farm_at_22.update_level('reset')
+
+class WaterStructure(Building):
+    def __init__(self, buildings_layer, _type, version="well"):
+        super().__init__(buildings_layer, _type, version)
+        self.range = mapping.get_structures_range(_type, version)
+        if version == "well":
+            self.functional = True
+

@@ -1,10 +1,46 @@
 from Services import servicesGlobalVariables as const
 
 
-def walkers_to_sprite():
-    up = [const.SPRITE_PATH + "Citizen1/Type1/Citizen01_{:05d}".format(3 + k * 8) + ".png" for k in range(0, 12)]
-    left = [const.SPRITE_PATH + "Citizen1/Type1/Citizen01_{:05d}".format(7 + k * 8) + ".png" for k in range(0, 12)]
-    down = [const.SPRITE_PATH + "Citizen1/Type1/Citizen01_{:05d}".format(5 + k * 8) + ".png" for k in range(0, 12)]
-    right = [const.SPRITE_PATH + "Citizen1/Type1/Citizen01_{:05d}".format(1 + k * 8) + ".png" for k in range(0, 12)]
+def walkers_to_sprite(type_walker):
+    sprite_number = 1
+    up = [const.SPRITE_PATH + "Citizen1/Type1/Citizen01_{:05d}".format(sprite_number + 2 + k * 8) + ".png" for k in
+          range(0, 12)]
+    left = [const.SPRITE_PATH + "Citizen1/Type1/Citizen01_{:05d}".format(sprite_number + 6 + k * 8) + ".png" for k in
+            range(0, 12)]
+    down = [const.SPRITE_PATH + "Citizen1/Type1/Citizen01_{:05d}".format(sprite_number + 4 + k * 8) + ".png" for k in
+            range(0, 12)]
+    right = [const.SPRITE_PATH + "Citizen1/Type1/Citizen01_{:05d}".format(sprite_number + k * 8) + ".png" for k in
+             range(0, 12)]
+    match type_walker:
+        case "Engineer":
+            sprite_number = 1137
+            up = [const.SPRITE_PATH + "Citizen1/Type12/Citizen01_{:05d}".format(sprite_number + 2 + k * 8) + ".png" for
+                  k in range(0, 12)]
+            left = [const.SPRITE_PATH + "Citizen1/Type12/Citizen01_{:05d}".format(sprite_number + 6 + k * 8) + ".png"
+                    for k in range(0, 12)]
+            down = [const.SPRITE_PATH + "Citizen1/Type12/Citizen01_{:05d}".format(sprite_number + 4 + k * 8) + ".png"
+                    for k in range(0, 12)]
+            right = [const.SPRITE_PATH + "Citizen1/Type12/Citizen01_{:05d}".format(sprite_number + k * 8) + ".png" for
+                     k in range(0, 12)]
+        case "Prefect":
+            sprite_number = 615
+            up = [const.SPRITE_PATH + "Citizen2/Type6/Citizen02_{:05d}".format(sprite_number + 2 + k * 8) + ".png" for
+                  k in range(0, 12)]
+            left = [const.SPRITE_PATH + "Citizen2/Type6/Citizen02_{:05d}".format(sprite_number + 6 + k * 8) + ".png"
+                    for k in range(0, 12)]
+            down = [const.SPRITE_PATH + "Citizen2/Type6/Citizen02_{:05d}".format(sprite_number + 4 + k * 8) + ".png"
+                    for k in range(0, 12)]
+            right = [const.SPRITE_PATH + "Citizen2/Type6/Citizen02_{:05d}".format(sprite_number + k * 8) + ".png" for
+                     k in range(0, 12)]
+        case "Immigrant":
+            sprite_number = 1033
+            up = [const.SPRITE_PATH + "Citizen1/Type11/Citizen01_{:05d}".format(sprite_number + 2 + k * 8) + ".png" for
+                  k in range(0, 12)]
+            left = [const.SPRITE_PATH + "Citizen1/Type11/Citizen01_{:05d}".format(sprite_number + 6 + k * 8) + ".png"
+                    for k in range(0, 12)]
+            down = [const.SPRITE_PATH + "Citizen1/Type11/Citizen01_{:05d}".format(sprite_number + 4 + k * 8) + ".png"
+                    for k in range(0, 12)]
+            right = [const.SPRITE_PATH + "Citizen1/Type11/Citizen01_{:05d}".format(sprite_number + k * 8) + ".png" for
+                     k in range(0, 12)]
 
-    return (up, left, down, right)
+    return up, left, down, right
