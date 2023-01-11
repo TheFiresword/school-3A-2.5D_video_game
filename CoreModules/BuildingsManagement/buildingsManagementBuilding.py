@@ -2,10 +2,11 @@ from Services import Service_Game_Data as gdata
 from Services import servicesmMapSpriteToFile as mapping
 import CoreModules.MapManagement.tileManagementElement as element
 import random, math
+import time
 
 # global var
 max_burning_time = 60000000000000000000000000000000
-
+DELTA_TIME = 0.2666666
 class Building(element.Element):
     def __init__(self, buildings_layer, _type, version="dwell"):
         self.risk_dico = {"fire" : 0, "collapse" : 0}
@@ -28,6 +29,10 @@ class Building(element.Element):
 
         # when it's constructed, a building is non functional (ex: farm, granary, prefecture, even dwell)
         self.functional = True
+
+        # A timer to control animation of buildings
+        self.previous_time = None
+        self.current_time = None
 
         super().__init__(buildings_layer, _type, version)
 
@@ -83,7 +88,7 @@ class Building(element.Element):
     def updateLikeability(self):
         pass
 
-    def update_functional_building_animation(self) ->bool:
+    def update_functional_building_animation(self, framerate) ->bool:
         """
         This function will change the structure_level in a circular way so that the visual animation of the building
         can be obtained
@@ -91,15 +96,24 @@ class Building(element.Element):
         # the animation of functional buildings
         if self.is_functional():
             if self.dic['version'] != 'dwell' and self.max_level > 1:
-                self.structure_level += 1
-                if self.structure_level == self.max_level:
-                    if self.dic['version'] in ["fruit_farm", "olive_farm", "pig_farm", "vegetable_farm", "vine_farm",
-                                               "wheat_farm"]:
-                        self.structure_level = 0
-                    else:
-                        self.structure_level = 1
-                assert (self.structure_level <= self.max_level - 1)
-                return True
+                if not self.previous_time:
+                    self.previous_time = time.time()
+                    self.current_time = time.time()
+
+                elif  self.current_time-self.previous_time > DELTA_TIME:
+                    self.current_time, self.previous_time = time.time(), time.time()
+                    self.structure_level += 1
+                    if self.structure_level == self.max_level:
+                        if self.dic['version'] in ["fruit_farm", "olive_farm", "pig_farm", "vegetable_farm", "vine_farm",
+                                                   "wheat_farm"]:
+                            self.structure_level = 0
+                        else:
+                            self.structure_level = 1
+                    assert (self.structure_level <= self.max_level - 1)
+                    return True
+
+                else:
+                    self.current_time += 1 / framerate
         return False
 
 
