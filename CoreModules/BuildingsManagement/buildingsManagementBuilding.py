@@ -27,7 +27,7 @@ class Building(element.Element):
         self.randombuf = 0
 
         # when it's constructed, a building is non functional (ex: farm, granary, prefecture, even dwell)
-        self.functional = False
+        self.functional = True
 
         super().__init__(buildings_layer, _type, version)
 
@@ -48,17 +48,6 @@ class Building(element.Element):
         else:
             self.risk_increasing_speed = 1/self.structure_level if self.dic['version'] == 'dwell' else 0.8/self.structure_level
     def update_risk(self,risk):
-        # As update_risk function is called very often we use this to update risk_speed simultaneously
-        self.update_risk_speed_with_level()
-
-        # We do the same with the animation of functional buildings
-        if self.is_functional():
-            if self.dic['version'] != 'dwell':
-                if self.dic['version'] in ["fruit_farm", "olive_farm", "pig_farm", "vegetable_farm", "vine_farm",
-                                           "wheat_farm"]:
-                    self.update_functional_building_animation(0)
-                elif self.max_level > 1:
-                    self.update_functional_building_animation(1)
 
         if risk == "fire" and self.isBurning:
             if self.BurningTime <= max_burning_time:
@@ -94,15 +83,27 @@ class Building(element.Element):
     def updateLikeability(self):
         pass
 
-    def update_functional_building_animation(self, start):
+    def update_functional_building_animation(self) ->bool:
         """
         This function will change the structure_level in a circular way so that the visual animation of the building
         can be obtained
         """
-        assert (start <= self.max_level - 1)
-        self.structure_level += 1
-        if self.structure_level == self.max_level:
-            self.structure_level = start
+        # the animation of functional buildings
+        if self.is_functional():
+            if self.dic['version'] != 'dwell' and self.max_level > 1:
+                self.structure_level += 1
+                if self.structure_level == self.max_level:
+                    if self.dic['version'] in ["fruit_farm", "olive_farm", "pig_farm", "vegetable_farm", "vine_farm",
+                                               "wheat_farm"]:
+                        self.structure_level = 0
+                    else:
+                        self.structure_level = 1
+                assert (self.structure_level <= self.max_level - 1)
+                return True
+        return False
+
+
+
 
 
     def update_level(self, update_type: "stat_inc" or 'change_content' or 'stat_dec' or 'reset'):
@@ -169,17 +170,12 @@ class Dwelling(Building):
         self.pottery_access = False
         self.bathhouse_access = False
 
-        self.possible_requirements = {'water','food','temple', 'education', 'fountain', 'basic_entertainment', 'pottery',
-                             'bathhouse'}
-        self.current_requirements = {}
+        self.all_requirements_for_level = None
+
 
     def update_requirements(self):
-        for i in range(self.structure_level):
-            self.current_requirements.add(list(self.possible_requirements)[i])
+        self.all_requirements_for_level = gdata.get_housing_requirements(self.structure_level)
 
-    def is_required(self, what: 'water' or 'food' or 'temple' or 'education' or 'fountain' or
-                                          'basic_entertainment' or 'pottery' or 'bathhouse'):
-        return what in self.current_requirements
     def has_access(self, supply: 'water' or 'food' or 'temple' or 'education' or 'fountain' or
                                           'basic_entertainment' or 'pottery' or 'bathhouse'):
         tmp = supply + '_access'
@@ -188,18 +184,29 @@ class Dwelling(Building):
                                           'basic_entertainment' or 'pottery' or 'bathhouse', value:bool):
         tmp = supply + '_access'
         setattr(self, tmp, value)
-        if value:
-            self.current_requirements.remove(supply)
-        else:
-            self.current_requirements.add(supply)
 
     def update_with_supply(self, supply: 'water' or 'food' or 'temple' or 'education' or 'fountain' or
-                                         'basic_entertainment' or 'pottery' or 'bathhouse', evolve=True):
-        self.set_access(supply, evolve)
-        if evolve:
-            self.update_level('stat_inc')
+                                         'basic_entertainment' or 'pottery' or 'bathhouse', evolvable=True):
+        """
+
+        """
+        self.set_access(supply, evolvable)
+
+        # a building is downgraded when one of its needs of previous level is satisfied no more
+        # So we check if it just loose access to a supply in which case we downgrade it
+        if not evolvable:
+            previous_requirements = gdata.get_housing_requirements(self.structure_level-1)
+            for previous_requirement in previous_requirements:
+                if not self.has_access(previous_requirement):
+                    self.update_level('stat_dec')
+                    return
         else:
-            self.update_level('stat_dec')
+            for requirement in self.all_requirements_for_level:
+                if not self.has_access(requirement):
+                    return
+            # building has access to all requirements
+            self.update_level('stat_inc')
+
 
     def is_occupied(self):
         return self.structure_level > 0

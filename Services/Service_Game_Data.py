@@ -108,3 +108,21 @@ text_carry = ["Wheat Farm","Vegetable Farm","Olive Farm","Clay Pit","Iron Mine",
 
 removing_cost = 2
 risk_random_ratio = 40
+
+
+def get_housing_requirements(level):
+
+    level_requirements = []
+    match level:
+        case 1:
+            level_requirements = ['water']
+        case 2:
+            level_requirements = ['water', 'food']
+        case 2:
+            level_requirements = ['water', 'food', 'temple']
+        case 3:
+            level_requirements = ['water', 'food', 'temple', 'education', 'fountain', 'basic_entertainment']
+        case 4:
+            level_requirements = ['water', 'food', 'temple', 'education', 'fountain', 'basic_entertainment', 'pottery',
+                                  'bathhouse']
+    return level_requirements

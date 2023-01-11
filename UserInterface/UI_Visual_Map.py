@@ -257,12 +257,19 @@ class VisualMap:
 
     def update_one_sprite(self,layer:arcade.SpriteList,position,update_type: "building_destroy" or "building_fire" or
                             "change_content" or "stat_inc" or "delete" or "stat_dec" or "reset" or "risk_update", new_texture_path=[], special_value=None):
+        """
+        This function is used to graphically update a single sprite on the map while updating all cells of the map.
+        In case of stat_inc and stat_dec that stand for level incrementing or decrementing, a special value is passed
+        to the function. It is the logical structure level of the building.
+        This helps to synchronize both logic and graphic parts
+        """
         index = fct.get_sprite_list_index(position)
         support_sprite = (self.get_sprite_associated(position))
         sprite_pos_x,sprite_pos_y = support_sprite.center_x,support_sprite.center_y
         sprite = layer[constantes.TILE_COUNT**2 - index -1]
         fire_risk_sprite = self.fire_risk_layer[constantes.TILE_COUNT**2 - index -1]
         collapse_risk_sprite = self.collapse_risk_layer[constantes.TILE_COUNT**2 - index -1]
+
         if update_type == "building_destroy":
             firesprite= self.look_sprite_list(support_sprite.center_x,support_sprite.center_y,self.fire_layer)
             if firesprite:
@@ -270,6 +277,7 @@ class VisualMap:
             sprite.visible = False
             collapsedsprite= self.destroyed_sprite((sprite_pos_x,sprite_pos_y))
             self.destroyed_layer.append(collapsedsprite)
+
         if update_type == "building_fire":
             sprite.visible = False
             firesprite= self.look_sprite_list(support_sprite.center_x,support_sprite.center_y,self.fire_layer)
@@ -279,7 +287,7 @@ class VisualMap:
             else:
                 firesprite= self.fire_sprite((sprite_pos_x,sprite_pos_y))
                 self.fire_layer.append(firesprite)
-                firesprite.visible = True
+
         if update_type == "change_content":
             sprite.textures = []
             for k in new_texture_path:
@@ -287,17 +295,9 @@ class VisualMap:
             sprite.append_texture(arcade.load_texture(self.destroyed))
             sprite.set_texture(0)
 
-        if update_type == "stat_inc":
-            ind = sprite.textures.index(sprite.texture)
-            if sprite.textures[ind+1] == sprite.textures[-1]:
-                sprite.set_texture(0)
-            else :
-                sprite.set_texture(ind+1)
-
-        if update_type == "stat_dec":
-            ind = sprite.textures.index(sprite.texture)
-            if ind > 0:
-                sprite.set_texture(ind-1)
+        if update_type in ["stat_inc", "stat_dec"]:
+            #print(special_value)
+            sprite.set_texture(special_value)
 
         if update_type == "reset":
             sprite.set_texture(0)
@@ -311,14 +311,13 @@ class VisualMap:
                 h= fire_risk_sprite.height - constantes.TILE_HEIGHT * self.map_scaling
                 if fire_risk_sprite.texture.height > constantes.TILE_HEIGHT*self.map_scaling:
                     fire_risk_sprite.center_y = support_sprite.center_y + h/2
-                print(special_value[1])
+
                 fire_risk_sprite.visible = True
             if special_value[0] == "collapse":
                 collapse_risk_sprite.set_texture(special_value[1])
                 h= collapse_risk_sprite.height - constantes.TILE_HEIGHT * self.map_scaling
                 if collapse_risk_sprite.texture.height > constantes.TILE_HEIGHT*self.map_scaling:
                     collapse_risk_sprite.center_y = support_sprite.center_y + h/2
-                print(special_value[1])
                 collapse_risk_sprite.visible = True
             
 
