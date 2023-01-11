@@ -76,7 +76,7 @@ class Walker:
         # skipped
         if self.current_path_to_follow:
             if self.dest_compteur == 0 and self.compteur == 0:
-                print(self.current_path_to_follow)
+                pass
             self.dest_pos = self.current_path_to_follow[self.dest_compteur]
 
         if not self.dest_pos:
@@ -245,7 +245,7 @@ class Walker:
             # print(f'taille: {len(path_founds)} -- {self.current_path_to_follow}')
             return True
         # There is no path to this building
-        print("Sorry no path")
+        # print("Sorry no path")
         return False
 
     def get_out_city(self):

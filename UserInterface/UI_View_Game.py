@@ -839,20 +839,11 @@ class GameView(arcade.View):
         for k in update.collapsed:
             self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = k ,update_type="building_destroy")
         for l in update.has_evolved:
-            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = l ,update_type="stat_inc")
+            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = l[0] ,update_type="stat_inc",special_value=l[1])
         for m in update.has_devolved:
-            self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer, position=m, update_type="stat_dec")
+            self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer, position=m[0], update_type="stat_dec", special_value=m[1])
         for n in update.removed:
             self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer, position=n, update_type="delete")
-
-        for bcfire in update.catchedfire:
-            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = bcfire ,update_type="building_fire")
-        for bcollapse in update.collapsed:
-            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = bcollapse ,update_type="building_destroy")
-        for bevol in update.has_evolved:
-            self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = bevol ,update_type="stat_inc")
-        for bdevol in update.has_devolved:
-            self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer, position=bdevol, update_type="stat_dec")
         for briskfire in update.fire_level_change:
             self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer, position = briskfire[0],update_type="risk_update",special_value=("fire",briskfire[1]))
         for briskcollapse in update.collapse_level_change:
