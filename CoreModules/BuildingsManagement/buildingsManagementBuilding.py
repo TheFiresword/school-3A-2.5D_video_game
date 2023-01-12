@@ -8,7 +8,9 @@ import time
 max_burning_time = 60000000000000000000000000000000
 DELTA_TIME = 0.2666666
 class Building(element.Element):
-    def __init__(self, buildings_layer, _type, version="dwell"):
+    def __init__(self, buildings_layer, _type, version="dwell", parent=None):
+        self.parent = parent
+
         self.risk_dico = {"fire" : 0, "collapse" : 0}
         self.risk_level_dico = {"fire": 0, "collapse" : 0} 
 
@@ -52,19 +54,21 @@ class Building(element.Element):
             self.risk_increasing_speed = 0 if self.dic['version'] == 'dwell' else 0.8
         else:
             self.risk_increasing_speed = 1/self.structure_level if self.dic['version'] == 'dwell' else 0.8/self.structure_level
-    def update_risk(self,risk):
 
+
+
+    def update_risk(self,risk):
         if risk == "fire" and self.isBurning:
             if self.BurningTime <= max_burning_time:
                 self.BurningTime += 1
             else:
                 self.isDestroyed = True
-                self.risk_dico["fire"],self.risk_level_dico = 0,0
-                self.risk_dico["collapse"],self.risk_level_dico = 0,0
+                self.risk_dico["fire"], self.risk_level_dico = 0, 0
+                self.risk_dico["collapse"], self.risk_level_dico = 0, 0
                 self.isBurning = False
         else:
-            self.randombuf += random.random()*self.risk_increasing_speed
-            if  self.randombuf> gdata.risk_random_ratio:
+            self.randombuf += random.random() * self.risk_increasing_speed
+            if self.randombuf > gdata.risk_random_ratio:
                 self.randombuf = 0
                 self.risk_dico[risk] += 5
             if self.risk_dico[risk] == 0:
@@ -81,7 +85,7 @@ class Building(element.Element):
                 if risk == "fire":
                     self.isBurning = True
                     self.BurningTime = 0
-                else :
+                else:
                     self.isDestroyed = True
                     self.isBurning = False
 
@@ -100,20 +104,26 @@ class Building(element.Element):
                     self.previous_time = time.time()
                     self.current_time = time.time()
 
-                elif  self.current_time-self.previous_time > DELTA_TIME:
-                    self.current_time, self.previous_time = time.time(), time.time()
-                    self.structure_level += 1
-                    if self.structure_level == self.max_level:
-                        if self.dic['version'] in ["fruit_farm", "olive_farm", "pig_farm", "vegetable_farm", "vine_farm",
-                                                   "wheat_farm"]:
-                            self.structure_level = 0
-                        else:
-                            self.structure_level = 1
-                    assert (self.structure_level <= self.max_level - 1)
-                    return True
-
                 else:
-                    self.current_time += 1 / framerate
+                    if self.dic['version'] not in ["fruit_farm", "olive_farm", "pig_farm", "vegetable_farm",
+                                                       "vine_farm",
+                                                       "wheat_farm"]:
+                        delta_timer = DELTA_TIME
+                        init_level = 1
+                    else:
+                        delta_timer = 3*DELTA_TIME
+                        init_level = 0
+
+                    if self.current_time - self.previous_time > delta_timer:
+                        self.current_time, self.previous_time = time.time(), time.time()
+                        self.structure_level += 1
+                        if self.structure_level == self.max_level:
+                            self.structure_level = init_level
+                        assert (self.structure_level <= self.max_level - 1)
+                        return True
+                    else:
+                        self.current_time += 1 / framerate
+                    return False
         return False
 
 
@@ -235,16 +245,17 @@ class Dwelling(Building):
     def is_occupied(self):
         return self.structure_level > 0
 
+"""
 class Farm(Building):
     def __init__(self, buildings_layer, _type, production="wheat_farm"):
         # opt: empecher l'attribut d'id a l'init
         super().__init__(buildings_layer, _type, production)
-        self.foundation = Building(buildings_layer, _type, "foundation_farm")
-        self.farm_at_00 = Building(buildings_layer, _type, production)
-        self.farm_at_01 = Building(buildings_layer, _type, production)
-        self.farm_at_02 = Building(buildings_layer, _type, production)
-        self.farm_at_12 = Building(buildings_layer, _type, production)
-        self.farm_at_22 = Building(buildings_layer, _type, production)
+        self.foundation = Building(buildings_layer, _type, "foundation_farm", parent=self)
+        self.farm_at_00 = Building(buildings_layer, _type, production, parent=self)
+        self.farm_at_01 = Building(buildings_layer, _type, production, parent=self)
+        self.farm_at_02 = Building(buildings_layer, _type, production, parent=self)
+        self.farm_at_12 = Building(buildings_layer, _type, production, parent=self)
+        self.farm_at_22 = Building(buildings_layer, _type, production, parent=self)
 
         self.total_cells = self.foundation.dic['cells_number'] ** 2 + self.farm_at_22.dic['cells_number'] ** 2 + \
                            self.farm_at_12.dic['cells_number'] ** 2 +self.farm_at_00.dic['cells_number'] ** 2 + \
@@ -260,7 +271,7 @@ class Farm(Building):
         self.farm_at_02.update_level('reset')
         self.farm_at_12.update_level('reset')
         self.farm_at_22.update_level('reset')
-
+"""
 class WaterStructure(Building):
     def __init__(self, buildings_layer, _type, version="well"):
         super().__init__(buildings_layer, _type, version)

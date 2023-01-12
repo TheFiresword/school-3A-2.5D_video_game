@@ -177,56 +177,47 @@ def mapping_function(element_type, type_version) -> [str, int]:
         if type_version == "dispensary":#ok
             return [(const.SPRITE_PATH + "Hygiene/Hygiene_00003.png", 1)]
 
-        elif type_version == "foundation_farm":#ok
-            return [(const.SPRITE_PATH + "Commerce\Commerce_00012.png", 2)]
-
         elif type_version == "fruit_farm":#ok
-            return [(const.SPRITE_PATH + "Commerce\Commerce_00023.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00024.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00025.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00026.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00027.png", 1)]
+            my_array = [(const.SPRITE_PATH + "Farms/farm.png", 3)]
+            for i in range(52, 75 + 1):
+                my_array.append((const.SPRITE_PATH + "Farms\Commerce_000" + str(i) + ".png", 3))
+            return my_array
 
 
         elif type_version == "olive_farm":#ok
-            return [(const.SPRITE_PATH + "Commerce\Commerce_00028.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00029.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00030.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00030.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00031.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00032.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00033.png", 1)]
+            my_array = [(const.SPRITE_PATH + "Farms/farm.png", 3)]
+            for i in range(76, 100):
+                my_array.append((const.SPRITE_PATH + "Farms\Commerce_000" + str(i) + ".png", 3))
+            my_array.append((const.SPRITE_PATH + "Farms\Commerce_00100.png", 3))
+            return my_array
+
 
 
         elif type_version == "pig_farm":#ok
-            return [(const.SPRITE_PATH + "Commerce\Commerce_00038.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00039.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00040.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00041.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00042.png", 1)]
+            my_array = []
+            for i in range(126, 146 + 1):
+                my_array.append((const.SPRITE_PATH + "Farms\Commerce_00" + str(i) + ".png", 3))
+            return my_array
 
 
         elif type_version == "vegetable_farm":#ok
-            return [(const.SPRITE_PATH + "Commerce\Commerce_00018.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00019.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00020.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00021.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00022.png", 1)]
+            my_array = [(const.SPRITE_PATH + "Farms/farm.png", 3)]
+            for i in range(32, 51 + 1):
+                my_array.append((const.SPRITE_PATH + "Farms\Commerce_000" + str(i) + ".png", 3))
+            return my_array
 
         elif type_version == "vine_farm":#ok
-            return [(const.SPRITE_PATH + "Commerce\Commerce_00033.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00034.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00035.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00036.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00037.png", 1)]
+            my_array = [(const.SPRITE_PATH + "Farms/farm.png", 3)]
+            for i in range(101, 125 + 1):
+                my_array.append((const.SPRITE_PATH + "Farms\Commerce_00" + str(i) + ".png", 3))
+            return my_array
 
 
         elif type_version == "wheat_farm":#ok
-            return [(const.SPRITE_PATH + "Commerce\Commerce_00013.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00014.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00015.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00016.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00017.png", 1)]
+            my_array = [(const.SPRITE_PATH + "Farms/farm.png", 3)]
+            for i in range(12,31+1):
+                my_array.append((const.SPRITE_PATH + "Farms\Commerce_000"+str(i)+".png", 3))
+            return my_array
 
         elif type_version == "iron_mine":
             return [(const.SPRITE_PATH + "", 0)]
@@ -376,6 +367,8 @@ def mapping_function(element_type, type_version) -> [str, int]:
 
         elif type_version == "oracle":#ok
             return [(const.SPRITE_PATH + "Temples\Temples_00011.png", 2)]
+        elif type_version in ["ofarm", "ffarm", "pfarm", "vfarm", "vifarm", "wfarm" ]:
+            return [(const.SPRITE_PATH + "farm.png", 2)]
 
 def get_structures_range(element_type, type_version) -> int:
     if element_type != "buildings":
