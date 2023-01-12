@@ -263,15 +263,14 @@ class Game:
                 update.fire_level_change.append((k.position,building_update["fire_level"][1]))
             if building_update["collapse_level"][0]:
                 update.collapse_level_change.append((k.position,building_update["collapse_level"][1]))
-        if update.catchedfire or update.collapsed:
-            print(update.catchedfire, update.collapsed)
+
         return update
         # ---------------------------------#
 
 
 
     def create_walker(self,path=[],building=None):
-        walker = walkers.Immigrant(self.map.roads_layer.get_exit_position()[0],self.map.roads_layer.get_exit_position()[1], None, self.framerate, globalVar.DEFAULT_FPS, self,path,building)
+        walker = walkers.Immigrant(self.map.roads_layer.get_exit_position()[0],self.map.roads_layer.get_exit_position()[1], None, globalVar.DEFAULT_FPS, globalVar.DEFAULT_FPS, self,path,building)
         self.walkersAll.append(walker)
         self.walkersGetOut(walker)
 
@@ -382,35 +381,16 @@ class Game:
             case 'dwell':
                 building = buildings.Dwelling(self.map.buildings_layer, globalVar.LAYER5)
 
-            case "fruit_farm" | "olive_farm" | "pig_farm" | "vegetable_farm" | "vine_farm" | "wheat_farm":
-                building = buildings.Farm(self.map.buildings_layer, globalVar.LAYER5, version)
-
             case "well" | "fountain"| "fountain1" | "fountain2" | "fountain3" | "fountain4" | "reservoir":
                 building = buildings.WaterStructure(self.map.buildings_layer, globalVar.LAYER5, version)
 
             case _:
                 building = buildings.Building(self.map.buildings_layer, globalVar.LAYER5, version)
 
-        if version in ["fruit_farm", "olive_farm", "vegetable_farm", "vine_farm", "wheat_farm"]:
-            # we should check if there is yellow grass on the future positions to check
-            cells_number = building.total_cells
-            can_build = all([self.map.grass_layer.cell_is_yellow_grass(line+i, column+j)
-                             for j in range(0, cells_number) for i in range(0, cells_number)])
-
-            if not can_build:
-                return False
         status = self.map.buildings_layer.set_cell_constrained_to_bottom_layer(self.map.collisions_layers, line, column,
                                                                                building)
-
         if status:
             match version:
-                case "fruit_farm" | "olive_farm" | "pig_farm" | "vegetable_farm" | "vine_farm" | "wheat_farm":
-                    self.buildinglist.append(building.farm_at_02)
-                    self.buildinglist.append(building.farm_at_12)
-                    self.buildinglist.append(building.farm_at_01)
-                    self.buildinglist.append(building.farm_at_00)
-                    self.buildinglist.append(building.farm_at_22)
-                    self.buildinglist.append(building.foundation)
                 case _:
                     self.buildinglist.append(building)
 

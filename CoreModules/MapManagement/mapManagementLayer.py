@@ -228,43 +228,30 @@ class Layer:
                     for layer in bottom_layers_list:
                         if layer.array[line + i][column + j].dic["version"] != "null":
                             return False
-        if type(element) not in [Farm]:
-            # On copie les informations de l'Element dans la case correspondante--On garde l'id de la case
-            self.array[line][column] = element
-            if change_id:
-                self.array[line][column].id = next(self.id_iterator)
-            else:
-                self.array[line][column].id = self.current_id
-
-            self.current_id = self.array[line][column].id
-            self.array[line][column].position = (line, column)
-
-            # On met les cases supplémentaires à la version occupied
-            for i in range(0, cells_number):
-                for j in range(0, cells_number):
-                    if (i, j) == (0, 0):
-                        continue
-
-                    else:
-                        self.array[line + i][column + j].dic['version'] = "occupied"
-                        # The id of the additionnal elements are set to the same as the first part because they are
-                        # parts of the same logic element
-                        self.array[line + i][column + j].id = self.array[line][column].id
-                        self.array[line + i][column + j].position = (line, column)
-            return True
-
+        # On copie les informations de l'Element dans la case correspondante--On garde l'id de la case
+        self.array[line][column] = element
+        if change_id:
+            self.array[line][column].id = next(self.id_iterator)
         else:
-            multi_part_element = element
-            multi_part_element.position = (line, column)
-            multi_part_element.id = next(self.id_iterator)
-            self.current_id = multi_part_element.id
+            self.array[line][column].id = self.current_id
 
-            return self.set_cell(line, column, element.farm_at_00, can_replace, change_id=False,bottom_layers_list = bottom_layers_list) and \
-            self.set_cell(line, column+1, element.farm_at_01, can_replace, change_id=False,bottom_layers_list = bottom_layers_list)      and \
-            self.set_cell(line, column+2, element.farm_at_02, can_replace, change_id=False,bottom_layers_list = bottom_layers_list)      and \
-            self.set_cell(line+1, column + 2, element.farm_at_12, can_replace, change_id=False,bottom_layers_list = bottom_layers_list)  and \
-            self.set_cell(line+2, column + 2, element.farm_at_22, can_replace, change_id=False,bottom_layers_list = bottom_layers_list)  and \
-            self.set_cell(line + 1, column, element.foundation, can_replace, change_id=False,bottom_layers_list = bottom_layers_list)
+        self.current_id = self.array[line][column].id
+        self.array[line][column].position = (line, column)
+
+        # On met les cases supplémentaires à la version occupied
+        for i in range(0, cells_number):
+            for j in range(0, cells_number):
+                if (i, j) == (0, 0):
+                    continue
+                else:
+                    self.array[line + i][column + j].dic['version'] = "occupied"
+                    # The id of the additionnal elements are set to the same as the first part because they are
+                    # parts of the same logic element
+                    self.array[line + i][column + j].id = self.array[line][column].id
+                    self.array[line + i][column + j].position = (line, column)
+        return True
+
+
 
     def set_cell_constrained_to_bottom_layer(self, bottom_layers_list, line, column, element,
                                              can_replace=False, change_id=True) -> bool:

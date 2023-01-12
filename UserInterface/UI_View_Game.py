@@ -677,18 +677,6 @@ class GameView(arcade.View):
         # ================================
         line, column = self.visualmap.get_sprite_at_screen_coordinates(pos)
         building = gdata.building_dico[self.builder_content].name
-        if building == "ofarm":
-            building = "olive_farm"
-        elif building == "ffarm":
-            building = "fruit_farm"
-        elif building == "pfarm":
-            building = "pig_farm"
-        elif building == "vfarm":
-            building = "vegetable_farm"
-        elif building == "vifarm":
-            building = "vine_farm"
-        elif building == "wfarm":
-            building = "wheat_farm"
         if self.game.add_building(line, column, building):
             self.visualmap.update_layers(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
             return True

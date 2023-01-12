@@ -50,140 +50,44 @@ class Building(element.Element):
             self.functional = value
 
     def update_risk_speed_with_level(self):
-        if self.dic['version'] in ["fruit_farm", "olive_farm", "pig_farm", "vegetable_farm", "vine_farm",
-                                   "wheat_farm", "foundation_farm"]:
-            whole_farm = self.parent
-            if whole_farm.farm_at_00 == self:
-                if self.structure_level == 0:
-                    self.risk_increasing_speed = 0 if self.dic['version'] == 'dwell' else 0.8
-                else:
-                    self.risk_increasing_speed = 1 / self.structure_level if self.dic['version'] == 'dwell' else 0.8 / self.structure_level
-                whole_farm.risk_increasing_speed = self.risk_increasing_speed
-                whole_farm.farm_at_01.risk_increasing_speed = whole_farm.farm_at_02.risk_increasing_speed = \
-                    whole_farm.farm_at_12.risk_increasing_speed = whole_farm.farm_at_22.risk_increasing_speed =\
-                    whole_farm.foundation.risk_increasing_speed
+        if self.structure_level == 0:
+            self.risk_increasing_speed = 0 if self.dic['version'] == 'dwell' else 0.8
         else:
-            if self.structure_level == 0:
-                self.risk_increasing_speed = 0 if self.dic['version'] == 'dwell' else 0.8
-            else:
-                self.risk_increasing_speed = 1/self.structure_level if self.dic['version'] == 'dwell' else 0.8/self.structure_level
+            self.risk_increasing_speed = 1/self.structure_level if self.dic['version'] == 'dwell' else 0.8/self.structure_level
 
 
 
     def update_risk(self,risk):
-        if self.dic['version'] in ["fruit_farm", "olive_farm", "pig_farm", "vegetable_farm", "vine_farm",
-                                       "wheat_farm", "foundation_farm"]:
-            whole_farm = self.parent
-            if whole_farm.farm_at_00 == self:
-                if risk == "fire" and whole_farm.isBurning:
-                    if whole_farm.BurningTime <= max_burning_time:
-                        whole_farm.BurningTime += 1
-                        whole_farm.farm_at_00.BurningTime = whole_farm.farm_at_01.BurningTime = whole_farm.farm_at_02.BurningTime = \
-                            whole_farm.farm_at_12.BurningTime =  whole_farm.farm_at_22.BurningTime = whole_farm.foundation.BurningTime = \
-                            whole_farm.BurningTime
-                    else:
-                        whole_farm.farm_at_00.isDestroyed = whole_farm.farm_at_01.isDestroyed = \
-                            whole_farm.farm_at_02.isDestroyed = whole_farm.farm_at_12.isDestroyed =  \
-                            whole_farm.farm_at_22.isDestroyed = whole_farm.foundation.isDestroyed = whole_farm.isDestroyed =\
-                            True
-
-                        whole_farm.farm_at_00.risk_dico["fire"], whole_farm.farm_at_00.risk_level_dico = \
-                            whole_farm.farm_at_01.risk_dico["fire"], whole_farm.farm_at_01.risk_level_dico = \
-                            whole_farm.farm_at_02.risk_dico["fire"], whole_farm.farm_at_02.risk_level_dico = \
-                            whole_farm.farm_at_12.risk_dico["fire"], whole_farm.farm_at_12.risk_level_dico = \
-                            whole_farm.farm_at_22.risk_dico["fire"], whole_farm.farm_at_22.risk_level_dico = \
-                            whole_farm.foundation.risk_dico["fire"], whole_farm.foundation.risk_level_dico = \
-                            whole_farm.risk_dico["fire"], whole_farm.risk_level_dico = 0, 0
-
-                        whole_farm.risk_dico["collapse"],whole_farm.risk_level_dico = 0,0
-                        whole_farm.farm_at_00.risk_dico["collapse"], whole_farm.farm_at_00.risk_level_dico = \
-                            whole_farm.farm_at_01.risk_dico["collapse"], whole_farm.farm_at_01.risk_level_dico = \
-                            whole_farm.farm_at_02.risk_dico["collapse"], whole_farm.farm_at_02.risk_level_dico = \
-                            whole_farm.farm_at_12.risk_dico["collapse"], whole_farm.farm_at_12.risk_level_dico = \
-                            whole_farm.farm_at_22.risk_dico["collapse"], whole_farm.farm_at_22.risk_level_dico = \
-                            whole_farm.foundation.risk_dico["collapse"], whole_farm.foundation.risk_level_dico = \
-                            whole_farm.risk_dico["collapse"], whole_farm.risk_level_dico = 0, 0
-
-                        whole_farm.farm_at_00.isBurning = whole_farm.farm_at_01.isBurning = whole_farm.farm_at_02.isBurning \
-                            = whole_farm.farm_at_12.isBurning =  whole_farm.farm_at_22.isBurning = \
-                            whole_farm.foundation.isBurning = whole_farm.isBurning =False
-
-                else:
-                    whole_farm.randombuf += random.random()*self.risk_increasing_speed
-                    if  whole_farm.randombuf> gdata.risk_random_ratio:
-                        whole_farm.farm_at_00.randombuf = whole_farm.farm_at_01.randombuf = whole_farm.farm_at_02.randombuf = \
-                             whole_farm.farm_at_12.randombuf = whole_farm.farm_at_22.randombuf = \
-                            whole_farm.foundation.randombuf = whole_farm.randombuf = 0
-
-                        whole_farm.risk_dico[risk] += 5
-
-                    if whole_farm.risk_dico[risk] == 0:
-                        whole_farm.risk_level_dico[risk] = 0
-                    elif whole_farm.risk_dico[risk] < 20:
-                        whole_farm.risk_level_dico[risk] = 1
-                    elif whole_farm.risk_dico[risk] < 50:
-                        whole_farm.risk_level_dico[risk] = 2
-                    elif whole_farm.risk_dico[risk] < 80:
-                        whole_farm.risk_level_dico[risk] = 3
-                    elif whole_farm.risk_dico[risk] < 100:
-                        whole_farm.risk_level_dico[risk] = 4
-                    else:
-                        if risk == "fire":
-                            whole_farm.isBurning = True
-                            whole_farm.BurningTime = 0
-                        else :
-                            whole_farm.isDestroyed = True
-                            whole_farm.isBurning = False
-
-                        whole_farm.farm_at_00.isBurning = whole_farm.farm_at_01.isBurning = \
-                            whole_farm.farm_at_02.isBurning = whole_farm.farm_at_12.isBurning = whole_farm.farm_at_22.isBurning = \
-                            whole_farm.foundation.isBurning = whole_farm.isBurning
-
-                        whole_farm.farm_at_00.isDestroyed = whole_farm.farm_at_01.isDestroyed = \
-                            whole_farm.farm_at_02.isDestroyed = whole_farm.farm_at_12.isDestroyed = whole_farm.farm_at_22.isDestroyed = \
-                            whole_farm.foundation.isDestroyed = whole_farm.isDestroyed
-
-                        whole_farm.farm_at_00.BurningTime = whole_farm.farm_at_01.BurningTime = \
-                            whole_farm.farm_at_02.BurningTime = whole_farm.farm_at_12.BurningTime = whole_farm.farm_at_22.BurningTime = \
-                            whole_farm.foundation.BurningTime = whole_farm.BurningTime
-
-                    whole_farm.farm_at_00.risk_dico[risk] = whole_farm.farm_at_01.risk_dico[risk] = \
-                        whole_farm.farm_at_02.risk_dico[risk] = whole_farm.farm_at_12.risk_dico[risk] = \
-                        whole_farm.farm_at_22.risk_dico[risk] = whole_farm.foundation.risk_dico[risk] = \
-                        whole_farm.risk_dico[risk]
-
-
+        if risk == "fire" and self.isBurning:
+            if self.BurningTime <= max_burning_time:
+                self.BurningTime += 1
+            else:
+                self.isDestroyed = True
+                self.risk_dico["fire"], self.risk_level_dico = 0, 0
+                self.risk_dico["collapse"], self.risk_level_dico = 0, 0
+                self.isBurning = False
         else:
-            if risk == "fire" and self.isBurning:
-                if self.BurningTime <= max_burning_time:
-                    self.BurningTime += 1
+            self.randombuf += random.random() * self.risk_increasing_speed
+            if self.randombuf > gdata.risk_random_ratio:
+                self.randombuf = 0
+                self.risk_dico[risk] += 5
+            if self.risk_dico[risk] == 0:
+                self.risk_level_dico[risk] = 0
+            elif self.risk_dico[risk] < 20:
+                self.risk_level_dico[risk] = 1
+            elif self.risk_dico[risk] < 50:
+                self.risk_level_dico[risk] = 2
+            elif self.risk_dico[risk] < 80:
+                self.risk_level_dico[risk] = 3
+            elif self.risk_dico[risk] < 100:
+                self.risk_level_dico[risk] = 4
+            else:
+                if risk == "fire":
+                    self.isBurning = True
+                    self.BurningTime = 0
                 else:
                     self.isDestroyed = True
-                    self.risk_dico["fire"], self.risk_level_dico = 0, 0
-                    self.risk_dico["collapse"], self.risk_level_dico = 0, 0
                     self.isBurning = False
-            else:
-                self.randombuf += random.random() * self.risk_increasing_speed
-                if self.randombuf > gdata.risk_random_ratio:
-                    self.randombuf = 0
-                    self.risk_dico[risk] += 5
-                if self.risk_dico[risk] == 0:
-                    self.risk_level_dico[risk] = 0
-                elif self.risk_dico[risk] < 20:
-                    self.risk_level_dico[risk] = 1
-                elif self.risk_dico[risk] < 50:
-                    self.risk_level_dico[risk] = 2
-                elif self.risk_dico[risk] < 80:
-                    self.risk_level_dico[risk] = 3
-                elif self.risk_dico[risk] < 100:
-                    self.risk_level_dico[risk] = 4
-                else:
-                    if risk == "fire":
-                        self.isBurning = True
-                        self.BurningTime = 0
-                    else:
-                        self.isDestroyed = True
-                        self.isBurning = False
 
     def updateLikeability(self):
         pass
@@ -195,39 +99,31 @@ class Building(element.Element):
         """
         # the animation of functional buildings
         if self.is_functional():
-            if self.dic['version'] not in ["dwell", "fruit_farm", "olive_farm", "pig_farm", "vegetable_farm", "vine_farm",
-                                                   "wheat_farm"] and self.max_level > 1:
+            if self.dic['version'] != 'dwell' and self.max_level > 1:
                 if not self.previous_time:
                     self.previous_time = time.time()
                     self.current_time = time.time()
 
-                elif  self.current_time-self.previous_time > DELTA_TIME:
-                    self.current_time, self.previous_time = time.time(), time.time()
-                    self.structure_level += 1
-                    if self.structure_level == self.max_level:
-                        self.structure_level = 1
-                    assert (self.structure_level <= self.max_level - 1)
-                    return True
-
                 else:
-                    self.current_time += 1 / framerate
+                    if self.dic['version'] not in ["fruit_farm", "olive_farm", "pig_farm", "vegetable_farm",
+                                                       "vine_farm",
+                                                       "wheat_farm"]:
+                        delta_timer = DELTA_TIME
+                        init_level = 1
+                    else:
+                        delta_timer = 3*DELTA_TIME
+                        init_level = 0
 
-            elif self.dic['version']  in ["fruit_farm", "olive_farm", "pig_farm", "vegetable_farm", "vine_farm",
-                                                   "wheat_farm"]:
-                if not self.previous_time:
-                    self.previous_time = time.time()
-                    self.current_time = time.time()
-
-                elif  self.current_time-self.previous_time > 5*DELTA_TIME:
-                    self.current_time, self.previous_time = time.time(), time.time()
-                    self.structure_level += 1
-                    if self.structure_level == self.max_level:
-                        self.structure_level = 0
-                    assert (self.structure_level <= self.max_level - 1)
-                    return True
-                else:
-                    self.current_time += 1 / framerate
-
+                    if self.current_time - self.previous_time > delta_timer:
+                        self.current_time, self.previous_time = time.time(), time.time()
+                        self.structure_level += 1
+                        if self.structure_level == self.max_level:
+                            self.structure_level = init_level
+                        assert (self.structure_level <= self.max_level - 1)
+                        return True
+                    else:
+                        self.current_time += 1 / framerate
+                    return False
         return False
 
 
@@ -349,6 +245,7 @@ class Dwelling(Building):
     def is_occupied(self):
         return self.structure_level > 0
 
+"""
 class Farm(Building):
     def __init__(self, buildings_layer, _type, production="wheat_farm"):
         # opt: empecher l'attribut d'id a l'init
@@ -374,7 +271,7 @@ class Farm(Building):
         self.farm_at_02.update_level('reset')
         self.farm_at_12.update_level('reset')
         self.farm_at_22.update_level('reset')
-
+"""
 class WaterStructure(Building):
     def __init__(self, buildings_layer, _type, version="well"):
         super().__init__(buildings_layer, _type, version)
