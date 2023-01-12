@@ -254,6 +254,9 @@ class Immigrant(Walker):
         # but we should also verify that the dwell is not removed before the immigrant goes in
         if self.house.dic['version']=="null":
             print("no")
+        if self.house!=self.building_layer.array[self.house.position[0]][self.house.position[1]]:
+            # The walker shoud be destroyed
+            pass
         elif self.house.structure_level == 0:
             self.house.structure_level = 1
             self.house.functional = True
@@ -268,11 +271,8 @@ class Immigrant(Walker):
                     self.current_path_to_follow = self.map_associated.walk_to_a_building(self.init_pos,self.dest_pos,building.position,self.current_path_to_follow)[1]
                 self.house = building
                 building.current_population += 1
-            if self.house:
                 return
-
         pass"""
-
 
 class Cart_Pusher(Walker):
     def work(self):

@@ -29,8 +29,8 @@ from pyglet.math import Vec2
 MAP_CAMERA_SPEED = 0.5
 
 MINIMAP_BACKGROUND_COLOR = arcade.get_four_byte_color(arcade.color.BLACK)
-MINIMAP_WIDTH = 154
-MINIMAP_HEIGHT = 170
+MINIMAP_WIDTH = 147
+MINIMAP_HEIGHT = 110
 MAP_WIDTH = 2048
 MAP_HEIGHT = 2048
 
@@ -259,19 +259,24 @@ class GameView(arcade.View):
         # Construct the minimap
         size = (MINIMAP_WIDTH, MINIMAP_HEIGHT)
         self.minimap_texture = arcade.Texture.create_empty(str(uuid4()), size)
-        self.minimap_sprite = arcade.Sprite(center_x=(constantes.DEFAULT_SCREEN_WIDTH-MINIMAP_WIDTH/2),
-                                            center_y=(constantes.DEFAULT_SCREEN_HEIGHT - MINIMAP_HEIGHT /2),
+        self.minimap_sprite = arcade.Sprite(center_x=(constantes.DEFAULT_SCREEN_WIDTH-MINIMAP_WIDTH/2 - 9),
+                                            center_y=(constantes.DEFAULT_SCREEN_HEIGHT - MINIMAP_HEIGHT /2 - 53),
                                             texture=self.minimap_texture)
         self.minimap_sprite_list = arcade.SpriteList()
         self.minimap_sprite_list.append(self.minimap_sprite)
 
 
     def update_minimap(self):
-        proj = 0, constantes.DEFAULT_SCREEN_WIDTH, 0, constantes.DEFAULT_SCREEN_HEIGHT
+        map_width = constantes.MAP_WIDTH*self.visualmap.map_scaling
+        map_height = constantes.MAP_HEIGHT*self.visualmap.map_scaling
+        proj = self.map_camera.position[0]-map_width/2, self.map_camera.position[0]+map_width/2, \
+               self.map_camera.position[1]-map_height/2, self.map_camera.position[1]+map_height/2
+
         with self.minimap_sprite_list.atlas.render_into(self.minimap_texture, projection=proj) as fbo:
             fbo.clear(MINIMAP_BACKGROUND_COLOR)
             self.visualmap.grass_layer.draw()
             self.visualmap.roads_layer.draw()
+            self.visualmap.trees_layer.draw()
             self.visualmap.buildings_layer.draw()
             self.visualmap.hills_layer.draw()
 
@@ -600,7 +605,8 @@ class GameView(arcade.View):
     # =======================================
 
     def move_map_camera_with_keys(self):
-
+        map_width = constantes.MAP_WIDTH * self.visualmap.map_scaling*2
+        map_height = constantes.MAP_HEIGHT * self.visualmap.map_scaling
         if self.up_pressed and not self.down_pressed:
             self.scroll_to(self.map_camera.position + Vec2(0, 20))
         elif self.down_pressed and not self.up_pressed:
