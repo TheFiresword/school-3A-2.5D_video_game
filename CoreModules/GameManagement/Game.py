@@ -194,17 +194,16 @@ class Game:
 
             cases = []
 
+            
+            voisins = self.get_voisins_tuples(k)
+            has_road = [self.map.roads_layer.is_real_road(v[0],v[1]) for v in voisins]
             # Creation of walkers
-            if type(k) == buildings.Dwelling and k.current_population < k.max_population:
+            if type(k) == buildings.Dwelling and k.current_population < k.max_population and any(has_road):
                 remove = []
-                while k.current_population < k.max_population:
-                    self.create_walker()
-                    if not self.walkersAll[-1].current_path_to_follow:
-                        w = self.walkersAll.pop(-1)
-                        if w in self.walkersOut:
-                            self.walkersOut.remove(w)
-                        remove.append(w)
-                k.current_population -= len(remove) 
+                path = self.map.walk_to_a_building(self.map.roads_layer.get_exit_position(),None, k.position,[])[1]
+                if path:
+                    for i in range(k.max_population - k.current_population):
+                        self.create_walker(path.copy(),k)
 
             # We don't want primitive housing (pannel) to burn or to collapse
             if type(k) == buildings.Dwelling and not k.is_occupied():
@@ -262,9 +261,8 @@ class Game:
         # ---------------------------------#
 
 
-    def create_walker(self):
-
-        walker = walkers.Immigrant(0, 20, None, self.framerate, globalVar.DEFAULT_FPS, self)
+    def create_walker(self,path=[],building=None):
+        walker = walkers.Immigrant(self.map.roads_layer.get_exit_position()[0],self.map.roads_layer.get_exit_position()[1], None, self.framerate, globalVar.DEFAULT_FPS, self,path,building)
         self.walkersAll.append(walker)
         self.walkersGetOut(walker)
 
@@ -278,7 +276,8 @@ class Game:
                 walker.get_out_city()
         else:
             for walker in self.walkersOut:
-                walker.walk_to_a_building((globalVar.TILE_COUNT//2, globalVar.TILE_COUNT // 2 -4 ))
+                walker.current_path_to_follow = self.map.walk_to_a_building(walker.init_pos,walker.dest_pos,(globalVar.TILE_COUNT//2, globalVar.TILE_COUNT // 2 -4 ),[])[1]
+                walker.dest_compteur = 0
         pass
 
     def remove_element(self, pos) -> str | None:
@@ -439,3 +438,11 @@ class Game:
                 for j in range(-2,2):
                                     voisins.add(self.map.buildinglayer.array[case[0] + i][case[1] + j])
         return voisins
+    
+    def get_voisins_tuples(self,building):
+        pos = building.position
+        cases = []
+        for i in range(-2,3):
+            for j in range(-2,3):
+                cases.append((pos[0] + i,pos[1] + j))
+        return cases

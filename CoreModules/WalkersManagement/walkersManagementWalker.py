@@ -155,98 +155,7 @@ class Walker:
                     else:
                         self.dest_compteur += 1
 
-    def walk_to_a_building(self, building_target_pos) -> bool:
-        """
-        This function uses pathfinding to calculate the path that a walker should follow to move from its position to
-        a building position.
-        This path is calculated with the library pathfinding
-        param: building_target_pos: a tuple
-        It returns if the path has been effectively calculated
-        """
-        # We pose that if the walker is already on a path to a building we can't give him another path simultaneously
-        if self.current_path_to_follow:
-            return False
-        # I create an array that associates value 1 to any road that is not 'null' and 0 if not.
-        integer_array_associated_with_roads_layer = [
-            [1 if self.map_associated.cell_is_walkable(row, column) else 0 for column in range(cst.TILE_COUNT) ]
-            for row in range(cst.TILE_COUNT)]
 
-        pathfinding_grid = Grid(matrix=integer_array_associated_with_roads_layer)
-
-        finder = bi_a_star.AStarFinder()
-
-
-        line, column = building_target_pos
-
-        cells_number = self.building_layer.get_cells_number(line, column)
-
-        # If the building is a dwell then the walker can walk to it if there is a road in a range of 2 cells
-        building = self.building_layer.get_cell(line, column)
-        dwell = building.dic['version'] == 'dwell'
-        assert cells_number
-
-        path_founds = []
-
-        possible_cells_to_approch_target = []
-        for i in range(cells_number):
-            if self.road_layer.is_real_road(line + i, column - 1):
-                possible_cells_to_approch_target.append((line + i, column - 1))
-            # If the building is a dwell then the walker can walk to it if there is a road in a range of 2 cells
-            elif self.road_layer.is_real_road(line + i, column - 2) and dwell:
-                possible_cells_to_approch_target.append((line + i, column - 2))
-
-            if self.road_layer.is_real_road(line - 1, column + i):
-                possible_cells_to_approch_target.append((line - 1, column + i))
-            elif self.road_layer.is_real_road(line - 2, column + i) and dwell:
-                possible_cells_to_approch_target.append((line - 2, column + i))
-
-
-            if self.road_layer.is_real_road(line + cells_number, column + i):
-                possible_cells_to_approch_target.append((line + cells_number, column + i))
-            elif self.road_layer.is_real_road(line + cells_number + 1, column + i) and dwell:
-                possible_cells_to_approch_target.append((line + cells_number + 1, column + i))
-
-            if self.road_layer.is_real_road(line + i, column + cells_number):
-                possible_cells_to_approch_target.append((line + i, column + cells_number))
-            elif self.road_layer.is_real_road(line + i, column + cells_number+1) and dwell:
-                possible_cells_to_approch_target.append((line + i, column + cells_number+1))
-
-        # we have to take in consideration the case where the walker is already walking to a random destination
-        # then the start position for the pathfinding is considered to be this destination
-        if self.dest_pos:
-            _start = pathfinding_grid.node(self.dest_pos[1], self.dest_pos[0])
-        else:
-            _start = pathfinding_grid.node(self.init_pos[1], self.init_pos[0])
-
-        for i in range(len(possible_cells_to_approch_target)):
-            pathfinding_grid.cleanup()
-            _end = pathfinding_grid.node(possible_cells_to_approch_target[i][1],
-                                              possible_cells_to_approch_target[i][0])
-
-            path, runs = finder.find_path(_start, _end, pathfinding_grid)
-            if path:
-                # we have a valide path, so we have to move the walker with this path
-                # ie a list of destpos; ex: path = [(1,1), (2, 2)]
-                if not self.dest_pos:
-                    tmp = self.init_pos[1], self.init_pos[0]
-                    path.remove(tmp)
-                path_founds.append(path)
-
-
-        if path_founds:
-            # we have at least one valid path, we choose the smallest one and we move the walker through this path
-            # ie a list of destpos; ex: path = [(1,1), (2, 2)]
-            self.current_path_to_follow = min(path_founds, key=len)
-            # then we reverse each tuple because the implementation of Grid nodes in the library pathfinding considers
-            # that our row is their column
-            for count in range(len(self.current_path_to_follow)):
-                self.current_path_to_follow[count] = tuple(reversed(self.current_path_to_follow[count]))
-
-            # print(f'taille: {len(path_founds)} -- {self.current_path_to_follow}')
-            return True
-        # There is no path to this building
-        # print("Sorry no path")
-        return False
 
     def get_out_city(self):
         """
@@ -327,38 +236,42 @@ class Engineer(Walker):
 
 class Prefect(Walker):
     def work(self, building):
-        self.walk_to_a_building(building.position)
+        self.current_path_to_follow = self.map_associated.walk_to_a_building(self.init_pos,self.dest_pos,building.position,self.current_path_to_follow)[1]
 
 
 class Immigrant(Walker):
 
-    def __init__(self,pos_ligne, pos_col, house, fps, zoom, game):
+    def __init__(self,pos_ligne, pos_col, house, fps, zoom, game,path=[],building=None):
         super(Immigrant, self).__init__(pos_ligne, pos_col, house, fps, zoom, game)
-        self.find_house()
+        self.current_path_to_follow = path
+        self.dest_compteur = 0
+        self.house = building
+        building.current_population += 1
         
     def work(self, building=None):
         self.game.walkersOut.remove(self)
         # As many immigrants are created when a dwell is built the dwell state must be modified only by the first one
         # but we should also verify that the dwell is not removed before the immigrant goes in
-        print(self.house)
         if self.house.dic['version']=="null":
             print("no")
         elif self.house.structure_level == 0:
             self.house.structure_level = 1
             self.house.functional = True
             self.game.updated.append(self.house)
+    
 
-    def find_house(self):
+    """def find_house(self,path=[]):
         # Parcourir la liste des maisons, trouver celle dans lesquelle peut s'installer(nombre d'habitant, niveau d'habitaion)
         for building in self.game.buildinglist:
             if type(building) == Dwelling and building.current_population<building.max_population:
-                self.walk_to_a_building(building.position)
+                if not path:
+                    self.current_path_to_follow = self.map_associated.walk_to_a_building(self.init_pos,self.dest_pos,building.position,self.current_path_to_follow)[1]
                 self.house = building
                 building.current_population += 1
             if self.house:
                 return
 
-        pass
+        pass"""
 
 
 class Cart_Pusher(Walker):
