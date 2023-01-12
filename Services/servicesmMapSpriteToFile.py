@@ -194,8 +194,7 @@ def mapping_function(element_type, type_version) -> [str, int]:
                     (const.SPRITE_PATH + "Commerce\Commerce_00030.png", 1),
                     (const.SPRITE_PATH + "Commerce\Commerce_00030.png", 1),
                     (const.SPRITE_PATH + "Commerce\Commerce_00031.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00032.png", 1),
-                    (const.SPRITE_PATH + "Commerce\Commerce_00033.png", 1)]
+                    (const.SPRITE_PATH + "Commerce\Commerce_00032.png", 1)]
 
 
         elif type_version == "pig_farm":#ok
@@ -376,6 +375,8 @@ def mapping_function(element_type, type_version) -> [str, int]:
 
         elif type_version == "oracle":#ok
             return [(const.SPRITE_PATH + "Temples\Temples_00011.png", 2)]
+        elif type_version in ["ofarm", "ffarm", "pfarm", "vfarm", "vifarm", "wfarm" ]:
+            return [(const.SPRITE_PATH + "farm.png", 2)]
 
 def get_structures_range(element_type, type_version) -> int:
     if element_type != "buildings":

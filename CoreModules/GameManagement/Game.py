@@ -43,6 +43,13 @@ class Game:
 
         #
         self.last_water_structure_removed = None
+        self.last_food_structure_removed = None
+        self.last_temple_structure_removed = None
+        self.last_education_structure_removed = None
+        self.last_fountain_structure_removed = None
+        self.last_basic_entertainment_structure_removed = None
+        self.last_pottery_structure_removed = None
+        self.last_bathhouse_structure_removed = None
 
         # Timer
         self.init_time = time.time()
@@ -168,6 +175,13 @@ class Game:
 
         #
         update.has_devolved += list(self.downgrade_supply_requirement('water'))
+        update.has_devolved += list(self.downgrade_supply_requirement('food'))
+        update.has_devolved += list(self.downgrade_supply_requirement('temple'))
+        update.has_devolved += list(self.downgrade_supply_requirement('education'))
+        update.has_devolved += list(self.downgrade_supply_requirement('fountain'))
+        update.has_devolved += list(self.downgrade_supply_requirement('basic_entertainment'))
+        update.has_devolved += list(self.downgrade_supply_requirement('pottery'))
+        update.has_devolved += list(self.downgrade_supply_requirement('bathhouse'))
 
         update.has_evolved += list(self.update_supply_requirements('water'))
         update.has_evolved += list(self.update_supply_requirements('food'))
@@ -181,24 +195,20 @@ class Game:
         update.has_evolved = list(set(update.has_evolved))
         update.has_devolved = list(set(update.has_devolved))
 
-
         for k in self.buildinglist:
             # Update of the risk speed level
             k.update_risk_speed_with_level()
 
             pos = k.position
+
             if k.update_functional_building_animation(self.framerate):
                 # animated building update
                 update.has_evolved.append((pos, k.structure_level))
 
-            cases = []
-
-            
             voisins = self.get_voisins_tuples(k)
             has_road = [self.map.roads_layer.is_real_road(v[0],v[1]) for v in voisins]
             # Creation of walkers
             if type(k) == buildings.Dwelling and k.current_population < k.max_population and any(has_road):
-                remove = []
                 path = self.map.walk_to_a_building(self.map.roads_layer.get_exit_position(),None, k.position,[])[1]
                 if path:
                     for i in range(k.max_population - k.current_population):
@@ -207,8 +217,7 @@ class Game:
 
             # We don't want primitive housing (pannel) to burn or to collapse
             if type(k) == buildings.Dwelling and not k.is_occupied():
-
-                # we check if a road is next to this dwelling, if not we remove it after xs
+                # we check if a road is next to this dwelling, if not we remove it after Xs
                 removable = True
                 line, column = k.position
                 for i in range(-2, 2+1):
@@ -231,39 +240,31 @@ class Game:
 
             # ---------------------------------------------------------#
             # Update of burnt and collapsed buildings
-            if k.dic['cells_number'] != 1:
-                for i in range(0, k.dic['cells_number']):
-                    for j in range(0, k.dic['cells_number']):
-                        if (i, j) != (0, 0):
-                            cases.append((pos[0] + i, pos[1] + j))
+
 
             building_update = self.updatebuilding(k)
-
+            cases = self.map.buildings_layer.get_all_positions_of_element(pos[0], pos[1])
             if building_update["fire"]:
                 # the building is no more functional
-                k.functional = False
-                update.catchedfire.append(k.position)
-                if k.dic['cells_number'] != 1:
-                    for i in cases:
-                        k.functional = False
-                        self.map.buildings_layer.array[i[0]][i[1]].isBurning = True
-                        update.catchedfire.append(i)
+                for i in cases:
+                    k.functional = False
+                    self.map.buildings_layer.array[i[0]][i[1]].isBurning = True
+                    update.catchedfire.append(i)
+
             if building_update["collapse"]:
                 # the building is no more functional
-                k.functional = False
-                update.collapsed.append(k.position)
-                if k.dic['cells_number'] != 1:
-                    for i in cases:
-                        self.map.buildings_layer.array[i[0]][i[1]].isDestroyed = True
-                        # the building is no more functional
-                        k.functional = False
-                        update.collapsed.append(i)
+                for i in cases:
+                    self.map.buildings_layer.array[i[0]][i[1]].isDestroyed = True
+                    # the building is no more functional
+                    k.functional = False
+                    update.collapsed.append(i)
 
             if building_update["fire_level"][0]:
                 update.fire_level_change.append((k.position,building_update["fire_level"][1]))
             if building_update["collapse_level"][0]:
                 update.collapse_level_change.append((k.position,building_update["collapse_level"][1]))
-
+        if update.catchedfire or update.collapsed:
+            print(update.catchedfire, update.collapsed)
         return update
         # ---------------------------------#
 

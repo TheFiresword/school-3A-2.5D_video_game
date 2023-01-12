@@ -676,11 +676,20 @@ class GameView(arcade.View):
         #       Add single tile Building
         # ================================
         line, column = self.visualmap.get_sprite_at_screen_coordinates(pos)
-        if self.game.add_building(line, column, gdata.building_dico[self.builder_content].name):
-            # si la route a été bien ajoutée on update la spritelist en la recréant
-            building = self.game.map.buildings_layer.array[line][column]
-            #self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer, position = (line,column),
-            #        update_type="change_content", new_texture_path=[path[0] for path in building.file_paths])
+        building = gdata.building_dico[self.builder_content].name
+        if building == "ofarm":
+            building = "olive_farm"
+        elif building == "ffarm":
+            building = "fruit_farm"
+        elif building == "pfarm":
+            building = "pig_farm"
+        elif building == "vfarm":
+            building = "vegetable_farm"
+        elif building == "vifarm":
+            building = "vine_farm"
+        elif building == "wfarm":
+            building = "wheat_farm"
+        if self.game.add_building(line, column, building):
             self.visualmap.update_layers(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
             return True
         return False

@@ -123,12 +123,6 @@ class MapLogic:
         # -------------------------------------------------------------------------------------------------------------#
         # BUILDINGS
         self.buildings_layer = overlay.Layer(globalVar.LAYER5)
-
-        my_dwelling = building.Dwelling(self.buildings_layer, globalVar.LAYER5)
-        self.buildings_layer.set_cell_constrained_to_bottom_layer([self.hills_layer, self.trees_layer,
-                                                                   self.roads_layer], globalVar.TILE_COUNT//2,
-                                                                  globalVar.TILE_COUNT // 2 -4 , my_dwelling)
-
         # -------------------------------------------------------------------------------------------------------------#
         # A list of layers to check for collision
         self.collisions_layers = [self.buildings_layer, self.hills_layer, self.trees_layer, self.roads_layer]
