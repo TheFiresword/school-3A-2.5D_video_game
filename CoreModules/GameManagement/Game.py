@@ -149,7 +149,6 @@ class Game:
         setattr(self, tmp, None)
         return buildings_position_to_append_to_update_object
 
-
     def updategame(self):
         """
         This function updates the game
@@ -188,7 +187,7 @@ class Game:
             k.update_risk_speed_with_level()
 
             pos = k.position
-            if k.update_functional_building_animation():
+            if k.update_functional_building_animation(self.framerate):
                 # animated building update
                 update.has_evolved.append((pos, k.structure_level))
 
@@ -197,7 +196,7 @@ class Game:
             # Creation of walkers
             if type(k) == buildings.Dwelling and k.current_population < k.max_population:
                 remove = []
-                while k.current_population < k.max_population:
+                if k.current_population < k.max_population:
                     self.create_walker()
                     if not self.walkersAll[-1].current_path_to_follow:
                         w = self.walkersAll.pop(-1)
@@ -209,7 +208,7 @@ class Game:
             # We don't want primitive housing (pannel) to burn or to collapse
             if type(k) == buildings.Dwelling and not k.is_occupied():
 
-                # we check if a road is next to this dwelling, if not we remove it after 5s
+                # we check if a road is next to this dwelling, if not we remove it after xs
                 removable = True
                 line, column = k.position
                 for i in range(-2, 2+1):
@@ -221,7 +220,6 @@ class Game:
                 built_since = int(self.current_time - self.timer_track_dwells[pos]) if pos in self.timer_track_dwells else 0
 
                 if removable and built_since > TIME_BEFORE_REMOVING_DWELL:
-                    print(built_since)
                     # to avoid decreasing money
                     self.money += removing_cost
                     self.remove_element(pos)
@@ -242,29 +240,37 @@ class Game:
             building_update = self.updatebuilding(k)
 
             if building_update["fire"]:
+                # the building is no more functional
+                k.functional = False
                 update.catchedfire.append(k.position)
                 if k.dic['cells_number'] != 1:
                     for i in cases:
+                        k.functional = False
                         self.map.buildings_layer.array[i[0]][i[1]].isBurning = True
                         update.catchedfire.append(i)
             if building_update["collapse"]:
+                # the building is no more functional
+                k.functional = False
                 update.collapsed.append(k.position)
                 if k.dic['cells_number'] != 1:
                     for i in cases:
                         self.map.buildings_layer.array[i[0]][i[1]].isDestroyed = True
+                        # the building is no more functional
+                        k.functional = False
                         update.collapsed.append(i)
 
             if building_update["fire_level"][0]:
                 update.fire_level_change.append((k.position,building_update["fire_level"][1]))
             if building_update["collapse_level"][0]:
                 update.collapse_level_change.append((k.position,building_update["collapse_level"][1]))
+
         return update
         # ---------------------------------#
 
 
     def create_walker(self):
 
-        walker = walkers.Immigrant(0, 20, None, self.framerate, globalVar.DEFAULT_FPS, self)
+        walker = walkers.Immigrant(0, 20, None, globalVar.DEFAULT_FPS, globalVar.DEFAULT_FPS, self)
         self.walkersAll.append(walker)
         self.walkersGetOut(walker)
 
