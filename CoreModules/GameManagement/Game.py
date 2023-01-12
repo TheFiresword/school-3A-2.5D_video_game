@@ -7,7 +7,7 @@ from CoreModules.WalkersManagement import walkersManagementWalker as walkers
 import copy
 
 INIT_MONEY = 1000000000
-TIME_BEFORE_REMOVING_DWELL = 1 #seconds
+TIME_BEFORE_REMOVING_DWELL = 3 #seconds
 import time
 
 """
@@ -149,7 +149,6 @@ class Game:
         setattr(self, tmp, None)
         return buildings_position_to_append_to_update_object
 
-
     def updategame(self):
         """
         This function updates the game
@@ -197,7 +196,7 @@ class Game:
             # Creation of walkers
             if type(k) == buildings.Dwelling and k.current_population < k.max_population:
                 remove = []
-                while k.current_population < k.max_population:
+                if k.current_population < k.max_population:
                     self.create_walker()
                     if not self.walkersAll[-1].current_path_to_follow:
                         w = self.walkersAll.pop(-1)

@@ -304,7 +304,6 @@ class VisualMap:
             sprite.set_texture(0)
 
         if update_type == "delete":
-            sprite.kill()
             layer[constantes.TILE_COUNT ** 2 - index - 1] = arcade.Sprite()
             #sprite.visible = False
 
