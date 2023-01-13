@@ -67,10 +67,24 @@ def mapping_function(element_type, type_version) -> [str, int]:
     elif element_type == "roads":#ok
         if type_version == "normal":
             return [(const.SPRITE_PATH + "Land/LandOverlay/Land2a_00093.png", 1)]
-        elif type_version == "entry":
-            return [(const.SPRITE_PATH + "Land/Land3/Land3a_00089.png", 1)]
-        elif type_version == "exit":
+
+        elif type_version == "entry_bottom":
             return [(const.SPRITE_PATH + "Land/Land3/Land3a_00087.png", 1)]
+        elif type_version == "entry_top":
+            return [(const.SPRITE_PATH + "Land/Land3/Land3a_00085.png", 1)]
+        elif type_version == "entry_left":
+            return [(const.SPRITE_PATH + "Land/Land3/Land3a_00086.png", 1)]
+        elif type_version == "entry_right":
+            return [(const.SPRITE_PATH + "Land/Land3/Land3a_00088.png", 1)]
+        elif type_version == "exit_bottom":
+            return [(const.SPRITE_PATH + "Land/Land3/Land3a_00091.png", 1)]
+        elif type_version == "exit_top":
+            return [(const.SPRITE_PATH + "Land/Land3/Land3a_00089.png", 1)]
+        elif type_version == "exit_left":
+            return [(const.SPRITE_PATH + "Land/Land3/Land3a_00090.png", 1)]
+        elif type_version == "exit_right":
+            return [(const.SPRITE_PATH + "Land/Land3/Land3a_00092.png", 1)]
+
         elif int(type_version) >= 0 and type_version < "00111":
             return [(const.SPRITE_PATH + "Land/LandOverlay/Land2a_" + type_version + ".png", 1)]
         else:

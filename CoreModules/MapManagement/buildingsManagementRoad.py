@@ -1,16 +1,15 @@
 import CoreModules.MapManagement.mapManagementLayer as layer
 import Services.servicesGlobalVariables as globalVar
 import CoreModules.MapManagement.tileManagementElement as Element
-
 def position_is_valid(i, j):
     return (0 <= i < globalVar.TILE_COUNT) and (0 <= j < globalVar.TILE_COUNT)
 
 
 class RoadLayer(layer.Layer):
-    def __init__(self):
+    def __init__(self, entry_position, exit_position):
+        self.entry_position = entry_position
+        self.exit_position = exit_position
         super().__init__(globalVar.LAYER4)
-        # une variable qui sera passée à la fonction cancel_roads_serie() et qui sera remplie dans la fonction
-        # add_roads_serie()
         self.original_roads = {'elements': [], 'positions': []}
 
     def setup(self):
@@ -18,31 +17,49 @@ class RoadLayer(layer.Layer):
         self.add_entry_and_exit()
 
     def add_entry_and_exit(self):
-        entry_road = Element.Element(self, self.type, "entry")
-        exit_road = Element.Element(self, self.type, "exit")
-        middle = globalVar.TILE_COUNT //2
+        values = [0, globalVar.TILE_COUNT-1]
+        assert (self.entry_position[0] in values or self.entry_position[1] in values) and \
+        (self.exit_position[0] in values or self.exit_position[1] in values)
 
-        self.array[2 * middle - 1][middle - 1] = entry_road
-        self.array[2 * middle - 1][middle - 1].id = next(self.id_iterator)
-        self.array[2 * middle - 1][middle - 1].position = (2 * middle - 1, middle - 1)
+        if self.entry_position[0] == 0:
+            version1 = "entry_bottom"
+        elif self.entry_position[0] == globalVar.TILE_COUNT-1:
+            version1 = "entry_top"
+        else:
+            if self.entry_position[1] == 0:
+                version1 = "entry_left"
+            else:
+                version1 = "entry_right"
+        if self.exit_position[0] == 0:
+            version2 = "exit_bottom"
+        elif self.exit_position[0] == globalVar.TILE_COUNT-1:
+            version2 = "exit_top"
+        else:
+            if self.exit_position[1] == 0:
+                version2 = "exit_left"
+            else:
+                version2 = "exit_right"
 
-        self.array[0][middle - 1] = exit_road
-        self.array[0][middle - 1].id = next(self.id_iterator)
-        self.array[0][middle - 1].position = (0, middle - 1)
+        entry_road = Element.Element(self, self.type, version1)
+        exit_road = Element.Element(self, self.type, version2)
+
+        self.array[self.entry_position[0]][self.entry_position[1]] = entry_road
+        self.array[self.entry_position[0]][self.entry_position[1]].id = next(self.id_iterator)
+        self.array[self.entry_position[0]][self.entry_position[1]].position = self.entry_position
+
+        self.array[self.exit_position[0]][self.exit_position[1]] = exit_road
+        self.array[self.exit_position[0]][self.exit_position[1]].id = next(self.id_iterator)
+        self.array[self.exit_position[0]][self.exit_position[1]].position = self.exit_position
+
+    def build_path_entry_to_exit(self, _path, layers_list):
+        for _position in _path:
+            self.set_cell_constrained_to_bottom_layer(layers_list, _position[0], _position[1])
 
     def get_entry_position(self):
-        for i in range(globalVar.TILE_COUNT):
-            for j in range(globalVar.TILE_COUNT):
-                if self.array[i][j].dic['version'] == "entry":
-                    return (i, j)
-        return None
+        return self.entry_position
 
     def get_exit_position(self):
-        for i in range(globalVar.TILE_COUNT):
-            for j in range(globalVar.TILE_COUNT):
-                if self.array[i][j].dic['version'] == "exit":
-                    return (i, j)
-        return None
+        return self.exit_position
 
 
     def set_cell(self, line, column, recursively=True, can_replace=False, memorize=False) \
@@ -61,7 +78,8 @@ class RoadLayer(layer.Layer):
         current_version = self.array[line][column].dic['version']
         # Si la route (line, column) est la route d'entrée ou de sortie ou que la route est vide mais que ce n'est pas
         # la position de départ à laquelle on voulait ajouter on ne fait rien
-        if current_version == "null" and not recursively or current_version in ["entry", "exit"]: return False
+        if current_version == "null" and not recursively or current_version in  ["entry_bottom", "entry_top",
+            "entry_left", "entry_right", "exit_top","exit_bottom", "exit_left", "exit_right"]: return False
 
         # Initialisation des 2 variables nécéssaires
         road = None
@@ -193,21 +211,30 @@ class RoadLayer(layer.Layer):
             return
 
         # le cas des routes du milieu qui sont à côté d'un panneau
-        signal_only_neigboor = (left_version in ["entry", "exit"] and right_version==top_version=="null" and not
-        bottom_version) or (left_version in ["entry", "exit"] and right_version==bottom_version=="null" and not
-        top_version) or (right_version in ["entry", "exit"] and left_version==top_version=="null" and not
-        bottom_version) or (right_version in ["entry", "exit"] and left_version==bottom_version=="null" and not
-        top_version) or (bottom_version in ["entry", "exit"] and left_version==top_version=="null" and not
-        right_version) or (top_version in ["entry", "exit"] and left_version==bottom_version=="null" and not
-        right_version) or (bottom_version in ["entry", "exit"] and right_version==top_version=="null" and not
-        left_version) or (top_version in ["entry", "exit"] and right_version==bottom_version=="null" and not
+        signal_only_neigboor = (left_version in  ["entry_bottom", "entry_top", "entry_left", "entry_right", "exit_top",
+                                  "exit_bottom", "exit_left", "exit_right"] and right_version==top_version=="null" and not
+        bottom_version) or (left_version in ["entry_bottom", "entry_top", "entry_left", "entry_right", "exit_top",
+                                  "exit_bottom", "exit_left", "exit_right"] and right_version==bottom_version=="null" and not
+        top_version) or (right_version in ["entry_bottom", "entry_top", "entry_left", "entry_right", "exit_top",
+                                  "exit_bottom", "exit_left", "exit_right"] and left_version==top_version=="null" and not
+        bottom_version) or (right_version in ["entry_bottom", "entry_top", "entry_left", "entry_right", "exit_top",
+                                  "exit_bottom", "exit_left", "exit_right"] and left_version==bottom_version=="null" and not
+        top_version) or (bottom_version in ["entry_bottom", "entry_top", "entry_left", "entry_right", "exit_top",
+                                  "exit_bottom", "exit_left", "exit_right"] and left_version==top_version=="null" and not
+        right_version) or (top_version in ["entry_bottom", "entry_top", "entry_left", "entry_right", "exit_top",
+                                  "exit_bottom", "exit_left", "exit_right"] and left_version==bottom_version=="null" and not
+        right_version) or (bottom_version in ["entry_bottom", "entry_top", "entry_left", "entry_right", "exit_top",
+                                  "exit_bottom", "exit_left", "exit_right"] and right_version==top_version=="null" and not
+        left_version) or (top_version in ["entry_bottom", "entry_top", "entry_left", "entry_right", "exit_top",
+                                  "exit_bottom", "exit_left", "exit_right"] and right_version==bottom_version=="null" and not
         left_version)
 
         if signal_only_neigboor:
             values['column_value'] += 1
             return
 
-        if left_version not in ["null", "entry", "exit", None]:
+        if left_version not in ["null", None,"entry_bottom", "entry_top", "entry_left", "entry_right", "exit_top",
+                                  "exit_bottom", "exit_left", "exit_right"]:
             values['hside'] = 'LEFT'
             if left_version == "00106":
                 # on priorise l'alignement sur les intersections
@@ -215,7 +242,8 @@ class RoadLayer(layer.Layer):
             else:
                 values['raw_value'] += 1
 
-        if right_version not in ["null", "entry", "exit", None]:
+        if right_version not in ["null", None,"entry_bottom", "entry_top", "entry_left", "entry_right", "exit_top",
+                                  "exit_bottom", "exit_left", "exit_right"]:
             values['hside'] = 'RIGHT'
             if left_version == "00108":
                 # on priorise l'alignement sur les intersections
@@ -223,11 +251,13 @@ class RoadLayer(layer.Layer):
             else:
                 values['raw_value'] += 1
 
-        if top_version not in ["null", "entry", "exit", None]:
+        if top_version not in ["null", None,"entry_bottom", "entry_top", "entry_left", "entry_right", "exit_top",
+                                  "exit_bottom", "exit_left", "exit_right"]:
             values['vside'] = 'BOTTOM'
             values['column_value'] += 1
 
-        if bottom_version not in ["null", "entry", "exit", None]:
+        if bottom_version not in ["null", None,"entry_bottom", "entry_top", "entry_left", "entry_right", "exit_top",
+                                  "exit_bottom", "exit_left", "exit_right"]:
             values['vside'] = 'TOP'
             values['column_value'] += 1
 

@@ -39,7 +39,7 @@ down = "down"
 
 
 class Walker:
-    def __init__(self, pos_ligne, pos_col, house, fps, zoom, game):
+    def __init__(self, pos_ligne, pos_col, house, zoom, game):
 
         self.map_associated = game.map
         self.game = game
@@ -47,7 +47,7 @@ class Walker:
         self.road_layer = game.map.roads_layer
         self.building_layer = game.map.buildings_layer
 
-        self.fps = fps
+        self.fps = 10
         self.zoom = zoom
         self.head = right
         self.init_pos = (pos_ligne, pos_col)
@@ -241,8 +241,8 @@ class Prefect(Walker):
 
 class Immigrant(Walker):
 
-    def __init__(self,pos_ligne, pos_col, house, fps, zoom, game,path=[],building=None):
-        super(Immigrant, self).__init__(pos_ligne, pos_col, house, fps, zoom, game)
+    def __init__(self,pos_ligne, pos_col, house, zoom, game,path=[],building=None):
+        super(Immigrant, self).__init__(pos_ligne, pos_col, house, zoom, game)
         self.current_path_to_follow = path
         self.dest_compteur = 0
         self.house = building
