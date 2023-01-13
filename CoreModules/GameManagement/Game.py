@@ -213,7 +213,13 @@ class Game:
                 if path:
                     for i in range(k.max_population - k.current_population):
                         self.create_walker(path.copy(),k)
+            """elif type(k) == buildings.Prefecture:
+                pass
 
+            if type(k) == buildings.Dwelling and k.isBurning:
+                for w in self.walkersAll:
+                    if type(w) == walkers.Prefect:
+                        w.work(k)"""
 
             # We don't want primitive housing (pannel) to burn or to collapse
             if type(k) == buildings.Dwelling and not k.is_occupied():
