@@ -17,6 +17,8 @@ class Game:
     def __init__(self, _map, name="save"):
         self.name = name
         self.map = _map
+        self.startGame()
+
         self.money = INIT_MONEY
         self.food = 0
         self.potery = 0
@@ -53,8 +55,6 @@ class Game:
 
         # Timer
         self.init_time = time.time()
-        self.current_time = self.init_time
-        self.duration = int(self.current_time-self.init_time)
 
         # a dic of timers to track dwells with no roads
         # it associates each position of dwell with a timer
@@ -62,7 +62,10 @@ class Game:
 
     def startGame(self):
         # ---------------------------------#
-        pass
+        _path = self.map.path_entry_to_exit(self.map.roads_layer.get_entry_position(),
+                                            self.map.roads_layer.get_exit_position() )
+        self.map.roads_layer.build_path_entry_to_exit(_path, [self.map.hills_layer, self.map.trees_layer])
+
     def change_game_speed(self, step):
         """
         A step of 1 indicates incremental speed
@@ -162,11 +165,8 @@ class Game:
         In fact it updates the buildings of the game
         Differents types of updates can occur: a building evolving, a building burning or a building collapsing
         """
-        self.current_time += 1/self.framerate
-        self.duration = int(self.current_time - self.init_time)
 
         update = updates.LogicUpdate()
-
 
         # Update dwell that just set functional (immigrant live in)
         for building in self.updated:
@@ -209,7 +209,7 @@ class Game:
             has_road = [self.map.roads_layer.is_real_road(v[0],v[1]) for v in voisins]
             # Creation of walkers
             if type(k) == buildings.Dwelling and k.current_population < k.max_population and any(has_road):
-                path = self.map.walk_to_a_building(self.map.roads_layer.get_exit_position(),None, k.position,[])[1]
+                path = self.map.walk_to_a_building(self.map.roads_layer.get_entry_position(),None, k.position,[])[1]
                 if path:
                     for i in range(k.max_population - k.current_population):
                         self.create_walker(path.copy(),k)
@@ -226,7 +226,7 @@ class Game:
                             removable = False
                             break
                 # update tracktimer of dwells
-                built_since = int(self.current_time - self.timer_track_dwells[pos]) if pos in self.timer_track_dwells else 0
+                built_since = int(time.time() - self.timer_track_dwells[pos]) if pos in self.timer_track_dwells else 0
 
                 if removable and built_since > TIME_BEFORE_REMOVING_DWELL:
                     # to avoid decreasing money
@@ -270,7 +270,8 @@ class Game:
 
 
     def create_walker(self,path=[],building=None):
-        walker = walkers.Immigrant(self.map.roads_layer.get_exit_position()[0],self.map.roads_layer.get_exit_position()[1], None, globalVar.DEFAULT_FPS, globalVar.DEFAULT_FPS, self,path,building)
+        walker = walkers.Immigrant(self.map.roads_layer.get_entry_position()[0],self.map.roads_layer.get_entry_position()[1],
+                                   None, 0, self,path,building)
         self.walkersAll.append(walker)
         self.walkersGetOut(walker)
 

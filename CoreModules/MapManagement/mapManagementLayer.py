@@ -152,7 +152,8 @@ class Layer:
                                                 element_part.id == id_for_search]
         # if the elements the user wants to remove is the 'entry' signal or the 'exit' signal, then we have to stop it
         # because those elements are not removable
-        if origin_version not in ["null", "entry", "exit"]:
+        if origin_version not in ["null", "entry_bottom", "entry_top", "entry_left", "entry_right", "exit_top",
+                                  "exit_bottom", "exit_left", "exit_right"]:
             for part_position in indexes_of_parts_of_the_element:
                 if issubclass(element_class, Building) :
                     element_class = Building

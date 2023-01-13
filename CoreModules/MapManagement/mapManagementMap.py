@@ -2,7 +2,7 @@ import random
 
 from CoreModules.MapManagement import mapManagementLayer as overlay
 import CoreModules.BuildingsManagement.buildingsManagementBuilding as building
-import CoreModules.BuildingsManagement.buildingsManagementRoad as roadoverlay
+import CoreModules.MapManagement.buildingsManagementRoad as roadoverlay
 import CoreModules.MapManagement.tileManagementElement as element
 import Services.servicesGlobalVariables as globalVar
 # ============================================#
@@ -115,11 +115,9 @@ class MapLogic:
 
         # -------------------------------------------------------------------------------------------------------------#
         # ROADS
-        self.roads_layer = roadoverlay.RoadLayer()
         middle = int(globalVar.TILE_COUNT * 1 / 2)
-        for i in range(0, 2 * middle):
-            self.roads_layer.set_cell_constrained_to_bottom_layer([self.hills_layer, self.trees_layer],
-                                                                  i, middle)
+        self.roads_layer = roadoverlay.RoadLayer((0, 0),(middle, middle*2-1))
+
         # -------------------------------------------------------------------------------------------------------------#
         # BUILDINGS
         self.buildings_layer = overlay.Layer(globalVar.LAYER5)
@@ -258,3 +256,30 @@ class MapLogic:
         # There is no path to this building
         # print("Sorry no path")
         return False,current_path_to_follow
+
+
+    def path_entry_to_exit(self, entry, exit):
+        integer_array_associated_with_map = [
+            [1 if self.cell_is_walkable_desperately(row, column) else 0 for column in range(globalVar.TILE_COUNT)]
+            for row in range(globalVar.TILE_COUNT)]
+
+        pathfinding_grid = Grid(matrix=integer_array_associated_with_map)
+
+        finder = bi_a_star.AStarFinder()
+
+        if entry[0] == 0 or entry[0] == globalVar.TILE_COUNT-1:
+            entry_cell = (entry[0], entry[1]+1)
+        else:
+            entry_cell = (entry[0]+1, entry[1])
+        if exit[0] == 0 or exit[0] == globalVar.TILE_COUNT-1:
+            exit_cell = (exit[0], exit[1]+1)
+        else:
+            exit_cell = (exit[0]+1, exit[1])
+
+        _start = pathfinding_grid.node(entry_cell[1], entry_cell[0])
+        _end = pathfinding_grid.node(exit_cell[1], exit_cell[0])
+        path, runs = finder.find_path(_start, _end, pathfinding_grid)
+        assert path
+        for count in range(len(path)):
+            path[count] = tuple(reversed(path[count]))
+        return path
