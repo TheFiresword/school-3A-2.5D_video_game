@@ -212,6 +212,7 @@ class Walker:
             case "Immigrant":
                 self.work()
 
+
     def work(self, building=None):
         pass
 
@@ -258,9 +259,9 @@ class Immigrant(Walker):
         # but we should also verify that the dwell is not removed before the immigrant goes in
         if self.house.dic['version']=="null":
             print("no")
-        if self.house!=self.building_layer.array[self.house.position[0]][self.house.position[1]]:
+        if self.house != self.building_layer.array[self.house.position[0]][self.house.position[1]]:
             # The walker shoud be destroyed
-            pass
+            del self
         else:
             self.house.structure_level = 1
             self.house.functional = True

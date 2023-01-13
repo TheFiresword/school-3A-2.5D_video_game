@@ -30,7 +30,7 @@ class Building(element.Element):
         self.randombuf = 0
 
         # when it's constructed, a building is non functional (ex: farm, granary, prefecture, even dwell)
-        self.functional = True
+        self.functional = False
 
         # A timer to control animation of buildings
         self.previous_time = None

@@ -1,3 +1,5 @@
+import random
+
 from Services import servicesGlobalVariables as globalVar
 from Services.Service_Game_Data import building_dico, road_dico, removing_cost
 from CoreModules.GameManagement import Update as updates
@@ -207,16 +209,23 @@ class Game:
 
             voisins = self.get_voisins_tuples(k)
             has_road = [self.map.roads_layer.is_real_road(v[0],v[1]) for v in voisins]
+            possible_road = [v for v in voisins if self.map.roads_layer.is_real_road(v[0],v[1])]
             # Creation of walkers
             if type(k) == buildings.Dwelling and k.current_population < k.max_population and any(has_road):
                 path = self.map.walk_to_a_building(self.map.roads_layer.get_entry_position(),None, k.position,[])[1]
                 if path:
                     for i in range(k.max_population - k.current_population):
                         self.create_walker(path.copy(),k)
-            """elif type(k) == buildings.Prefecture:
-                pass
+            elif k.dic['version'] == "prefecture" and not k.functional and any(has_road):
+                possible_worker = [w for w in self.walkersAll if type(w) == walkers.Citizen]
+                prefet = random.choice(possible_worker)
+                prefet.change_class(walkers.Prefect)
+                prefet.init_pos = possible_road[2]
+                self.walkersGetOut(prefet)
+                k.functional = True
 
-            if type(k) == buildings.Dwelling and k.isBurning:
+
+            """if type(k) == buildings.Dwelling and k.isBurning:
                 for w in self.walkersAll:
                     if type(w) == walkers.Prefect:
                         w.work(k)"""
