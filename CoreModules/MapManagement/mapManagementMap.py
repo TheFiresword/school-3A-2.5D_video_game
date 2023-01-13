@@ -5,6 +5,7 @@ import CoreModules.BuildingsManagement.buildingsManagementBuilding as building
 import CoreModules.MapManagement.buildingsManagementRoad as roadoverlay
 import CoreModules.MapManagement.tileManagementElement as element
 import Services.servicesGlobalVariables as globalVar
+import Services.servicesmMapSpriteToFile as nameSprite
 # ============================================#
 # Relative to pathfinding--We use the library pathfinding
 from pathfinding.core.grid import Grid
@@ -30,12 +31,16 @@ class MapLogic:
                           "00239", "00081", "00244"]
         possible_yellow_grass = [ "yellow"] + ["000" + str(i)for i in range(18, 30)]
 
+        possible_water_ground = nameSprite.water_types
+
         for i in range(0, globalVar.TILE_COUNT):
             for j in range(0, globalVar.TILE_COUNT):
-                if i > globalVar.TILE_COUNT//4 or j > 2*globalVar.TILE_COUNT//5:
-                    random_version = random.choice(possible_grass)
-                else:
+                if i <= globalVar.TILE_COUNT//4 and j <= 2*globalVar.TILE_COUNT//5:
                     random_version = random.choice(possible_yellow_grass)
+                elif globalVar.TILE_COUNT-7 < i <= globalVar.TILE_COUNT-1:
+                    random_version = random.choice(possible_water_ground)
+                else:
+                    random_version = random.choice(possible_grass)
 
                 my_grass = element.Element(self.grass_layer, globalVar.LAYER1, random_version)
                 self.grass_layer.set_cell(i, j, my_grass)

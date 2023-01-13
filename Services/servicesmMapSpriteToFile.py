@@ -1,5 +1,9 @@
 from Services import servicesGlobalVariables as const
 
+water_types = ["water0", "water1", "water2", "water_top_right0", "water_top_right1", "water_top_right2", "water_top_right3",
+       "water_top_left0", "water_top_left1", "water_top_left2", "water_top_left3", "water_bottom_left0",
+       "water_bottom_left1", "water_bottom_left2", "water_bottom_left3", "water_bottom_right0",
+       "water_bottom_right1", "water_bottom_right2", "water_bottom_right3"]
 
 def mapping_function(element_type, type_version) -> [str, int]:
     """
@@ -15,6 +19,50 @@ def mapping_function(element_type, type_version) -> [str, int]:
             return [(const.SPRITE_PATH + "Land/Land1/Land1a_00029.png", 1)]
         elif type_version == "buisson":
             return [(const.SPRITE_PATH + "Land/Land1/Land1a_00235.png", 1)]
+
+        elif type_version == "water0":
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00120.png", 1)]
+        elif type_version == "water1":
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00123.png", 1)]
+        elif type_version == "water2":
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00127.png", 1)]
+
+        elif type_version == "water_top_right0":
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00128.png", 1)]
+        elif type_version == "water_top_right1":
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00129.png", 1)]
+        elif type_version == "water_top_right2":
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00130.png", 1)]
+        elif type_version == "water_top_right3":
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00131.png", 1)]
+
+        elif type_version == "water_top_left0":
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00140.png", 1)]
+        elif type_version == "water_top_left1":
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00141.png", 1)]
+        elif type_version == "water_top_left2":
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00142.png", 1)]
+        elif type_version == "water_top_left3":
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00143.png", 1)]
+
+        elif type_version == "water_bottom_left0":
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00136.png", 1)]
+        elif type_version == "water_bottom_left1":
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00137.png", 1)]
+        elif type_version == "water_bottom_left2":
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00138.png", 1)]
+        elif type_version == "water_bottom_left3":
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00139.png", 1)]
+
+        elif type_version == "water_bottom_right0":
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00132.png", 1)]
+        elif type_version == "water_bottom_right1":
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00133.png", 1)]
+        elif type_version == "water_bottom_right2":
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00134.png", 1)]
+        elif type_version == "water_bottom_right3":
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00135.png", 1)]
+
         elif int(type_version) >= 0:
             return [(const.SPRITE_PATH + "Land/Land1/Land1a_" + type_version + ".png", 1)]
         else:
