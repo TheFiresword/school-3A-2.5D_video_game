@@ -222,7 +222,14 @@ class Game:
                 prefet.change_class(walkers.Prefect)
                 prefet.init_pos = possible_road[2]
                 self.walkersGetOut(prefet)
-                k.functional = True
+                k.set_functional(True)
+            elif k.dic['version'] == "engineer's_post" and not k.functional and any(has_road):
+                possible_worker = [w for w in self.walkersAll if type(w) == walkers.Citizen]
+                engineer = random.choice(possible_worker)
+                engineer.change_class(walkers.Engineer)
+                engineer.init_pos = possible_road[2]
+                self.walkersGetOut(engineer)
+                k.set_functional(True)
 
 
             """if type(k) == buildings.Dwelling and k.isBurning:
