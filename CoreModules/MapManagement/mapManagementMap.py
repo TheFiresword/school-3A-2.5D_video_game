@@ -12,123 +12,124 @@ from pathfinding.core.grid import Grid
 from pathfinding.finder import *
 from pathfinding.finder import msp
 
+DEFAULT_WATER_DELIMITER = globalVar.TILE_COUNT-7
 class MapLogic:
-    def __init__(self):
+    def __init__(self, entry, exit, water_delimiter):
         # Booléen qui dit si la map est affichée ou pas
         self.active = True
 
-        # Remplissage de chaque layer de la map
-        """
-        !!!!!!!!!! IMPORTANT """  # POUR PLACER UN ELEMENT DANS UN LAYER, IL FAUT LE CREER ET PAS JUSTE COPIER UN
-        # ELEMENT PRECEDEMMENT CREE !!!!!!!!!! L'opérateur = en python est un monstre impitoyable qui m'a arraché les
-        # cheveux
+        values = [0, globalVar.TILE_COUNT-1]
+
+        self.entry = entry if type(entry) is tuple and (entry[0] in values or entry[1] in values) else \
+            random.choice([(i, j) for i in range(0, globalVar.TILE_COUNT) for j in range(0, globalVar.TILE_COUNT)
+                           if i in values or j in values ])
+
+        self.exit = exit if type(exit) == tuple and (exit[0] in values or exit[1] in values) else \
+            random.choice([(i, j) for i in range(0, globalVar.TILE_COUNT) for j in range(0, globalVar.TILE_COUNT)
+                           if i in values or j in values])
+
+        self.water_delimiter = water_delimiter if water_delimiter < globalVar.TILE_COUNT-4 else DEFAULT_WATER_DELIMITER
+
 
         # -------------------------------------------------------------------------------------------------------------#
         # GRASS
-        self.grass_layer = overlay.Layer(globalVar.LAYER1)
+        if 1:
+            self.grass_layer = overlay.Layer(globalVar.LAYER1)
 
-        possible_grass = ["00079", "00082", "normal", "00091", "buisson", "00114", "00094", "00070", "00221", "00274",
-                          "00239", "00081", "00244"]
-        possible_yellow_grass = [ "yellow"] + ["000" + str(i)for i in range(18, 30)]
+            possible_grass = nameSprite.grass_types
+            possible_yellow_grass = nameSprite.yellow_grass_types
 
-        possible_water_ground = nameSprite.water_types
+            possible_water_ground = nameSprite.water_types
 
-        for i in range(0, globalVar.TILE_COUNT):
-            for j in range(0, globalVar.TILE_COUNT):
-                if i <= globalVar.TILE_COUNT//4 and j <= 2*globalVar.TILE_COUNT//5:
-                    random_version = random.choice(possible_yellow_grass)
-                elif globalVar.TILE_COUNT-7 < i <= globalVar.TILE_COUNT-1:
-                    random_version = random.choice(possible_water_ground)
-                else:
-                    random_version = random.choice(possible_grass)
+            for i in range(0, globalVar.TILE_COUNT):
+                for j in range(0, globalVar.TILE_COUNT):
+                    if i <= globalVar.TILE_COUNT//4 and j <= 2*globalVar.TILE_COUNT//5:
+                        random_version = random.choice(possible_yellow_grass)
 
-                my_grass = element.Element(self.grass_layer, globalVar.LAYER1, random_version)
-                self.grass_layer.set_cell(i, j, my_grass)
+                    elif self.water_delimiter < i < globalVar.TILE_COUNT-1:
+                        random_version = random.choice(possible_water_ground[0])
+                    elif i == globalVar.TILE_COUNT-1:
+                        random_version = random.choice(possible_water_ground[3]+possible_water_ground[6]+possible_water_ground[1])
+                    elif  i == self.water_delimiter:
+                        random_version = random.choice(possible_water_ground[1])
+
+                    elif globalVar.TILE_COUNT//2 -2 < i < globalVar.TILE_COUNT//2 +2 and globalVar.TILE_COUNT//2 -2 \
+                            < j < globalVar.TILE_COUNT//2 +2:
+                        random_version = random.choice(possible_water_ground[0])
+
+                    elif i == globalVar.TILE_COUNT//2 -2 and globalVar.TILE_COUNT//2 -2 < j < globalVar.TILE_COUNT//2 +2:
+                        random_version = "water_barrier_line1"
+                    elif i == globalVar.TILE_COUNT//2 +2 and globalVar.TILE_COUNT//2 -2 < j < globalVar.TILE_COUNT//2 +2:
+                        random_version = "water_barrier_line0"
+                    elif i == globalVar.TILE_COUNT//2 +2 and j == globalVar.TILE_COUNT//2 -2 :
+                        random_version = "water_barrier_top_left"
+                    elif i == globalVar.TILE_COUNT//2 +2 and j == globalVar.TILE_COUNT//2 +2 :
+                        random_version = "water_barrier_top_right"
+
+                    elif j == globalVar.TILE_COUNT//2 -2 and globalVar.TILE_COUNT//2 -2 < i < globalVar.TILE_COUNT//2 +2:
+                        random_version = "water_barrier_col1"
+                    elif j == globalVar.TILE_COUNT//2 +2 and globalVar.TILE_COUNT//2 -2 < i < globalVar.TILE_COUNT//2 +2:
+                        random_version = "water_barrier_col0"
+                    elif j == globalVar.TILE_COUNT//2 +2 and i == globalVar.TILE_COUNT//2 -2 :
+                        random_version = "water_barrier_bot_right"
+                    elif j == globalVar.TILE_COUNT//2 +2 and i == globalVar.TILE_COUNT//2 +2 :
+                        random_version = "water_barrier_bot_left"
+
+
+                    else:
+                        random_version = random.choice(possible_grass)
+
+                    my_grass = element.Element(self.grass_layer, globalVar.LAYER1, random_version)
+                    self.grass_layer.set_cell(i, j, my_grass)
 
         # -------------------------------------------------------------------------------------------------------------#
         # HILLS
-        self.hills_layer = overlay.Layer(globalVar.LAYER2)
+        if 1:
+            self.hills_layer = overlay.Layer(globalVar.LAYER2)
 
-        possible_1_cell_hills = ["small-mountain1", "small-mountain2", "small-mountain3", "small-mountain4",
-                                 "small-mountain5", "small-mountain6", "small-mountain7", "small-mountain8"]
+            possible_cell_hills = nameSprite.hill_types[0]+nameSprite.hill_types[1]+nameSprite.hill_types[2]
 
-        possible_2_cell_hills = ["big-mountain1", "big-mountain2", "big-mountain3"]
+            for i in range(0, globalVar.TILE_COUNT * 2 // 5):
+                version = random.choice(possible_cell_hills)
+                my_hill = element.Element(self.hills_layer, globalVar.LAYER2, version)
+                self.hills_layer.set_cell(i, globalVar.TILE_COUNT - 3, my_hill)
 
-        possible_3_cell_hills = ["geant-mountain1", "geant-mountain2"]
+            for i in range(globalVar.TILE_COUNT * 2 // 5, globalVar.TILE_COUNT * 3 // 5):
+                version = random.choice(possible_cell_hills)
+                my_hill = element.Element(self.hills_layer, globalVar.LAYER2, version)
+                self.hills_layer.set_cell(i, globalVar.TILE_COUNT - (i % 7), my_hill)
 
-        for i in range(0, int(globalVar.TILE_COUNT * 2 / 5)):
-            random_1_cell_version = random.choice(possible_1_cell_hills)
-            random_2_cell_version = random.choice(possible_2_cell_hills)
-            random_3_cell_version = random.choice(possible_3_cell_hills)
-
-            second_random_version = random.choice([random_1_cell_version, random_2_cell_version, random_3_cell_version])
-            if second_random_version == random_1_cell_version:
-                my_hill = element.Element(self.hills_layer, globalVar.LAYER2, second_random_version)
-            elif second_random_version == random_2_cell_version:
-                my_hill = element.Element(self.hills_layer, globalVar.LAYER2, second_random_version)
-            else:
-                my_hill = element.Element(self.hills_layer, globalVar.LAYER2, second_random_version)
-
-            self.hills_layer.set_cell(i, globalVar.TILE_COUNT - 3, my_hill)
-
-        for i in range(int(globalVar.TILE_COUNT * 2 / 5), int(globalVar.TILE_COUNT * 3 / 5)):
-
-            random_1_cell_version = random.choice(possible_1_cell_hills)
-            random_2_cell_version = random.choice(possible_2_cell_hills)
-            random_3_cell_version = random.choice(possible_3_cell_hills)
-
-            second_random_version = random.choice([random_1_cell_version, random_2_cell_version,
-                                                   random_3_cell_version])
-            if second_random_version == random_1_cell_version:
-                my_hill = element.Element(self.hills_layer, globalVar.LAYER2, second_random_version)
-            elif second_random_version == random_2_cell_version:
-                my_hill = element.Element(self.hills_layer, globalVar.LAYER2, second_random_version)
-            else:
-                my_hill = element.Element(self.hills_layer, globalVar.LAYER2, second_random_version)
-
-            status = self.hills_layer.set_cell(i, globalVar.TILE_COUNT - (i % 7), my_hill)
-
-        for i in range(int(globalVar.TILE_COUNT * 3 / 5), int(globalVar.TILE_COUNT * 4 / 5)):
-            for j in range(globalVar.TILE_COUNT - 10, globalVar.TILE_COUNT):
-                random_1_cell_version = random.choice(possible_1_cell_hills)
-                random_2_cell_version = random.choice(possible_2_cell_hills)
-                random_3_cell_version = random.choice(possible_3_cell_hills)
-
-                second_random_version = random.choice([random_1_cell_version, random_2_cell_version,
-                                                       random_3_cell_version])
-                if second_random_version == random_1_cell_version:
-                    my_hill = element.Element(self.hills_layer, globalVar.LAYER2, second_random_version)
-                elif second_random_version == random_2_cell_version:
-                    my_hill = element.Element(self.hills_layer, globalVar.LAYER2, second_random_version)
-                else:
-                    my_hill = element.Element(self.hills_layer, globalVar.LAYER2, second_random_version)
-
-                self.hills_layer.set_cell(i, j, my_hill)
+            for i in range(globalVar.TILE_COUNT * 3 // 5, globalVar.TILE_COUNT * 4 // 5):
+                for j in range(globalVar.TILE_COUNT - 10, globalVar.TILE_COUNT):
+                    version = random.choice(possible_cell_hills)
+                    my_hill = element.Element(self.hills_layer, globalVar.LAYER2, version)
+                    self.hills_layer.set_cell(i, j, my_hill)
 
         # -------------------------------------------------------------------------------------------------------------#
         # TREES
-        self.trees_layer = overlay.Layer(globalVar.LAYER3)
+        if 1:
+            self.trees_layer = overlay.Layer(globalVar.LAYER3)
 
-        possible_trees = ["normal", "00033", "00012", "00043"]
-        for i in range(int(globalVar.TILE_COUNT / 4), int(globalVar.TILE_COUNT * 3 / 4)):
-            random_version = random.choice(possible_trees)
-            my_normal_tree = element.Element(self.trees_layer, globalVar.LAYER3, random_version)
-            self.trees_layer.set_cell(i, 5, my_normal_tree)
+            possible_trees = nameSprite.tree_types
+            for i in range(int(globalVar.TILE_COUNT / 4)+1, int(globalVar.TILE_COUNT * 3 / 4)+1):
+                random_version = random.choice(possible_trees)
+                my_normal_tree = element.Element(self.trees_layer, globalVar.LAYER3, random_version)
+                self.trees_layer.set_cell(i, 5, my_normal_tree)
 
-            my_normal_tree = element.Element(self.trees_layer, globalVar.LAYER3, random_version)
-            self.trees_layer.set_cell(i, 7, my_normal_tree)
+                my_normal_tree = element.Element(self.trees_layer, globalVar.LAYER3, random_version)
+                self.trees_layer.set_cell(i, 7, my_normal_tree)
 
         # -------------------------------------------------------------------------------------------------------------#
         # ROADS
-        middle = int(globalVar.TILE_COUNT * 1 / 2)
-        self.roads_layer = roadoverlay.RoadLayer((0, 0),(middle, middle*2-1))
+        self.roads_layer = roadoverlay.RoadLayer(self.entry, self.exit)
 
         # -------------------------------------------------------------------------------------------------------------#
         # BUILDINGS
         self.buildings_layer = overlay.Layer(globalVar.LAYER5)
         # -------------------------------------------------------------------------------------------------------------#
         # A list of layers to check for collision
-        self.collisions_layers = [self.buildings_layer, self.hills_layer, self.trees_layer, self.roads_layer]
+        self.collisions_layers = [self.buildings_layer, self.hills_layer, self.trees_layer, self.roads_layer,
+                                  self.grass_layer]
 
     def get_element_in_cell(self, line, column):
         """
@@ -165,8 +166,9 @@ class MapLogic:
                                                                                                             column)
 
     def cell_is_walkable_desperately(self, line, column):
-        """A cell is walkable desperately when it is just a grass"""
-        return self.get_element_in_cell(line, column) == globalVar.LAYER1
+        """A cell is walkable desperately when it is just a grass not water"""
+        return self.get_element_in_cell(line, column) == globalVar.LAYER1 and \
+               self.grass_layer.array[line][column].dic['version'] not in nameSprite.water_types
     
 
     def walk_to_a_building(self,init_pos,dest_pos=None, building_target_pos=None,current_path_to_follow=None) -> bool:

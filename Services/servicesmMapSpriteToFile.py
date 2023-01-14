@@ -1,15 +1,43 @@
 from Services import servicesGlobalVariables as const
 
-water_types = ["water0", "water1", "water2", "water_top_right0", "water_top_right1", "water_top_right2", "water_top_right3",
-       "water_top_left0", "water_top_left1", "water_top_left2", "water_top_left3", "water_bottom_left0",
-       "water_bottom_left1", "water_bottom_left2", "water_bottom_left3", "water_bottom_right0",
-       "water_bottom_right1", "water_bottom_right2", "water_bottom_right3"]
+water_types = \
+    [
+            ["water"+str(i) for i in range(0, 7+1)],
+            ["water_top_right0", "water_top_right1", "water_top_right2", "water_top_right3"],
+            ["water_top_left0", "water_top_left1", "water_top_left2", "water_top_left3"],
+            ["water_bottom_left0", "water_bottom_left1", "water_bottom_left2", "water_bottom_left3"],
+            ["water_bottom_right0", "water_bottom_right1", "water_bottom_right2", "water_bottom_right3"],
+            ["water_top0", "water_top1", "water_top2","water_top3"],
+            ["other_water"+str(i) for i in range(30)],
+            ["water_barrier_line"+str(i) for i in range(2)],
+            ["water_barrier_col"+str(i) for i in range(2)],
+            ["water_barrier_bot_right", "water_barrier_bot_left", "water_barrier_top_right", "water_barrier_top_left"]
+    ]
+all_water_types = []
+for i in range(len(water_types)):
+    all_water_types += water_types[i]
+
+tree_types = ["normal"]+["000"+str(i) for i in range(10, 61+1) if i < 18 or i >=30]
+
+hill_types = \
+    [
+            ["small-mountain1", "small-mountain2", "small-mountain3", "small-mountain4", "small-mountain5",
+             "small-mountain6", "small-mountain7", "small-mountain8"],
+            ["big-mountain1", "big-mountain2", "big-mountain3"],
+            ["geant-mountain1", "geant-mountain2"]
+    ]
+
+grass_types = ["0000"+str(i) for i in range(2, 10)] + ["000"+str(i) for i in range(62, 100)] + \
+              ["00"+str(i) for i in range(100, 290) if i < 120 or i >= 230]
+
+yellow_grass_types = [ "yellow"] + ["000" + str(i)for i in range(18, 30)]
+
 
 def mapping_function(element_type, type_version) -> [str, int]:
     """
     Fonction de mapping version d'un élément -> chemin de fichier
     """
-    if type_version in {"null", "occupied"}:
+    if type_version in ["null", "occupied"]:
         return [("", 0)]
 
     if element_type == "grass":
@@ -20,12 +48,14 @@ def mapping_function(element_type, type_version) -> [str, int]:
         elif type_version == "buisson":
             return [(const.SPRITE_PATH + "Land/Land1/Land1a_00235.png", 1)]
 
-        elif type_version == "water0":
-            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00120.png", 1)]
-        elif type_version == "water1":
-            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00123.png", 1)]
-        elif type_version == "water2":
-            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00127.png", 1)]
+        elif "water" in type_version and len(type_version) < 7:
+            number = 120 + int(type_version[5:])
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00"+str(number)+".png", 1)]
+
+        elif "other_water" in type_version:
+            number = 168 + int(type_version[11:])
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00" + str(number) + ".png", 1)]
+
 
         elif type_version == "water_top_right0":
             return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00128.png", 1)]
@@ -62,6 +92,34 @@ def mapping_function(element_type, type_version) -> [str, int]:
             return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00134.png", 1)]
         elif type_version == "water_bottom_right3":
             return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00135.png", 1)]
+
+        elif type_version == "water_top0":
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00162.png", 1)]
+        elif type_version == "water_top1":
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00163.png", 1)]
+        elif type_version == "water_top2":
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00164.png", 1)]
+        elif type_version == "water_top3":
+            return [(const.SPRITE_PATH + "Land/Land1/Eau/Land1a_00166.png", 1)]
+
+        elif type_version == "water_barrier_line0":
+            return [(const.SPRITE_PATH + "Land/Land3/Land3a_00056.png", 1)]
+        elif type_version == "water_barrier_line1":
+            return [(const.SPRITE_PATH + "Land/Land3/Land3a_00057.png", 1)]
+        elif type_version == "water_barrier_col0":
+            return [(const.SPRITE_PATH + "Land/Land3/Land3a_00055.png", 1)]
+        elif type_version == "water_barrier_col1":
+            return [(const.SPRITE_PATH + "Land/Land3/Land3a_00058.png", 1)]
+
+        elif type_version == "water_barrier_top_left":
+            return [(const.SPRITE_PATH + "Land/Land3/Land3a_00063.png", 1)]
+        elif type_version == "water_barrier_top_right":
+            return [(const.SPRITE_PATH + "Land/Land3/Land3a_00066.png", 1)]
+        elif type_version == "water_barrier_bot_left":
+            return [(const.SPRITE_PATH + "Land/Land3/Land3a_00065.png", 1)]
+        elif type_version == "water_barrier_bot_right":
+            return [(const.SPRITE_PATH + "Land/Land3/Land3a_00064.png", 1)]
+
 
         elif int(type_version) >= 0:
             return [(const.SPRITE_PATH + "Land/Land1/Land1a_" + type_version + ".png", 1)]
@@ -107,7 +165,7 @@ def mapping_function(element_type, type_version) -> [str, int]:
     elif element_type == "trees":#ok
         if type_version == "normal":
             return [(const.SPRITE_PATH + "Land/Land1/Arbres/Land1a_00045.png", 1)]
-        elif int(type_version) >= 0 and type_version != "00010" and type_version != "00011":
+        elif int(type_version) >= 0:
             return [(const.SPRITE_PATH + "Land/Land1/Arbres/Land1a_" + type_version + ".png", 1)]
         else:
             return [("", 0)]
@@ -224,8 +282,7 @@ def mapping_function(element_type, type_version) -> [str, int]:
                     my_array.append((const.SPRITE_PATH + "Hygiene\Hygiene_0000" + str(
                         level) + ".png", 2))
                 if count_digit == 2:
-                    my_array.append((const.SPRITE_PATH + "Hygiene\Hygiene_000" + str(
-                        level) + ".png", 2))
+                    my_array.append((const.SPRITE_PATH + "Hygiene\Hygiene_000" + str(level) + ".png", 2))
             return my_array
         #second model
         elif type_version == "luxurious_bath":#ok
@@ -252,7 +309,6 @@ def mapping_function(element_type, type_version) -> [str, int]:
                 my_array.append((const.SPRITE_PATH + "Farms\Commerce_000" + str(i) + ".png", 3))
             my_array.append((const.SPRITE_PATH + "Farms\Commerce_00100.png", 3))
             return my_array
-
 
 
         elif type_version == "pig_farm":#ok

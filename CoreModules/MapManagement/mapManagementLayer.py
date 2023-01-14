@@ -176,7 +176,12 @@ class Layer:
     def cell_is_yellow_grass(self, line, column):
         expected_grass = self.get_cell(line, column) if self.type == globalVar.LAYER1 else None
         if expected_grass:
-            return  expected_grass.dic['version'] in [ "yellow"] + ["000" + str(i)for i in range(18, 30)]
+            return  expected_grass.dic['version'] in mapping.yellow_grass_types
+        return False
+    def cell_is_water(self, line, column):
+        expected_water = self.get_cell(line, column) if self.type == globalVar.LAYER1 else None
+        if expected_water:
+            return expected_water.dic['version'] in mapping.all_water_types
         return False
 
     def get_cells_number(self, line, column):
@@ -221,14 +226,20 @@ class Layer:
         # Precondition: the current cell cant be modified
         if not self.changeable(line, column, cells_number, can_replace):
             return False
+
         for i in range(0, cells_number):
             for j in range(0, cells_number):
                 if (i, j) == (0, 0):
                     continue
                 else:
                     for layer in bottom_layers_list:
-                        if layer.array[line + i][column + j].dic["version"] != "null":
+                        if layer.type == globalVar.LAYER1:
+                            status = layer.cell_is_water(line, column)
+                            if status:
+                                return False
+                        elif layer.array[line + i][column + j].dic["version"] != "null":
                             return False
+
         # On copie les informations de l'Element dans la case correspondante--On garde l'id de la case
         self.array[line][column] = element
         if change_id:
@@ -262,7 +273,11 @@ class Layer:
         """
         count = len(bottom_layers_list)
         for i in range(count):
-            if bottom_layers_list[i].array[line][column].dic["version"] != "null":
+            if bottom_layers_list[i].type == globalVar.LAYER1:
+                status = bottom_layers_list[i].cell_is_water(line, column)
+                if status:
+                    return False
+            elif bottom_layers_list[i].array[line][column].dic["version"] != "null":
                 return False
         return self.set_cell(line, column, element, can_replace, change_id,bottom_layers_list)
 
