@@ -163,7 +163,11 @@ class RoadLayer(layer.Layer):
         """
         count = len(bottom_layers_list)
         for i in range(count):
-            if bottom_layers_list[i].array[line][column].dic["version"] != "null":
+            if bottom_layers_list[i].type == globalVar.LAYER1:
+                status = bottom_layers_list[i].cell_is_water(line, column)
+                if status:
+                    return False
+            elif bottom_layers_list[i].array[line][column].dic["version"] != "null":
                 return False
         return self.set_cell(line, column, can_replace= can_replace, memorize=memorize, recursively=True)
 
@@ -338,4 +342,5 @@ class RoadLayer(layer.Layer):
         return False, count
 
     def is_real_road(self, line, column):
-        return self.array[line][column].dic['version'] not in ["null", "entry", "exit"]
+        return self.array[line][column].dic['version'] not in ["null", "entry_bottom", "entry_top", "entry_left",
+                                            "entry_right", "exit_top", "exit_bottom", "exit_left", "exit_right"]
