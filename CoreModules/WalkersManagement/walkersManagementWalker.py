@@ -235,11 +235,15 @@ class Citizen(Walker):
     def work(self, building=None):
         pass
 class Engineer(Walker):
+    def __init__(self):
+        self.engineers_post
     def work(self, building):
         pass
 
 
 class Prefect(Walker):
+    def __init__(self):
+        self.prefecture
     def work(self, building):
         self.current_path_to_follow = self.map_associated.walk_to_a_building(self.init_pos,self.dest_pos,building.position,self.current_path_to_follow)[1]
 

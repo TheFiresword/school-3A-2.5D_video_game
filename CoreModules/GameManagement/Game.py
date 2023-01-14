@@ -218,18 +218,22 @@ class Game:
                         self.create_walker(path.copy(),k)
             elif k.dic['version'] == "prefecture" and not k.functional and any(has_road):
                 possible_worker = [w for w in self.walkersAll if type(w) == walkers.Citizen]
-                prefet = random.choice(possible_worker)
-                prefet.change_class(walkers.Prefect)
-                prefet.init_pos = possible_road[2]
-                self.walkersGetOut(prefet)
-                k.set_functional(True)
+                if possible_worker:
+                    prefet = random.choice(possible_worker)
+                    prefet.change_class(walkers.Prefect)
+                    prefet.prefecture=k
+                    prefet.init_pos = possible_road[2]
+                    self.walkersGetOut(prefet)
+                    k.set_functional(True)
             elif k.dic['version'] == "engineer's_post" and not k.functional and any(has_road):
                 possible_worker = [w for w in self.walkersAll if type(w) == walkers.Citizen]
-                engineer = random.choice(possible_worker)
-                engineer.change_class(walkers.Engineer)
-                engineer.init_pos = possible_road[2]
-                self.walkersGetOut(engineer)
-                k.set_functional(True)
+                if possible_worker:
+                    engineer = random.choice(possible_worker)
+                    engineer.change_class(walkers.Engineer)
+                    engineer.engineers_post=k
+                    engineer.init_pos = possible_road[2]
+                    self.walkersGetOut(engineer)
+                    k.set_functional(True)
 
 
             """if type(k) == buildings.Dwelling and k.isBurning:
