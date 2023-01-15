@@ -236,10 +236,14 @@ class Game:
                     k.set_functional(True)
 
 
-            """if type(k) == buildings.Dwelling and k.isBurning:
+            if type(k) == buildings.Dwelling and k.isBurning:
                 for w in self.walkersAll:
                     if type(w) == walkers.Prefect:
-                        w.work(k)"""
+                        w.set_current_path(k)
+            elif type(k) == buildings.Dwelling and k.isDestroyed:
+                for w in self.walkersAll:
+                    if type(w) == walkers.Engineer:
+                        w.set_current_path(k)
 
             # We don't want primitive housing (pannel) to burn or to collapse
             if type(k) == buildings.Dwelling and not k.is_occupied():

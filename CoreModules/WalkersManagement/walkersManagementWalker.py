@@ -152,7 +152,7 @@ class Walker:
                     if self.dest_compteur == len(self.current_path_to_follow) - 1:
                         self.dest_compteur = 0
                         self.current_path_to_follow.clear()
-                        self.initiate_work(self.__class__.__name__)
+                        self.work()
                     else:
                         self.dest_compteur += 1
 
@@ -207,10 +207,12 @@ class Walker:
 
         return
 
-    def initiate_work(self,_type):
+    """def initiate_work(self,_type):
         match _type:
             case "Immigrant":
                 self.work()
+            case "Prefet":
+                self.work()"""
 
 
     def work(self, building=None):
@@ -231,22 +233,27 @@ class Walker:
         self.paths_up, self.paths_down, self.paths_left, self.paths_right = wstf.walkers_to_sprite(
             self.__class__.__name__)
 
+    def set_current_path(self,building):
+        self.current_path_to_follow = \
+        self.map_associated.walk_to_a_building(self.init_pos, self.dest_pos, building.position,
+                                               self.current_path_to_follow)[1]
+
+
 class Citizen(Walker):
     def work(self, building=None):
         pass
 class Engineer(Walker):
     def __init__(self):
         self.engineers_post
-    def work(self, building):
+    def work(self):
         pass
 
 
 class Prefect(Walker):
     def __init__(self):
         self.prefecture
-    def work(self, building):
-        self.current_path_to_follow = self.map_associated.walk_to_a_building(self.init_pos,self.dest_pos,building.position,self.current_path_to_follow)[1]
-
+    def work(self):
+        pass
 
 class Immigrant(Walker):
 
