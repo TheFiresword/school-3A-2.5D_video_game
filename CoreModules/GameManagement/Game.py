@@ -331,9 +331,10 @@ class Game:
                     if type(_element) == buildings.WaterStructure:
                         # we must copy the element because if will potentially be  removed or changed in memory
                         self.last_water_structure_removed = copy.copy(_element)
-                        self.last_reservoir_removed = copy.copy(_element)
                         self.water_structures_list.remove(_element)
-                        self.reservoir_list.remove(_element)
+                        if _element.dic['version'] == "reservoir":
+                            self.last_reservoir_removed = copy.copy(_element)
+                            self.reservoir_list.remove(_element)
                     del _element
         return element_type
 
