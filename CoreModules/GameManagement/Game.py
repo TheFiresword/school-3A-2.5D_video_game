@@ -209,7 +209,6 @@ class Game:
 
             voisins = self.get_voisins_tuples(k)
             has_road = [self.map.roads_layer.is_real_road(v[0],v[1]) for v in voisins]
-            possible_road = [v for v in voisins if self.map.roads_layer.is_real_road(v[0],v[1])]
             # Creation of walkers
             if type(k) == buildings.Dwelling and k.current_population < k.max_population and any(has_road):
                 path = self.map.walk_to_a_building(self.map.roads_layer.get_entry_position(),None, k.position,[])[1]
@@ -217,33 +216,34 @@ class Game:
                     for i in range(k.max_population - k.current_population):
                         self.create_walker(path.copy(),k)
             elif k.dic['version'] == "prefecture" and not k.functional and any(has_road):
-                possible_worker = [w for w in self.walkersAll if type(w) == walkers.Citizen]
-                if possible_worker:
-                    prefet = random.choice(possible_worker)
-                    prefet.change_class(walkers.Prefect)
-                    prefet.prefecture=k
-                    prefet.init_pos = possible_road[2]
-                    self.walkersGetOut(prefet)
-                    k.set_functional(True)
+                self.citizenToPrefet(k)
             elif k.dic['version'] == "engineer's_post" and not k.functional and any(has_road):
-                possible_worker = [w for w in self.walkersAll if type(w) == walkers.Citizen]
-                if possible_worker:
-                    engineer = random.choice(possible_worker)
-                    engineer.change_class(walkers.Engineer)
-                    engineer.engineers_post=k
-                    engineer.init_pos = possible_road[2]
-                    self.walkersGetOut(engineer)
-                    k.set_functional(True)
+                self.citizenToEngineer(k)
 
+            if type(k) == buildings.Dwelling and k.isBurning and not k.beingWorkedOn:
+                for w in self.walkersAll:
+                    if type(w) == walkers.Prefect and w.workingOn is None:
+                        w.set_current_path(k)
+                        if w.current_path_to_follow:
+                            w.workingOn = k
+                            k.beingWorkedOn = True
+            elif type(k) == buildings.Dwelling and k.isDestroyed and not k.beingWorkedOn:
+                for w in self.walkersAll:
+                    if type(w) == walkers.Engineer and w.workingOn is None:
+                        w.set_current_path(k)
+                        if w.current_path_to_follow:
+                            w.workingOn = k
+                            k.beingWorkedOn = True
 
-            if type(k) == buildings.Dwelling and k.isBurning:
-                for w in self.walkersAll:
-                    if type(w) == walkers.Prefect:
-                        w.set_current_path(k)
-            elif type(k) == buildings.Dwelling and k.isDestroyed:
-                for w in self.walkersAll:
-                    if type(w) == walkers.Engineer:
-                        w.set_current_path(k)
+            for w in self.walkersAll:
+                if type(w) == walkers.Prefect:
+                    if w.init_pos in voisins:
+                        k.risk_dico["fire"], k.risk_level_dico["fire"] = 0, 0
+                        self.updated.append(k)
+                if type(w) == walkers.Engineer:
+                    if w.init_pos in voisins:
+                        k.risk_dico["collapse"], k.risk_level_dico["collapse"] = 0, 0
+                        self.updated.append(k)
 
             # We don't want primitive housing (pannel) to burn or to collapse
             if type(k) == buildings.Dwelling and not k.is_occupied():
@@ -304,6 +304,30 @@ class Game:
                                    None, 0, self,path,building)
         self.walkersAll.append(walker)
         self.walkersGetOut(walker)
+
+    def citizenToPrefet(self, prefecture):
+        voisins = self.get_voisins_tuples(prefecture)
+        possible_road = [v for v in voisins if self.map.roads_layer.is_real_road(v[0], v[1])]
+        possible_worker = [w for w in self.walkersAll if type(w) == walkers.Citizen]
+        if possible_worker:
+            prefet = random.choice(possible_worker)
+            prefet.change_class(walkers.Prefect)
+            prefet.prefecture = prefecture
+            prefet.init_pos = possible_road[2]
+            self.walkersGetOut(prefet)
+            prefecture.set_functional(True)
+
+    def citizenToEngineer(self, engineer_post):
+        voisins = self.get_voisins_tuples(engineer_post)
+        possible_road = [v for v in voisins if self.map.roads_layer.is_real_road(v[0], v[1])]
+        possible_worker = [w for w in self.walkersAll if type(w) == walkers.Citizen]
+        if possible_worker:
+            engineer = random.choice(possible_worker)
+            engineer.change_class(walkers.Engineer)
+            engineer.engineers_post = engineer_post
+            engineer.init_pos = possible_road[2]
+            self.walkersGetOut(engineer)
+            engineer_post.set_functional(True)
 
     def walkersGetOut(self, walker):
         self.walkersOut.append(walker)
@@ -443,7 +467,7 @@ class Game:
             if version not in ["null"]:
                 if version == "dwell":
                     pass
-                    
+
 
     def get_voisins(self,building):
         voisins = set()
@@ -458,7 +482,7 @@ class Game:
                 for j in range(-2,2):
                                     voisins.add(self.map.buildinglayer.array[case[0] + i][case[1] + j])
         return voisins
-    
+
     def get_voisins_tuples(self,building):
         pos = building.position
         cases = []
