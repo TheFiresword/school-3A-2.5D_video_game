@@ -3,6 +3,7 @@ from Services import servicesGlobalVariables as cst
 from Services import Service_Walker_Sprite_To_File as wstf
 from CoreModules.BuildingsManagement.buildingsManagementBuilding import Dwelling
 
+
 # ============================================#
 # Relative to pathfinding--We use the library pathfinding
 from pathfinding.core.grid import Grid
@@ -210,10 +211,7 @@ class Walker:
         match _type:
             case "Immigrant":
                 self.work()
-            case "Prefect":
-                for building in self.game.buildinglist:
-                    if building.isBurning:
-                        self.work(building)
+
 
     def work(self, building=None):
         pass
@@ -228,13 +226,24 @@ class Walker:
         if depart[0] == arrive[0] and depart[1] > arrive[1]:
             return -1 * cst.TILE_WIDTH * self.zoom / (2 * self.fps), cst.TILE_HEIGHT * self.zoom / (2 * self.fps)
 
+    def change_class(self, new_type):
+        self.__class__ = new_type
+        self.paths_up, self.paths_down, self.paths_left, self.paths_right = wstf.walkers_to_sprite(
+            self.__class__.__name__)
 
+class Citizen(Walker):
+    def work(self, building=None):
+        pass
 class Engineer(Walker):
+    def __init__(self):
+        self.engineers_post
     def work(self, building):
         pass
 
 
 class Prefect(Walker):
+    def __init__(self):
+        self.prefecture
     def work(self, building):
         self.current_path_to_follow = self.map_associated.walk_to_a_building(self.init_pos,self.dest_pos,building.position,self.current_path_to_follow)[1]
 
@@ -252,12 +261,25 @@ class Immigrant(Walker):
         self.game.walkersOut.remove(self)
         # As many immigrants are created when a dwell is built the dwell state must be modified only by the first one
         # but we should also verify that the dwell is not removed before the immigrant goes in
+
+        if self.house.dic['version']=="null":
+            print("no")
+        if self.house != self.building_layer.array[self.house.position[0]][self.house.position[1]]:
+            # The walker shoud be destroyed
+            del self
+        else:
+            self.house.structure_level = 1
+            self.house.functional = True
+        #### Ancienne version
         if self.house!=self.building_layer.array[self.house.position[0]][self.house.position[1]]:
             # The walker shoud be destroyed
             pass
         elif not self.house.is_occupied():
             self.house.set_functional(True)
+
             self.game.updated.append(self.house)
+            self.change_class(Citizen)
+
     
 
     """def find_house(self,path=[]):
