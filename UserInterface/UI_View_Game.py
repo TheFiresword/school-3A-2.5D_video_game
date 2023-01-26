@@ -165,7 +165,7 @@ class GameView(arcade.View):
         self.menusect = uis.MenuSect()
         self.map_camera = arcade.Camera()
         self.menu_camera = arcade.Camera()
-
+        self.minimap_camera = arcade.Camera()
         # =======================================
         # Visuals elements excepts ones Map related 
         # =======================================
@@ -250,6 +250,7 @@ class GameView(arcade.View):
         self.fps_text2=text.Sprite_sentence("Pop :"+ str(self.game.framerate),"white",(605 - (len(self.population_text.sentence)),constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]/4))
         self.visualmap.setup(self.game)
         self.center_map()
+        self.minimap_camera.move_to(self.visualmap.get_map_center() - Vec2(self.window.width/2,self.window.height/2),1)
         self.visualmap.buildings_layer.visible = True
         self.visualmap.fire_risk_layer_show = False
         self.visualmap.collapse_risk_layer_show = False
@@ -270,8 +271,8 @@ class GameView(arcade.View):
     def update_minimap(self):
         map_width = constantes.MAP_WIDTH*self.visualmap.map_scaling
         map_height = constantes.MAP_HEIGHT*self.visualmap.map_scaling
-        proj = self.map_camera.position[0]-map_width/2, self.map_camera.position[0]+map_width/2, \
-               self.map_camera.position[1]-map_height/2, self.map_camera.position[1]+map_height/2
+        proj = self.minimap_camera.position[0]-map_width/2, self.minimap_camera.position[0]+map_width/2, \
+               self.minimap_camera.position[1]-map_height/2, self.minimap_camera.position[1]+map_height/2
 
         with self.minimap_sprite_list.atlas.render_into(self.minimap_texture, projection=proj) as fbo:
             fbo.clear(MINIMAP_BACKGROUND_COLOR)
@@ -378,17 +379,18 @@ class GameView(arcade.View):
         if self.actual_pop_up.visible:
             self.actual_pop_up.draw_()
 
-
+        # Testing something cool -- error message when building farm on non yellow grass
+        self.draw_message_for_farm_building()
 
         # Update the minimap
+        self.minimap_camera.use()
         self.update_minimap()
 
         # Draw the minimap
         self.minimap_sprite_list.draw()
 
 
-        # Testing something cool -- error message when building farm on non yellow grass
-        self.draw_message_for_farm_building()
+        
 
     def on_update(self, delta_time: float):
         if self.is_paused:
@@ -630,6 +632,7 @@ class GameView(arcade.View):
         :return:
         """
         self.center_scroll_to(self.visualmap.get_map_center())
+        
 
     def on_resize(self, width: int, height: int):  # Never used game always fullscreen
         self.map_camera.resize(width, height)
