@@ -277,6 +277,7 @@ class Immigrant(Walker):
         self.game.walkersOut.remove(self)
         # As many immigrants are created when a dwell is built the dwell state must be modified only by the first one
         # but we should also verify that the dwell is not removed before the immigrant goes in
+
         if self.house.dic['version']=="null":
             print("no")
         if self.house != self.building_layer.array[self.house.position[0]][self.house.position[1]]:
@@ -285,6 +286,13 @@ class Immigrant(Walker):
         else:
             self.house.structure_level = 1
             self.house.functional = True
+        #### Ancienne version
+        if self.house!=self.building_layer.array[self.house.position[0]][self.house.position[1]]:
+            # The walker shoud be destroyed
+            pass
+        elif not self.house.is_occupied():
+            self.house.set_functional(True)
+
             self.game.updated.append(self.house)
             self.change_class(Citizen)
 

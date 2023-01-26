@@ -240,7 +240,8 @@ class GameView(arcade.View):
 
     def setup(self):
         if not self.game:
-            self.game = game.Game(map.MapLogic(),name = self.name)
+            self.game = game.Game(map.MapLogic((constantes.TILE_COUNT//2, 0),(0, constantes.TILE_COUNT//2),
+                                               constantes.TILE_COUNT-7),name = self.name)
         else :
             self.name = self.game.name
         self.money_text=text.Sprite_sentence("Dn: " +str(self.game.money),"white",(205,constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4))
@@ -580,13 +581,6 @@ class GameView(arcade.View):
             else:
                 self.is_paused = False
             self.count_pauses += 1
-
-        #Testing pathfinding
-        elif symbol == arcade.key.M:
-            self.game.print_building_list()
-        elif symbol == arcade.key.E:
-            self.game.walkersOutUpdates(exit=True)
-            
 
     def on_key_release(self, _symbol: int, _modifiers: int):
         if _symbol == arcade.key.UP:

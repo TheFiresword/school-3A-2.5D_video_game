@@ -44,10 +44,10 @@ class Building(element.Element):
     def set_functional(self, value: bool):
         if value and not self.functional:
             self.update_level("stat_inc")
-            self.functional = value
+            self.functional = True
         elif not value and self.functional:
             self.update_level("reset")
-            self.functional = value
+            self.functional = False
 
     def update_risk_speed_with_level(self):
         if self.structure_level == 0:
@@ -123,9 +123,6 @@ class Building(element.Element):
 
                     return False
         return False
-
-
-
 
 
     def update_level(self, update_type: "stat_inc" or 'change_content' or 'stat_dec' or 'reset'):
@@ -275,5 +272,6 @@ class WaterStructure(Building):
         super().__init__(buildings_layer, _type, version)
         self.range = mapping.get_structures_range(_type, version)
         if version == "well":
+            # a well is always functional and don't need employees
             self.functional = True
 

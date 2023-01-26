@@ -45,6 +45,8 @@ class Game:
         self.pottery_structures_list = []
         self.bathhouse_structures_list = []
 
+        self.reservoir_list = []
+
         #
         self.last_water_structure_removed = None
         self.last_food_structure_removed = None
@@ -54,6 +56,7 @@ class Game:
         self.last_basic_entertainment_structure_removed = None
         self.last_pottery_structure_removed = None
         self.last_bathhouse_structure_removed = None
+        self.last_reservoir_removed = None
 
         # Timer
         self.init_time = time.time()
@@ -152,6 +155,21 @@ class Game:
                                                                                   building.structure_level))
         return set(buildings_position_to_append_to_update_object)
 
+    def update_water_for_fountain_or_bath(self, reservoir, evolvable=True):
+        if reservoir:  # None
+            if reservoir.is_functional():
+                _range = reservoir.range
+                _position = reservoir.position
+
+                for fountain_bath in self.water_structures_list:
+                    if fountain_bath.dic['version'] in ["luxurious_bath", "normal_bath", "fountain", "fountain2",
+                                                        "fountain3", "fountain4"]:
+                        line, column = fountain_bath.position
+                        if -_range + _position[0] <= line < _range + 1 + _position[0] and -_range + _position[1] <= column \
+                                < _range + 1 + _position[1]:
+                            fountain_bath.set_functional(evolvable)
+
+
     def downgrade_supply_requirement(self, of_what: 'water' or 'food' or 'temple' or 'education' or 'fountain' or
                                            'basic_entertainment' or 'pottery' or 'bathhouse'):
         tmp = 'last_'+of_what + '_structure_removed'
@@ -196,6 +214,16 @@ class Game:
 
         update.has_evolved = list(set(update.has_evolved))
         update.has_devolved = list(set(update.has_devolved))
+
+
+        #-------------------------------------------------------------------------------------------------#
+        # Updating of water structures wich functionality depends on a reservoir presence
+
+        if self.last_reservoir_removed:
+            self.update_water_for_fountain_or_bath(self.last_reservoir_removed, evolvable=False)
+
+        for reservoir in self.reservoir_list:
+            self.update_water_for_fountain_or_bath(reservoir)
 
         for k in self.buildinglist:
             # Update of the risk speed level
@@ -249,12 +277,10 @@ class Game:
             if type(k) == buildings.Dwelling and not k.is_occupied():
                 # we check if a road is next to this dwelling, if not we remove it after Xs
                 removable = True
-                line, column = k.position
-                for i in range(-2, 2+1):
-                    for j in range(-2, 2+1):
-                        if self.map.roads_layer.is_real_road(line + i, column + j):
-                            removable = False
-                            break
+                for i, j in voisins:
+                    if self.map.roads_layer.is_real_road(i, j):
+                        removable = False
+                        break
                 # update tracktimer of dwells
                 built_since = int(time.time() - self.timer_track_dwells[pos]) if pos in self.timer_track_dwells else 0
 
@@ -334,13 +360,6 @@ class Game:
         pass
 
     def walkersOutUpdates(self, exit=False):  # fps = self.framerate
-        if exit:
-            for walker in self.walkersOut:
-                walker.get_out_city()
-        else:
-            for walker in self.walkersOut:
-                walker.current_path_to_follow = self.map.walk_to_a_building(walker.init_pos,walker.dest_pos,(globalVar.TILE_COUNT//2, globalVar.TILE_COUNT // 2 -4 ),[])[1]
-                walker.dest_compteur = 0
         pass
 
     def remove_element(self, pos) -> str | None:
@@ -367,6 +386,9 @@ class Game:
                         # we must copy the element because if will potentially be  removed or changed in memory
                         self.last_water_structure_removed = copy.copy(_element)
                         self.water_structures_list.remove(_element)
+                        if _element.dic['version'] == "reservoir":
+                            self.last_reservoir_removed = copy.copy(_element)
+                            self.reservoir_list.remove(_element)
                     del _element
         return element_type
 
@@ -442,21 +464,43 @@ class Game:
             case _:
                 building = buildings.Building(self.map.buildings_layer, globalVar.LAYER5, version)
 
+        # we should check that there is no water on the future positions
+        cells_number = building.dic['cells_number']
+        can_build_out_of_water = all([not self.map.grass_layer.cell_is_water(line + i, column + j)
+                             for j in range(0, cells_number) for i in range(0, cells_number)])
+        if not can_build_out_of_water:
+            return False
+
+        if version in ["fruit_farm", "olive_farm", "vegetable_farm", "vine_farm", "wheat_farm", "pig_farm"]:
+            # we should check if there is yellow grass on the future positions to check
+            can_build_on_yellow_grass = all([self.map.grass_layer.cell_is_yellow_grass(line + i, column + j)
+                             for j in range(0, cells_number) for i in range(0, cells_number)])
+
+            if not can_build_on_yellow_grass:
+                return False
+
         status = self.map.buildings_layer.set_cell_constrained_to_bottom_layer(self.map.collisions_layers, line, column,
                                                                                building)
         if status:
-            match version:
-                case _:
-                    self.buildinglist.append(building)
-
+            self.money -= building_dico[txt].cost
+            self.buildinglist.append(building)
             if version == "dwell":
                 # if user just built a dwell we associate a timer so that the dwell can be removed after x seconds
                 self.timer_track_dwells[(line, column)] = time.time()
 
-
-            self.money -= building_dico[txt].cost
             if type(building) == buildings.WaterStructure:
                 self.water_structures_list.append(building)
+                if building.dic['version'] == "reservoir":
+                    self.reservoir_list.append(building)
+                    # Functionality of a reservoir is calculated directly when it's created
+                    # A reservoir is functional when adjacent to a river or a coast (water)
+                    ajacent_to_water = any([self.map.grass_layer.cell_is_water(line + i, column + j)
+                    for j in range(-1, cells_number+1) for i in range(-1, cells_number+1) if i in [-1, cells_number]
+                                            or j in[-1, cells_number]])
+                    if ajacent_to_water:
+                        building.set_functional(True)
+
+
         return status
 
     def update_likability(self,building):
