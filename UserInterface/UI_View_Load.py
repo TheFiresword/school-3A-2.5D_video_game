@@ -39,11 +39,11 @@ class LoadScreen(arcade.View):
                                                        ,scale=3/4 )
         self.validate_button = arcade.gui.UITextureButton(x=constantes.DEFAULT_SCREEN_WIDTH/2 + (self.box.image.size[0]/2) - 160,
                                                        y= constantes.DEFAULT_SCREEN_HEIGHT/2 - (self.box.image.size[1]/2) + 20,
-                                                       texture= arcade.load_texture(constantes.SPRITE_PATH + "Panel\Panel40\paneling_00239.png")
+                                                       texture= arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel40/paneling_00239.png")
                                                        ,scale=3/4 )     
         self.reload_button = arcade.gui.UITextureButton(x=constantes.DEFAULT_SCREEN_WIDTH/2 + (self.box.image.size[0]/2) - 160 - 150,
                                                         y= constantes.DEFAULT_SCREEN_HEIGHT/2 - (self.box.image.size[1]/2) + 20,
-                                                        texture= arcade.load_texture(constantes.SPRITE_PATH + "Panel\Panel17\paneling_00092.png")
+                                                        texture= arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel17/paneling_00092.png")
                                                         ,scale=3/4 )
 
                                           

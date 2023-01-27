@@ -170,7 +170,7 @@ class GameView(arcade.View):
         # Visuals elements excepts ones Map related 
         # =======================================
         self.tab = arcade.load_texture(constantes.SPRITE_PATH + "PanelsOther/paneling_00017.png")
-        self.bar = arcade.load_texture(constantes.SPRITE_PATH + "Panel\panel0.png")
+        self.bar = arcade.load_texture(constantes.SPRITE_PATH + "Panel/panel0.png")
         self.money_box = arcade.load_texture(constantes.SPRITE_PATH + "PanelsOther/paneling_00015.png")
         self.actual_pop_up = pop.create_PoP_Up(image= constantes.SPRITE_PATH + "Pictures/panelwindows_00021.png" ,title="AU FEU",normal_text="tchoupi",carved_text="Y'a le feu quelque part allez éteindre ça\n je suis sur ca marche",top_left_corner=(0,constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]),order=["title_zone","image_zone","carved_text_zone","button_zone"])
         self.money_text = None
@@ -345,7 +345,7 @@ class GameView(arcade.View):
                                       width=162, height=constantes.DEFAULT_SCREEN_HEIGHT / 2,
                                       texture=self.tab
                                       )
-        arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH - 81,center_y=constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT/2-23 -50 ,width=162,height=200,texture=arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel46.png"))
+        arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH - 81,center_y=constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT/2-23 -50 ,width=162,height=200,texture=arcade.load_texture(constantes.SPRITE_PATH + "Panel/panel46.png"))
         arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH - 81,center_y=constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT/2-23 -50 -200 ,width=162,height=200,texture=arcade.load_texture(constantes.SPRITE_PATH + "Map_panels/map_panels_00002.png"))
         self.money_text.draw_()
         self.fps_text.draw_()

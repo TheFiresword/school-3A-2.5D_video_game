@@ -1,6 +1,4 @@
-import ctypes
 import pyautogui
-user32 = ctypes.windll.user32
 
 #DEFAULT_SCREEN_WIDTH = user32.GetSystemMetrics(0)
 #DEFAULT_SCREEN_HEIGHT = user32.GetSystemMetrics(1)
