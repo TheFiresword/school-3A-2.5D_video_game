@@ -176,18 +176,13 @@ class GameView(arcade.View):
         self.money_text = None
         self.fps_text = None
         buttons_render = UI_buttons.buttons
-        print((constantes.DEFAULT_SCREEN_HEIGHT/2))
         self.buttons = [arcade.gui.UITextureButton(x=b0, y=(3*constantes.DEFAULT_SCREEN_HEIGHT/4 -self.bar.image.size[1]/2 + b1), texture=b2, texture_hovered=b3, texture_pressed=b4,
-                                                    scale=constantes.SPRITE_SCALING) for (b0, b1, b2, b3, b4) in buttons_render]
+                                                    width=b2.image.size[0]*constantes.SPRITE_SCALING,height=(b2.image.size[1] * constantes.DEFAULT_SCREEN_HEIGHT/2)/900) for (b0, b1, b2, b3, b4) in buttons_render]
         self.buttons[5].on_click = self.button_click_house
         self.buttons[6].on_click = self.button_click_shovel
         self.buttons[7].on_click = self.button_click_road
         self.select_all_manager()
         self.attribute_on_click()
-        #self.buttons[8].on_click = UI_buttons.define_on_click_button_manager(self,"water")
-        #self.buttons[9].on_click = UI_buttons.define_on_click_button_manager(self,"health")
-        #self.buttons[10].
-
 
         self.minimap_sprite_list = None
         self.minimap_texture = None

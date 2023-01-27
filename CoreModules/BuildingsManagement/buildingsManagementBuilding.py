@@ -239,33 +239,49 @@ class Dwelling(Building):
     def is_occupied(self):
         return self.structure_level > 0
 
-"""
+
 class Farm(Building):
     def __init__(self, buildings_layer, _type, production="wheat_farm"):
         # opt: empecher l'attribut d'id a l'init
         super().__init__(buildings_layer, _type, production)
-        self.foundation = Building(buildings_layer, _type, "foundation_farm", parent=self)
-        self.farm_at_00 = Building(buildings_layer, _type, production, parent=self)
-        self.farm_at_01 = Building(buildings_layer, _type, production, parent=self)
-        self.farm_at_02 = Building(buildings_layer, _type, production, parent=self)
-        self.farm_at_12 = Building(buildings_layer, _type, production, parent=self)
-        self.farm_at_22 = Building(buildings_layer, _type, production, parent=self)
+        self.production = 0
+    
+    def update_functional_building_animation(self, framerate) ->bool:
+        """
+        This function will change the structure_level in a circular way so that the visual animation of the building
+        can be obtained
+        """
+        # the animation of functional buildings
+        if self.is_functional():
+            if self.dic['version'] != 'dwell' and self.max_level > 1:
+                if not self.previous_time:
+                    self.previous_time = time.time()
 
-        self.total_cells = self.foundation.dic['cells_number'] ** 2 + self.farm_at_22.dic['cells_number'] ** 2 + \
-                           self.farm_at_12.dic['cells_number'] ** 2 +self.farm_at_00.dic['cells_number'] ** 2 + \
-                           self.farm_at_01.dic['cells_number'] ** 2 + self.farm_at_02.dic['cells_number'] ** 2
+                else:
+                    if self.dic['version'] not in ["fruit_farm", "olive_farm", "pig_farm", "vegetable_farm",
+                                                       "vine_farm",
+                                                       "wheat_farm"]:
+                        delta_timer = DELTA_TIME
+                        init_level = 1
+                    else:
+                        delta_timer = 3*DELTA_TIME
+                        init_level = 0
 
-        self.total_cells = int(math.sqrt(self.total_cells))
-        # we change the cells_number attribute so that to have the exact cells number
-        self.dic['cells_number'] = self.total_cells
+                    if time.time()- self.previous_time > delta_timer:
+                        self.previous_time = time.time()
+                        self.structure_level += 1
+                        if self.structure_level == self.max_level:
+                            self.production += self.max_level
+                            self.structure_level = init_level
+                        assert (self.structure_level <= self.max_level - 1)
+                        return True
 
-    def reset_farm(self):
-        self.farm_at_00.update_level('reset')
-        self.farm_at_01.update_level('reset')
-        self.farm_at_02.update_level('reset')
-        self.farm_at_12.update_level('reset')
-        self.farm_at_22.update_level('reset')
-"""
+                    return False
+        return False
+        
+    
+
+
 class WaterStructure(Building):
     def __init__(self, buildings_layer, _type, version="well"):
         super().__init__(buildings_layer, _type, version)
