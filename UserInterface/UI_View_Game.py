@@ -271,8 +271,8 @@ class GameView(arcade.View):
     def update_minimap(self):
         map_width = constantes.MAP_WIDTH*self.visualmap.map_scaling
         map_height = constantes.MAP_HEIGHT*self.visualmap.map_scaling
-        proj = self.minimap_camera.position[0]-map_width/2, self.minimap_camera.position[0]+map_width/2, \
-               self.minimap_camera.position[1]-map_height/2, self.minimap_camera.position[1]+map_height/2
+        proj = self.minimap_camera.position[0]-(15*map_width/100), self.minimap_camera.position[0]+(85*map_width/100), \
+               self.minimap_camera.position[1]-(15*map_height/100), self.minimap_camera.position[1]+(85*map_height/100)
 
         with self.minimap_sprite_list.atlas.render_into(self.minimap_texture, projection=proj) as fbo:
             fbo.clear(MINIMAP_BACKGROUND_COLOR)
