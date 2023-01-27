@@ -1,9 +1,10 @@
 import ctypes
-import math
+import pyautogui
 user32 = ctypes.windll.user32
 
-DEFAULT_SCREEN_WIDTH = user32.GetSystemMetrics(0)
-DEFAULT_SCREEN_HEIGHT = user32.GetSystemMetrics(1)
+#DEFAULT_SCREEN_WIDTH = user32.GetSystemMetrics(0)
+#DEFAULT_SCREEN_HEIGHT = user32.GetSystemMetrics(1)
+DEFAULT_SCREEN_WIDTH,DEFAULT_SCREEN_HEIGHT =pyautogui.size()
 MIDDLE = (DEFAULT_SCREEN_WIDTH/2,DEFAULT_SCREEN_HEIGHT/2)
 TITLE = "Pysar"
 

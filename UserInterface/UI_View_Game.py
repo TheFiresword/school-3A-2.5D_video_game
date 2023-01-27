@@ -165,7 +165,7 @@ class GameView(arcade.View):
         self.menusect = uis.MenuSect()
         self.map_camera = arcade.Camera()
         self.menu_camera = arcade.Camera()
-
+        self.minimap_camera = arcade.Camera()
         # =======================================
         # Visuals elements excepts ones Map related 
         # =======================================
@@ -176,18 +176,13 @@ class GameView(arcade.View):
         self.money_text = None
         self.fps_text = None
         buttons_render = UI_buttons.buttons
-        self.buttons = [arcade.gui.UITextureButton(x=b0, y=b1, texture=b2, texture_hovered=b3, texture_pressed=b4,
-                                                   scale=constantes.SPRITE_SCALING) for
-                        (b0, b1, b2, b3, b4) in buttons_render]
+        self.buttons = [arcade.gui.UITextureButton(x=b0, y=(3*constantes.DEFAULT_SCREEN_HEIGHT/4 -self.bar.image.size[1]/2 + b1), texture=b2, texture_hovered=b3, texture_pressed=b4,
+                                                    width=b2.image.size[0]*constantes.SPRITE_SCALING,height=(b2.image.size[1] * constantes.DEFAULT_SCREEN_HEIGHT/2)/900) for (b0, b1, b2, b3, b4) in buttons_render]
         self.buttons[5].on_click = self.button_click_house
         self.buttons[6].on_click = self.button_click_shovel
         self.buttons[7].on_click = self.button_click_road
         self.select_all_manager()
         self.attribute_on_click()
-        #self.buttons[8].on_click = UI_buttons.define_on_click_button_manager(self,"water")
-        #self.buttons[9].on_click = UI_buttons.define_on_click_button_manager(self,"health")
-        #self.buttons[10].
-
 
         self.minimap_sprite_list = None
         self.minimap_texture = None
@@ -196,7 +191,7 @@ class GameView(arcade.View):
         self.bar_manager = arcade.gui.UIManager()
         self.load_button = UI_buttons.Text_Button_background(x=40,y = constantes.DEFAULT_SCREEN_HEIGHT - 3*self.bar.height/4,width=20,height=self.bar.height,texture=None,my_text="Load Game",color="black")
         self.load_button.on_click = self.button_load_on_click
-        self.layer_button = UI_buttons.Text_Button_background(x=constantes.DEFAULT_SCREEN_WIDTH-162 + 3,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height-1,width=120,height=25,texture=UI_buttons.texture_panel11,my_text="Overlays",color="black")
+        self.layer_button = UI_buttons.Text_Button_background(x=constantes.DEFAULT_SCREEN_WIDTH-162 + 3,y =(3*constantes.DEFAULT_SCREEN_HEIGHT/4 -self.bar.image.size[1]/2) + constantes.DEFAULT_SCREEN_HEIGHT/2 * 0.4444444444,width=120,height=25,texture=UI_buttons.texture_panel11,my_text="Overlays",color="black")
         self.layer_button.on_click = self.button_layer_on_click
         self.layer_manager = arcade.gui.UIManager()
         self.layer_manager_show = False
@@ -250,6 +245,7 @@ class GameView(arcade.View):
         self.fps_text2=text.Sprite_sentence("Pop :"+ str(self.game.framerate),"white",(605 - (len(self.population_text.sentence)),constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]/4))
         self.visualmap.setup(self.game)
         self.center_map()
+        self.minimap_camera.move_to(self.visualmap.get_map_center() - Vec2(self.window.width/2,self.window.height/2),1)
         self.visualmap.buildings_layer.visible = True
         self.visualmap.fire_risk_layer_show = False
         self.visualmap.collapse_risk_layer_show = False
@@ -261,7 +257,7 @@ class GameView(arcade.View):
         size = (MINIMAP_WIDTH, MINIMAP_HEIGHT)
         self.minimap_texture = arcade.Texture.create_empty(str(uuid4()), size)
         self.minimap_sprite = arcade.Sprite(center_x=(constantes.DEFAULT_SCREEN_WIDTH-MINIMAP_WIDTH/2 - 9),
-                                            center_y=(constantes.DEFAULT_SCREEN_HEIGHT - MINIMAP_HEIGHT /2 - 53),
+                                            center_y=(3*constantes.DEFAULT_SCREEN_HEIGHT/4 -self.bar.image.size[1]/2 + 0.3044444444*constantes.DEFAULT_SCREEN_HEIGHT/2),
                                             texture=self.minimap_texture)
         self.minimap_sprite_list = arcade.SpriteList()
         self.minimap_sprite_list.append(self.minimap_sprite)
@@ -270,8 +266,8 @@ class GameView(arcade.View):
     def update_minimap(self):
         map_width = constantes.MAP_WIDTH*self.visualmap.map_scaling
         map_height = constantes.MAP_HEIGHT*self.visualmap.map_scaling
-        proj = self.map_camera.position[0]-map_width/2, self.map_camera.position[0]+map_width/2, \
-               self.map_camera.position[1]-map_height/2, self.map_camera.position[1]+map_height/2
+        proj = self.minimap_camera.position[0]-(15*map_width/100), self.minimap_camera.position[0]+(85*map_width/100), \
+               self.minimap_camera.position[1]-(15*map_height/100), self.minimap_camera.position[1]+(85*map_height/100)
 
         with self.minimap_sprite_list.atlas.render_into(self.minimap_texture, projection=proj) as fbo:
             fbo.clear(MINIMAP_BACKGROUND_COLOR)
@@ -345,7 +341,7 @@ class GameView(arcade.View):
                                       width=(len(self.money_text.sentence)+5) * constantes.FONT_WIDTH/2, height=self.bar.image.size[1]/2,
                                       texture=self.money_box)
         arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH - 81 ,
-                                      center_y=constantes.DEFAULT_SCREEN_HEIGHT - 285 + 47,
+                                      center_y=3*constantes.DEFAULT_SCREEN_HEIGHT/4 -self.bar.image.size[1]/2,
                                       width=162, height=constantes.DEFAULT_SCREEN_HEIGHT / 2,
                                       texture=self.tab
                                       )
@@ -378,17 +374,18 @@ class GameView(arcade.View):
         if self.actual_pop_up.visible:
             self.actual_pop_up.draw_()
 
-
+        # Testing something cool -- error message when building farm on non yellow grass
+        self.draw_message_for_farm_building()
 
         # Update the minimap
+        self.minimap_camera.use()
         self.update_minimap()
 
         # Draw the minimap
         self.minimap_sprite_list.draw()
 
 
-        # Testing something cool -- error message when building farm on non yellow grass
-        self.draw_message_for_farm_building()
+        
 
     def on_update(self, delta_time: float):
         if self.is_paused:
@@ -630,6 +627,7 @@ class GameView(arcade.View):
         :return:
         """
         self.center_scroll_to(self.visualmap.get_map_center())
+        
 
     def on_resize(self, width: int, height: int):  # Never used game always fullscreen
         self.map_camera.resize(width, height)
