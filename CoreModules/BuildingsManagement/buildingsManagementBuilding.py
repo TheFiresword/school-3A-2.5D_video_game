@@ -28,6 +28,7 @@ class Building(element.Element):
         self.BurningTime = 0
         self.isDestroyed = False
         self.randombuf = 0
+        self.beingWorkedOn = False
 
         # when it's constructed, a building is non functional (ex: farm, granary, prefecture, even dwell)
         self.functional = False

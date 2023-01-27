@@ -62,101 +62,103 @@ class Walker:
         self.direction = list()
         self.current_path_to_follow = []
         self.dest_compteur = 0
+        self.stop = False
+        self.workingOn = None
 
 
     def walk(self, zoom, back=False):
         self.zoom = zoom
+        if not self.stop:
+            right_tile = (self.init_pos[0] + 1, self.init_pos[1])
+            left_tile = (self.init_pos[0] - 1, self.init_pos[1])
+            up_tile = (self.init_pos[0], self.init_pos[1] + 1)
+            down_tile = (self.init_pos[0], self.init_pos[1] - 1)
 
-        right_tile = (self.init_pos[0] + 1, self.init_pos[1])
-        left_tile = (self.init_pos[0] - 1, self.init_pos[1])
-        up_tile = (self.init_pos[0], self.init_pos[1] + 1)
-        down_tile = (self.init_pos[0], self.init_pos[1] - 1)
+            # If a calculated path has been given with pathfinding, that means the walker has to go to some precise position
+            # Then we give each position of the path one by one as destination position and the random calculation is
+            # skipped
+            if self.current_path_to_follow:
+                if self.dest_compteur == 0 and self.compteur == 0:
+                    pass
+                self.dest_pos = self.current_path_to_follow[self.dest_compteur]
 
-        # If a calculated path has been given with pathfinding, that means the walker has to go to some precise position
-        # Then we give each position of the path one by one as destination position and the random calculation is
-        # skipped
-        if self.current_path_to_follow:
-            if self.dest_compteur == 0 and self.compteur == 0:
-                pass
-            self.dest_pos = self.current_path_to_follow[self.dest_compteur]
+            if not self.dest_pos:
+                possible = []
+                if (not (right_tile[0] == -1 or right_tile[0] == cst.TILE_COUNT or right_tile[1] == -1 or right_tile[
+                    1] == cst.TILE_COUNT)) and self.road_layer.is_real_road(right_tile[0], right_tile[1]) and self.head != left:
+                    possible.append(right_tile)
 
-        if not self.dest_pos:
-            possible = []
-            if (not (right_tile[0] == -1 or right_tile[0] == cst.TILE_COUNT or right_tile[1] == -1 or right_tile[
-                1] == cst.TILE_COUNT)) and self.road_layer.is_real_road(right_tile[0], right_tile[1]) and self.head != left:
-                possible.append(right_tile)
+                if (not (left_tile[0] == -1 or left_tile[0] == cst.TILE_COUNT or left_tile[1] == -1 or left_tile[
+                    1] == cst.TILE_COUNT)) and self.road_layer.is_real_road(left_tile[0], left_tile[1]) and self.head != right:
+                    possible.append(left_tile)
 
-            if (not (left_tile[0] == -1 or left_tile[0] == cst.TILE_COUNT or left_tile[1] == -1 or left_tile[
-                1] == cst.TILE_COUNT)) and self.road_layer.is_real_road(left_tile[0], left_tile[1]) and self.head != right:
-                possible.append(left_tile)
+                if (not (up_tile[0] == -1 or up_tile[0] == cst.TILE_COUNT or up_tile[1] == -1 or up_tile[1] ==
+                         cst.TILE_COUNT)) and self.road_layer.is_real_road(up_tile[0], up_tile[1]) and self.head != down:
+                    possible.append(up_tile)
 
-            if (not (up_tile[0] == -1 or up_tile[0] == cst.TILE_COUNT or up_tile[1] == -1 or up_tile[1] ==
-                     cst.TILE_COUNT)) and self.road_layer.is_real_road(up_tile[0], up_tile[1]) and self.head != down:
-                possible.append(up_tile)
+                if (not (down_tile[0] == -1 or down_tile[0] == cst.TILE_COUNT or down_tile[1] == -1 or down_tile[
+                    1] == cst.TILE_COUNT)) and self.road_layer.is_real_road(down_tile[0], down_tile[1]) and self.head != up:
+                    possible.append(down_tile)
 
-            if (not (down_tile[0] == -1 or down_tile[0] == cst.TILE_COUNT or down_tile[1] == -1 or down_tile[
-                1] == cst.TILE_COUNT)) and self.road_layer.is_real_road(down_tile[0], down_tile[1]) and self.head != up:
-                possible.append(down_tile)
+                if len(possible) != 0:
+                    self.dest_pos = random.choice(possible)
+                else:
+                    if self.head == right:
+                        self.dest_pos = left_tile
+                        self.head = left
+                    elif self.head == left:
+                        self.dest_pos = right_tile
+                        self.head = right
+                    elif self.head == up:
+                        self.dest_pos = down_tile
+                        self.head = down
+                    elif self.head == down:
+                        self.dest_pos = up_tile
+                        self.head = up
 
-            if len(possible) != 0:
-                self.dest_pos = random.choice(possible)
+            # Then, following the destination position we have to calculate the direction of the walker head (like top,
+            # bottom, left or right)
+            if self.dest_pos == right_tile:
+                self.head = right
+            elif self.dest_pos == left_tile:
+                self.head = left
+            elif self.dest_pos == up_tile:
+                self.head = up
+            elif self.dest_pos == down_tile:
+                self.head = down
+
+
+            if self.compteur < self.fps - 1:
+                self.compteur += 1
+                (a, b) = self.variation_pos_visuel(self.init_pos, self.dest_pos)
+                self.offset_x = a * self.compteur
+                self.offset_y = b * self.compteur
+
+            #  When the walker arrives where he had to, we intialise back all the  values
+            #  but we set the new init position to the previous destination pos
             else:
-                if self.head == right:
-                    self.dest_pos = left_tile
-                    self.head = left
-                elif self.head == left:
-                    self.dest_pos = right_tile
-                    self.head = right
-                elif self.head == up:
-                    self.dest_pos = down_tile
-                    self.head = down
-                elif self.head == down:
-                    self.dest_pos = up_tile
-                    self.head = up
-
-        # Then, following the destination position we have to calculate the direction of the walker head (like top,
-        # bottom, left or right)
-        if self.dest_pos == right_tile:
-            self.head = right
-        elif self.dest_pos == left_tile:
-            self.head = left
-        elif self.dest_pos == up_tile:
-            self.head = up
-        elif self.dest_pos == down_tile:
-            self.head = down
-
-
-        if self.compteur < self.fps - 1:
-            self.compteur += 1
-            (a, b) = self.variation_pos_visuel(self.init_pos, self.dest_pos)
-            self.offset_x = a * self.compteur
-            self.offset_y = b * self.compteur
-
-        #  When the walker arrives where he had to, we intialise back all the  values
-        #  but we set the new init position to the previous destination pos
+                self.init_pos = self.dest_pos
+                self.dest_pos = None
+                self.offset_x, self.offset_y = (0, 0)
+                self.compteur = 0
+                if back:
+                        if self.dest_compteur >= len(self.current_path_to_follow):
+                            self.dest_compteur = 0
+                            self.current_path_to_follow.reverse()
+                        else:
+                            self.current_path_to_follow=self.current_path_to_follow[self.dest_compteur]
+                            self.current_path_to_follow.reverse()
+                            self.dest_compteur += 1
+                else:
+                    if self.current_path_to_follow:
+                        if self.dest_compteur == len(self.current_path_to_follow) - 1:
+                            self.dest_compteur = 0
+                            self.current_path_to_follow.clear()
+                            self.initiate_work(self.__class__.__name__)
+                        else:
+                            self.dest_compteur += 1
         else:
-            self.init_pos = self.dest_pos
-            self.dest_pos = None
-            self.offset_x, self.offset_y = (0, 0)
-            self.compteur = 0
-            if back:
-                    if self.dest_compteur >= len(self.current_path_to_follow):
-                        self.dest_compteur = 0
-                        self.current_path_to_follow.reverse()
-                    else:
-                        self.current_path_to_follow=self.current_path_to_follow[self.dest_compteur]
-                        self.current_path_to_follow.reverse()
-                        self.dest_compteur += 1
-            else:
-                if self.current_path_to_follow:
-                    if self.dest_compteur == len(self.current_path_to_follow) - 1:
-                        self.dest_compteur = 0
-                        self.current_path_to_follow.clear()
-                        self.initiate_work(self.__class__.__name__)
-                    else:
-                        self.dest_compteur += 1
-
-
+            self.dest_pos = self.init_pos
 
     def get_out_city(self):
         """
@@ -211,7 +213,10 @@ class Walker:
         match _type:
             case "Immigrant":
                 self.work()
-
+            case "Prefet" | "Engineer":
+                print(11)
+                self.stop = True
+                self.work(self.workingOn)
 
     def work(self, building=None):
         pass
@@ -231,25 +236,36 @@ class Walker:
         self.paths_up, self.paths_down, self.paths_left, self.paths_right = wstf.walkers_to_sprite(
             self.__class__.__name__)
 
+    def set_current_path(self,building):
+        self.current_path_to_follow = \
+        self.map_associated.walk_to_a_building(self.init_pos, self.dest_pos, building.position,
+                                               self.current_path_to_follow)[1]
+
+
 class Citizen(Walker):
     def work(self, building=None):
         pass
+
+
 class Engineer(Walker):
     def __init__(self):
         self.engineers_post
+
     def work(self, building):
-        pass
+        print("eng:")
+        print(self.workingOn.position)
 
 
 class Prefect(Walker):
     def __init__(self):
         self.prefecture
+
     def work(self, building):
-        self.current_path_to_follow = self.map_associated.walk_to_a_building(self.init_pos,self.dest_pos,building.position,self.current_path_to_follow)[1]
+        print("prefet:")
+        print(self.workingOn.position)
 
 
 class Immigrant(Walker):
-
     def __init__(self,pos_ligne, pos_col, house, zoom, game,path=[],building=None):
         super(Immigrant, self).__init__(pos_ligne, pos_col, house, zoom, game)
         self.current_path_to_follow = path
