@@ -176,9 +176,9 @@ class GameView(arcade.View):
         self.money_text = None
         self.fps_text = None
         buttons_render = UI_buttons.buttons
-        self.buttons = [arcade.gui.UITextureButton(x=b0, y=b1, texture=b2, texture_hovered=b3, texture_pressed=b4,
-                                                   scale=constantes.SPRITE_SCALING) for
-                        (b0, b1, b2, b3, b4) in buttons_render]
+        print((constantes.DEFAULT_SCREEN_HEIGHT/2))
+        self.buttons = [arcade.gui.UITextureButton(x=b0, y=(3*constantes.DEFAULT_SCREEN_HEIGHT/4 -self.bar.image.size[1]/2 + b1), texture=b2, texture_hovered=b3, texture_pressed=b4,
+                                                    scale=constantes.SPRITE_SCALING) for (b0, b1, b2, b3, b4) in buttons_render]
         self.buttons[5].on_click = self.button_click_house
         self.buttons[6].on_click = self.button_click_shovel
         self.buttons[7].on_click = self.button_click_road
@@ -196,7 +196,7 @@ class GameView(arcade.View):
         self.bar_manager = arcade.gui.UIManager()
         self.load_button = UI_buttons.Text_Button_background(x=40,y = constantes.DEFAULT_SCREEN_HEIGHT - 3*self.bar.height/4,width=20,height=self.bar.height,texture=None,my_text="Load Game",color="black")
         self.load_button.on_click = self.button_load_on_click
-        self.layer_button = UI_buttons.Text_Button_background(x=constantes.DEFAULT_SCREEN_WIDTH-162 + 3,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height-1,width=120,height=25,texture=UI_buttons.texture_panel11,my_text="Overlays",color="black")
+        self.layer_button = UI_buttons.Text_Button_background(x=constantes.DEFAULT_SCREEN_WIDTH-162 + 3,y =(3*constantes.DEFAULT_SCREEN_HEIGHT/4 -self.bar.image.size[1]/2) + constantes.DEFAULT_SCREEN_HEIGHT/2 * 0.4444444444,width=120,height=25,texture=UI_buttons.texture_panel11,my_text="Overlays",color="black")
         self.layer_button.on_click = self.button_layer_on_click
         self.layer_manager = arcade.gui.UIManager()
         self.layer_manager_show = False
@@ -262,7 +262,7 @@ class GameView(arcade.View):
         size = (MINIMAP_WIDTH, MINIMAP_HEIGHT)
         self.minimap_texture = arcade.Texture.create_empty(str(uuid4()), size)
         self.minimap_sprite = arcade.Sprite(center_x=(constantes.DEFAULT_SCREEN_WIDTH-MINIMAP_WIDTH/2 - 9),
-                                            center_y=(constantes.DEFAULT_SCREEN_HEIGHT - MINIMAP_HEIGHT /2 - 53),
+                                            center_y=(3*constantes.DEFAULT_SCREEN_HEIGHT/4 -self.bar.image.size[1]/2 + 0.3044444444*constantes.DEFAULT_SCREEN_HEIGHT/2),
                                             texture=self.minimap_texture)
         self.minimap_sprite_list = arcade.SpriteList()
         self.minimap_sprite_list.append(self.minimap_sprite)
@@ -346,7 +346,7 @@ class GameView(arcade.View):
                                       width=(len(self.money_text.sentence)+5) * constantes.FONT_WIDTH/2, height=self.bar.image.size[1]/2,
                                       texture=self.money_box)
         arcade.draw_texture_rectangle(center_x=constantes.DEFAULT_SCREEN_WIDTH - 81 ,
-                                      center_y=constantes.DEFAULT_SCREEN_HEIGHT - 285 + 47,
+                                      center_y=3*constantes.DEFAULT_SCREEN_HEIGHT/4 -self.bar.image.size[1]/2,
                                       width=162, height=constantes.DEFAULT_SCREEN_HEIGHT / 2,
                                       texture=self.tab
                                       )
