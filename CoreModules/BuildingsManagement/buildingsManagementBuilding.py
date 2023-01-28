@@ -241,46 +241,14 @@ class Dwelling(Building):
 
 
 class Farm(Building):
+    MAX_PRODUCTION = 50
+    PRODUCTION_PER_PART = 10
     def __init__(self, buildings_layer, _type, production="wheat_farm"):
-        # opt: empecher l'attribut d'id a l'init
         super().__init__(buildings_layer, _type, production)
-        self.production = 0
-    
-    def update_functional_building_animation(self, framerate) ->bool:
-        """
-        This function will change the structure_level in a circular way so that the visual animation of the building
-        can be obtained
-        """
-        # the animation of functional buildings
-        if self.is_functional():
-            if self.dic['version'] != 'dwell' and self.max_level > 1:
-                if not self.previous_time:
-                    self.previous_time = time.time()
+        quantity = 0
 
-                else:
-                    if self.dic['version'] not in ["fruit_farm", "olive_farm", "pig_farm", "vegetable_farm",
-                                                       "vine_farm",
-                                                       "wheat_farm"]:
-                        delta_timer = DELTA_TIME
-                        init_level = 1
-                    else:
-                        delta_timer = 3*DELTA_TIME
-                        init_level = 0
-
-                    if time.time()- self.previous_time > delta_timer:
-                        self.previous_time = time.time()
-                        self.structure_level += 1
-                        if self.structure_level == self.max_level:
-                            self.production += self.max_level
-                            self.structure_level = init_level
-                        assert (self.structure_level <= self.max_level - 1)
-                        return True
-
-                    return False
-        return False
-        
-    
-
+    def is_haverstable(self):
+        return self.quantity == MAX_PRODUCTION
 
 class WaterStructure(Building):
     def __init__(self, buildings_layer, _type, version="well"):
