@@ -440,7 +440,7 @@ class GameView(arcade.View):
             arcade.get_window().set_update_rate(1/self.game.framerate)
             self.p_key_pressed = False
 
-            update = self.game.updategame()
+            update = self.game.updategame(self.visualmap.map_scaling)
             if len(update.catchedfire) > 0:
                 self.fire_show += 1
             if len(update.collapsed) > 0:
