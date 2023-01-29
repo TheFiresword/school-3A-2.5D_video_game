@@ -171,7 +171,8 @@ class MapLogic:
                self.grass_layer.array[line][column].dic['version'] not in nameSprite.water_types
     
 
-    def walk_to_a_building(self,init_pos,dest_pos=None, building_target_pos=None,current_path_to_follow=None) -> bool:
+    def walk_to_a_building(self,init_pos,dest_pos=None, building_target_pos=None,current_path_to_follow=None,
+                           walk_through = False) -> bool:
         """
         This function uses pathfinding to calculate the path that a walker should follow to move from its position to
         a building position.
@@ -183,9 +184,16 @@ class MapLogic:
         if current_path_to_follow:
             return False,[]
         # I create an array that associates value 1 to any road that is not 'null' and 0 if not.
-        integer_array_associated_with_roads_layer = [
-            [1 if self.cell_is_walkable(row, column) else 0 for column in range(globalVar.TILE_COUNT) ]
-            for row in range(globalVar.TILE_COUNT)]
+        if not walk_through:
+            integer_array_associated_with_roads_layer = [
+                [1 if self.cell_is_walkable(row, column) else 0 for column in range(globalVar.TILE_COUNT) ]
+                for row in range(globalVar.TILE_COUNT)]
+        else:
+            integer_array_associated_with_roads_layer = [
+                [1 if self.cell_is_walkable(row, column, can_walk_on_signal=True)
+                 else 50 if self.cell_is_walkable_desperately(row, column)
+                else 0 for column in range(globalVar.TILE_COUNT)]
+                for row in range(globalVar.TILE_COUNT)]
 
         pathfinding_grid = Grid(matrix=integer_array_associated_with_roads_layer)
 

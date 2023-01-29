@@ -1,5 +1,6 @@
 from Services import Service_Game_Data as gdata
 from Services import servicesmMapSpriteToFile as mapping
+from Services import servicesGlobalVariables as constantes
 import CoreModules.MapManagement.tileManagementElement as element
 import random, math
 import time
@@ -14,7 +15,8 @@ class Building(element.Element):
         self.risk_level_dico = {"fire": 0, "collapse" : 0}
 
         self.current_number_of_employees = 0
-        self.max_number_of_employees = gdata.building_dico[version].max_employs if version != "null" else 0
+        version_without_underscore = version.replace("_", " ", 1)
+        self.max_number_of_employees = gdata.building_dico[version_without_underscore].max_employs if version != "null" else 0
 
         # A list of walkers id
         self.employees_id = set()
@@ -37,20 +39,24 @@ class Building(element.Element):
         # when it's constructed, a building is non functional (ex: farm, granary, prefecture, even dwell)
         self.functional = False
 
+        self.need_employee = False if self.max_number_of_employees == 0 else True
+
         # A timer to control animation of buildings
         self.previous_time = None
 
         super().__init__(buildings_layer, _type, version)
 
-    def add_employee(self, id: int):
+    def add_employee(self, id: int, update_number=False):
         self.employees_id.add(id)
+        if update_number:
+            self.current_number_of_employees += constantes.WALKER_UNIT
 
     def flush_employee(self):
         self.employees_id = set()
         self.current_number_of_employees = 0
     def rem_employee(self, id:int):
         self.employees_id.remove(id)
-        self.current_number_of_employees -= 1
+        self.current_number_of_employees -= constantes.WALKER_UNIT
     def get_all_employees(self):
         return  self.employees_id
 
@@ -61,16 +67,24 @@ class Building(element.Element):
         if value and not self.functional:
             self.update_level("stat_inc")
             self.functional = True
+            return True
         elif not value and self.functional:
             self.update_level("reset")
             self.functional = False
+            return True
+        return False
 
     def update_risk_speed_with_level(self):
-        if self.structure_level == 0:
-            self.risk_increasing_speed = 0 if self.dic['version'] == 'dwell' else 0.8
+        """
+        WaterStructures don't have those risks (fire or collapse)
+        """
+        if self.dic["version"] in mapping.water_structures_types:
+            self.risk_increasing_speed = 0
         else:
-            self.risk_increasing_speed = 1/self.structure_level if self.dic['version'] == 'dwell' else 0.8/self.structure_level
-
+            if self.structure_level == 0:
+                self.risk_increasing_speed = 0 if self.dic['version'] == 'dwell' else 0.8
+            else:
+                self.risk_increasing_speed = 1/self.structure_level if self.dic['version'] == 'dwell' else 0.8/self.structure_level
 
 
     def update_risk(self,risk):
@@ -105,6 +119,16 @@ class Building(element.Element):
                     self.isDestroyed = True
                     self.isBurning = False
 
+    def reset_fire_risk(self):
+        if not self.isBurning and not self.isDestroyed:
+            self.risk_dico["fire"]  = 0
+            self.risk_level_dico["fire"] = 0
+
+    def reset_damage_risk(self):
+        if not self.isBurning and not self.isDestroyed:
+            self.risk_dico["collapse"] = 0
+            self.risk_level_dico["collapse"] = 0
+
     def updateLikeability(self):
         pass
 
@@ -120,9 +144,7 @@ class Building(element.Element):
                     self.previous_time = time.time()
 
                 else:
-                    if self.dic['version'] not in ["fruit_farm", "olive_farm", "pig_farm", "vegetable_farm",
-                                                       "vine_farm",
-                                                       "wheat_farm"]:
+                    if self.dic['version'] not in mapping.farm_types:
                         delta_timer = DELTA_TIME
                         init_level = 1
                     else:
