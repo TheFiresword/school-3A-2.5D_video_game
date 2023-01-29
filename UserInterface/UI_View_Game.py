@@ -953,7 +953,6 @@ class GameView(arcade.View):
             self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = j ,update_type="building_fire")
         for k in update.collapsed:
             self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = k ,update_type="building_destroy")
-
         # Devolve before evolved -- order is important
         for m in update.has_devolved:
             self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer, position=m[0], update_type="stat_dec", special_value=m[1])

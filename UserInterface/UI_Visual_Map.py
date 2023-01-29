@@ -287,6 +287,8 @@ class VisualMap:
             else:
                 firesprite= self.fire_sprite((sprite_pos_x,sprite_pos_y))
                 self.fire_layer.append(firesprite)
+        
+        
 
         if update_type == "change_content":
             sprite.textures = []
