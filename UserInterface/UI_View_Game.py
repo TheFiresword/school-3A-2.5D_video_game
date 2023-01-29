@@ -440,7 +440,7 @@ class GameView(arcade.View):
             arcade.get_window().set_update_rate(1/self.game.framerate)
             self.p_key_pressed = False
 
-            update = self.game.updategame()
+            update = self.game.updategame(self.visualmap.map_scaling)
             if len(update.catchedfire) > 0:
                 self.fire_show += 1
             if len(update.collapsed) > 0:
@@ -953,7 +953,6 @@ class GameView(arcade.View):
             self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = j ,update_type="building_fire")
         for k in update.collapsed:
             self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = k ,update_type="building_destroy")
-
         # Devolve before evolved -- order is important
         for m in update.has_devolved:
             self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer, position=m[0], update_type="stat_dec", special_value=m[1])

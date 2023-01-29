@@ -252,11 +252,12 @@ class Walker:
         return new
 
 
-    def move_to_another_dwell(self, target_pos, init_pos_adjacence):
+    def move_to_another_dwell(self, target_pos):
         # Normally init_pos is the dwell position
-        for adjacence in init_pos_adjacence:
-            if self.map_associated.walk_to_a_building(adjacence, None, target_pos, self.current_path_to_follow)[0] not in [False, None]:
-                return True
+        (a,b) = self.map_associated.walk_to_a_building(init_pos = self.init_pos, dest_pos = self.dest_pos,building_target_pos = target_pos, current_path_to_follow = self.current_path_to_follow)
+        if not a in [False,None]:
+            self.current_path_to_follow = b        
+            return True
         return False
 
 
@@ -328,8 +329,10 @@ class Citizen(Walker):
         pass
 
     def get_out_city(self):
-        self.game.walkersAll.remove(self)
-        self.game.walkersOut.remove(self)
+        if self in self.game.walkersAll:
+            self.game.walkersAll.remove(self)
+        if self in self.game.walkersOut:
+            self.game.walkersOut.remove(self)
         if self in self.game.unemployedCitizens:
             self.game.unemployedCitizens.remove(self)
         del self
@@ -384,6 +387,8 @@ class Prefect(Citizen):
         self.dest_compteur = dest_compteur
         self.id = id
         self.is_at_home = is_at_home
+        self.work_target = None
+
 
     def work(self, buildings, game_update_object):
         """
@@ -393,6 +398,12 @@ class Prefect(Citizen):
             b.reset_fire_risk()
             game_update_object.fire_level_change.append((b.position, self.game.updatebuilding(b)["fire_level"][1]))
         pass
+
+    def instinguish_fire(self):
+        print("arrivé")
+        self.work_target.isBurning = False
+        self.work_target.isDestroyed = True
+        
 
 
 
