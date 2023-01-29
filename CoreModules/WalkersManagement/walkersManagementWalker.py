@@ -160,10 +160,13 @@ class Walker:
                         if type(self) == Immigrant:
                             return cst.IMMIGRANT_INSTALLED
                         elif type(self) == Citizen:
-                            if self.dest_pos == self.road_layer.get_exit_position():
+                            if self.init_pos == self.road_layer.get_exit_position():
+                                print(1)
                                 return cst.CITIZEN_IS_OUT
                             else:
+                                print(2)
                                 return cst.CITIZEN_ARRIVED
+
                         return 0
                     else:
                         self.dest_compteur += 1
@@ -229,11 +232,10 @@ class Walker:
             return -1 * cst.TILE_WIDTH * self.zoom / (2 * self.fps), cst.TILE_HEIGHT * self.zoom / (2 * self.fps)
 
     def change_profession(self, new_type):
-        _new_profession = copy.copy(self)
-        _new_profession.__class__ = new_type
-        _new_profession.paths_up, _new_profession.paths_down, _new_profession.paths_left, _new_profession.paths_right = \
-            wstf.walkers_to_sprite(_new_profession.__class__.__name__)
-        return _new_profession
+        new = None
+        if (new_type == "citizen"):
+            new = Citizen(self.init_pos[0],self.init_pos[1],self.house,self.zoom,self.game,self.fps,self.head,self.init_pos,self.dest_pos,self.compteur,self.offset_x,self.offset_y,self.id,self.is_at_home,self.direction,self.current_path_to_follow.copy(),self.dest_compteur)
+        return new
 
     def move_to_another_dwell(self, target_pos, init_pos_adjacence):
         # Normally init_pos is the dwell position
@@ -243,8 +245,26 @@ class Walker:
         return False
 
 class Citizen(Walker):
+
+    def __init__(self,pos_ligne, pos_col, house, zoom, game,fps,head,init_pos,dest_pos,compteur,offset_x,offset_y,id,is_at_home,direction,current_path,dest_compteur):
+        super(Citizen, self).__init__(pos_ligne, pos_col, house, zoom, game)
+        self.fps = fps
+        self.zoom = zoom
+        self.head = head
+        self.init_pos = init_pos
+        self.dest_pos = dest_pos
+        self.compteur = compteur
+        self.offset_x, self.offset_y = offset_x, offset_y
+        self.house = house
+        self.direction = direction
+        self.current_path_to_follow = current_path
+        self.dest_compteur = dest_compteur
+        self.id = id
+        self.is_at_home = is_at_home
+
     def work(self, building=None):
         pass
+
     def get_out_city(self):
         print("getooutcity")
         i = self.game.walkersOut.index(self)
@@ -296,7 +316,7 @@ class Immigrant(Walker):
             self.game.updated.append(self.house)
         # Then we add the walker to the dwell employees
         self.house.add_employee(self.id)
-        return self.change_profession(Citizen)
+        return self.change_profession("citizen")
 
 
 
