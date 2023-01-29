@@ -25,15 +25,15 @@ down = "down"
     * When a dwell is built immigrants are called till its capacity is reached  ###ok         
     * A walker lives in a house and if he works, he is linked to a work building (farm, prefecture, etc)
     * As soon as he starts working, 
-        he stays no more not at home but he is still supposed to reside in his housing (in term of effective)
-        he changes clothes and appearance
+        he stays no more not at home but he is still supposed to reside in his housing (in term of effective) ###ok
+        he changes clothes and appearance ###ok
         he walks in the city within a range and distribute its service to the buildings that need it
         
         -But if he is a prefect he is called to wherever a building is burning and has to go there
         -And if he is a cart pusher he does not walk randomly but stays at farm building untill he is asked to push 
              product to somewhere.
     * When his house burns or collapses, he looks for another house that still has space -- if no house is found then
-    he leaves the town
+    he leaves the town ###ok
     * When his work building burns or collapses he goes back at home and is reallocated to another task if possible
     
     * We don't take account desirability for now
@@ -58,6 +58,8 @@ class Walker:
         self.offset_x, self.offset_y = 0, 0
 
         self.house = house
+        self.work_building = None
+
         self.paths_up, self.paths_down, self.paths_left, self.paths_right = wstf.walkers_to_sprite(
             self.__class__.__name__)
         self.direction = list()
@@ -159,7 +161,7 @@ class Walker:
 
                         if type(self) == Immigrant:
                             return cst.IMMIGRANT_INSTALLED
-                        elif type(self) == Citizen:
+                        elif isinstance(self, Citizen):
                             if self.init_pos == self.road_layer.get_exit_position():
                                 return cst.CITIZEN_IS_OUT
                             else:
@@ -231,9 +233,20 @@ class Walker:
 
     def change_profession(self, new_type):
         new = None
-        if (new_type == "citizen"):
-            new = Citizen(self.init_pos[0],self.init_pos[1],self.house,self.zoom,self.game,self.fps,self.head,self.init_pos,self.dest_pos,self.compteur,self.offset_x,self.offset_y,self.id,self.is_at_home,self.direction,self.current_path_to_follow.copy(),self.dest_compteur)
+        if new_type == "citizen":
+            new = Citizen(self.init_pos[0],self.init_pos[1],self.house,self.zoom,self.game,self.fps,self.head,
+            self.init_pos,self.dest_pos,self.compteur,self.offset_x,self.offset_y,self.id,self.is_at_home,
+                          self.direction,self.current_path_to_follow.copy(),self.dest_compteur)
+        elif new_type == "prefect":
+            new = Prefect(self.init_pos[0],self.init_pos[1],self.house,self.zoom,self.game,self.fps,self.head,
+            self.init_pos,self.dest_pos,self.compteur,self.offset_x,self.offset_y,self.id,self.is_at_home,
+                          self.direction,self.current_path_to_follow.copy(),self.dest_compteur)
+        elif new_type == "engineer":
+            new = Engineer(self.init_pos[0],self.init_pos[1],self.house,self.zoom,self.game,self.fps,self.head,
+            self.init_pos,self.dest_pos,self.compteur,self.offset_x,self.offset_y,self.id,self.is_at_home,
+                          self.direction,self.current_path_to_follow.copy(),self.dest_compteur)
         return new
+
 
     def move_to_another_dwell(self, target_pos, init_pos_adjacence):
         # Normally init_pos is the dwell position
@@ -242,9 +255,54 @@ class Walker:
                 return True
         return False
 
+
+
+class Immigrant(Walker):
+
+    def __init__(self, pos_ligne, pos_col, house, zoom, game, path=[], building=None):
+        super(Immigrant, self).__init__(pos_ligne, pos_col, house, zoom, game)
+        self.current_path_to_follow = path
+        self.dest_compteur = 0
+        self.house = building
+        building.current_number_of_employees += cst.WALKER_UNIT
+
+    def settle_in(self):
+        """
+        Return the same walker but with a different profession
+        Or None if he is removed
+        """
+        # As many immigrants are created when a dwell is built the dwell state must be modified only by the first one
+        # but we should also verify that the dwell is not removed before the immigrant goes in
+        assert self in self.game.walkersOut
+        self.game.walkersOut.remove(self)
+
+        if self.house != self.building_layer.array[self.house.position[0]][self.house.position[1]]:
+            # The walker shoud be destroyed
+            self.game.walkersAll.remove(self)
+            del self
+            return None
+        if not self.house.is_occupied():
+            self.house.set_functional(True)
+            self.game.updated.append(self.house)
+        # Then we add the walker to the dwell employees
+        self.house.add_employee(self.id)
+        return self.change_profession("citizen")
+
+    """def find_house(self,path=[]):
+        # Parcourir la liste des maisons, trouver celle dans lesquelle peut s'installer(nombre d'habitant, niveau d'habitaion)
+        for building in self.game.buildinglist:
+            if type(building) == Dwelling and building.current_population<building.max_population:
+                if not path:
+                    self.current_path_to_follow = self.map_associated.walk_to_a_building(self.init_pos,self.dest_pos,building.position,self.current_path_to_follow)[1]
+                self.house = building
+                building.current_population += 1
+                return
+        pass"""
+
 class Citizen(Walker):
 
-    def __init__(self,pos_ligne, pos_col, house, zoom, game,fps,head,init_pos,dest_pos,compteur,offset_x,offset_y,id,is_at_home,direction,current_path,dest_compteur):
+    def __init__(self,pos_ligne, pos_col, house, zoom, game,fps,head,init_pos,dest_pos,compteur,offset_x,offset_y,id,
+                 is_at_home,direction,current_path,dest_compteur):
         super(Citizen, self).__init__(pos_ligne, pos_col, house, zoom, game)
         self.fps = fps
         self.zoom = zoom
@@ -260,78 +318,80 @@ class Citizen(Walker):
         self.id = id
         self.is_at_home = is_at_home
 
-    def work(self, building=None):
+    def work(self, buildings, game_update_object):
         pass
 
     def get_out_city(self):
-        i = self.game.walkersOut.index(self)
-        del self.game.walkersOut[i]
         self.game.walkersAll.remove(self)
+        self.game.walkersOut.remove(self)
+        if self in self.game.unemployedCitizens:
+            self.game.unemployedCitizens.remove(self)
+        del self
 
+    def set_working_building(self, building):
+        self.work_building = building
 
-class Engineer(Walker):
-    def __init__(self):
-        self.engineers_post
-    def work(self, building):
+class Engineer(Citizen):
+    def __init__(self,pos_ligne, pos_col, house, zoom, game,fps,head,init_pos,dest_pos,compteur,offset_x,offset_y,id,
+                 is_at_home,direction,current_path, dest_compteur):
+        super(Engineer, self).__init__(pos_ligne, pos_col, house, zoom, game,fps,head,init_pos,dest_pos,compteur,offset_x,offset_y,id,
+                 is_at_home,direction,current_path,dest_compteur)
+        self.fps = fps
+        self.zoom = zoom
+        self.head = head
+        self.init_pos = init_pos
+        self.dest_pos = dest_pos
+        self.compteur = compteur
+        self.offset_x, self.offset_y = offset_x, offset_y
+        self.house = house
+        self.direction = direction
+        self.current_path_to_follow = current_path
+        self.dest_compteur = dest_compteur
+        self.id = id
+        self.is_at_home = is_at_home
+
+    def work(self, buildings, game_update_object):
+        """
+        This function receives a list of buildings it must reset risk
+        """
+        for b in buildings:
+            b.reset_damage_risk()
+            game_update_object.collapse_level_change.append((b.position, self.game.updatebuilding(b)["collapse_level"][1]))
         pass
 
 
-class Prefect(Walker):
-    def __init__(self):
-        self.prefecture
-    def work(self, building):
-        self.current_path_to_follow = self.map_associated.walk_to_a_building(self.init_pos,self.dest_pos,building.position,self.current_path_to_follow)[1]
+class Prefect(Citizen):
+    def __init__(self,pos_ligne, pos_col, house, zoom, game,fps,head,init_pos,dest_pos,compteur,offset_x,offset_y,id,
+                 is_at_home,direction,current_path, dest_compteur):
+        super(Prefect, self).__init__(pos_ligne, pos_col, house, zoom, game,fps,head,init_pos,dest_pos,compteur,offset_x,offset_y,id,
+                 is_at_home,direction,current_path,dest_compteur)
+        self.fps = fps
+        self.zoom = zoom
+        self.head = head
+        self.init_pos = init_pos
+        self.dest_pos = dest_pos
+        self.compteur = compteur
+        self.offset_x, self.offset_y = offset_x, offset_y
+        self.house = house
+        self.direction = direction
+        self.current_path_to_follow = current_path
+        self.dest_compteur = dest_compteur
+        self.id = id
+        self.is_at_home = is_at_home
 
-
-class Immigrant(Walker):
-
-    def __init__(self,pos_ligne, pos_col, house, zoom, game,path=[],building=None):
-        super(Immigrant, self).__init__(pos_ligne, pos_col, house, zoom, game)
-        self.current_path_to_follow = path
-        self.dest_compteur = 0
-        self.house = building
-        building.current_number_of_employees += 1
-
-        
-    def settle_in(self):
+    def work(self, buildings, game_update_object):
         """
-        Return the same walker but with a different profession
-        Or None if he is removed
+        This function receives a list of buildings it must reset risk
         """
-        # As many immigrants are created when a dwell is built the dwell state must be modified only by the first one
-        # but we should also verify that the dwell is not removed before the immigrant goes in
-        assert self in self.game.walkersOut
-        i = self.game.walkersOut.index(self)
-        del self.game.walkersOut[i]
-
-        if self.house != self.building_layer.array[self.house.position[0]][self.house.position[1]]:
-            # The walker shoud be destroyed
-            del self
-            return None
-        if not self.house.is_occupied():
-            self.house.set_functional(True)
-            self.game.updated.append(self.house)
-        # Then we add the walker to the dwell employees
-        self.house.add_employee(self.id)
-        return self.change_profession("citizen")
+        for b in buildings:
+            b.reset_fire_risk()
+            game_update_object.fire_level_change.append((b.position, self.game.updatebuilding(b)["fire_level"][1]))
+        pass
 
 
-
-    
-
-    """def find_house(self,path=[]):
-        # Parcourir la liste des maisons, trouver celle dans lesquelle peut s'installer(nombre d'habitant, niveau d'habitaion)
-        for building in self.game.buildinglist:
-            if type(building) == Dwelling and building.current_population<building.max_population:
-                if not path:
-                    self.current_path_to_follow = self.map_associated.walk_to_a_building(self.init_pos,self.dest_pos,building.position,self.current_path_to_follow)[1]
-                self.house = building
-                building.current_population += 1
-                return
-        pass"""
 
 class Cart_Pusher(Walker):
-    def work(self):
+    def work(self, buildings=[]):
         pass
 
 

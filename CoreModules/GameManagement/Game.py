@@ -2,6 +2,7 @@ import random
 
 from Services import servicesGlobalVariables as globalVar
 from Services.Service_Game_Data import building_dico, road_dico, removing_cost
+from Services.servicesmMapSpriteToFile import water_structures_types, farm_types
 from CoreModules.GameManagement import Update as updates
 from CoreModules.BuildingsManagement import buildingsManagementBuilding as buildings
 from CoreModules.WalkersManagement import walkersManagementWalker as walkers
@@ -34,6 +35,8 @@ class Game:
         self.buildinglist = []
         self.walkersAll = []
         self.walkersOut = []
+        self.unemployedCitizens = []
+
         self.framerate = globalVar.DEFAULT_FPS
         self.updated = []
 
@@ -189,9 +192,15 @@ class Game:
     def updategame(self):
         """
         This function updates the game
-        In fact it updates the buildings of the game
+        In fact it updates the buildings of the game but also the walkers
         Differents types of updates can occur: a building evolving, a building burning or a building collapsing
         """
+        # The important object that will contain the updates
+        update = updates.LogicUpdate()
+
+        # =======================================
+        #  Updates of the walker
+        # =======================================
         walker_to_update = set()
         for walker in self.walkersOut:
             status = walker.walk(self.linked_view.visualmap.map_scaling)
@@ -201,76 +210,78 @@ class Game:
                 if new_status:
                     self.walkersAll.remove(walker)
                     self.walkersAll.append(new_status)
+                    # we add a citizen as an unemployed
+                    self.unemployedCitizens.append(new_status)
 
             elif status == globalVar.CITIZEN_IS_OUT:
                 walker_to_update.add(walker)
 
+            elif status is None:
+                if isinstance(walker, walkers.Citizen):
+                    walker.work(self.get_buildings_for_walker(walker.init_pos), update)
         for w_to_update in walker_to_update:
 
             w_to_update.get_out_city()
 
+        # =======================================
+        #  Updates of the requirements
+        # =======================================
+        self.downgrade_supply_requirement('water')
+        self.downgrade_supply_requirement('food')
+        self.downgrade_supply_requirement('temple')
+        self.downgrade_supply_requirement('education')
+        self.downgrade_supply_requirement('fountain')
+        self.downgrade_supply_requirement('basic_entertainment')
+        self.downgrade_supply_requirement('pottery')
+        self.downgrade_supply_requirement('bathhouse')
 
-        update = updates.LogicUpdate()
-
-        # Update dwell that just set functional (immigrant live in)
-        for building in self.updated:
-            update.has_evolved.append((building.position, building.structure_level))
-        self.updated.clear()
-
-        #
-        update.has_devolved += list(self.downgrade_supply_requirement('water'))
-        update.has_devolved += list(self.downgrade_supply_requirement('food'))
-        update.has_devolved += list(self.downgrade_supply_requirement('temple'))
-        update.has_devolved += list(self.downgrade_supply_requirement('education'))
-        update.has_devolved += list(self.downgrade_supply_requirement('fountain'))
-        update.has_devolved += list(self.downgrade_supply_requirement('basic_entertainment'))
-        update.has_devolved += list(self.downgrade_supply_requirement('pottery'))
-        update.has_devolved += list(self.downgrade_supply_requirement('bathhouse'))
-
-        update.has_evolved += list(self.update_supply_requirements('water'))
-        update.has_evolved += list(self.update_supply_requirements('food'))
-        update.has_evolved += list(self.update_supply_requirements('temple'))
-        update.has_evolved += list(self.update_supply_requirements('education'))
-        update.has_evolved += list(self.update_supply_requirements('fountain'))
-        update.has_evolved += list(self.update_supply_requirements('basic_entertainment'))
-        update.has_evolved += list(self.update_supply_requirements('pottery'))
-        update.has_evolved += list(self.update_supply_requirements('bathhouse'))
-
-        update.has_evolved = list(set(update.has_evolved))
-        update.has_devolved = list(set(update.has_devolved))
+        self.update_supply_requirements('water')
+        self.update_supply_requirements('food')
+        self.update_supply_requirements('temple')
+        self.update_supply_requirements('education')
+        self.update_supply_requirements('fountain')
+        self.update_supply_requirements('basic_entertainment')
+        self.update_supply_requirements('pottery')
+        self.update_supply_requirements('bathhouse')
 
 
         #-------------------------------------------------------------------------------------------------#
         # Updating of water structures wich functionality depends on a reservoir presence
-
+        # Typically fountains
+        # -------------------------------------------------------------------------------------------------#
         if self.last_reservoir_removed:
             self.update_water_for_fountain_or_bath(self.last_reservoir_removed, evolvable=False)
 
         for reservoir in self.reservoir_list:
             self.update_water_for_fountain_or_bath(reservoir)
 
-
+        # Main loop that check each building built
         for k in self.buildinglist:
+            # Some variables that will be used
+            voisins = self.get_voisins_tuples(k.position)
+            has_road = [self.map.roads_layer.is_real_road(v[0], v[1]) for v in voisins]
+            possible_road = [v for v in voisins if self.map.roads_layer.is_real_road(v[0], v[1])]
+            pos = k.position
+
+
             # Update of the risk speed level
             k.update_risk_speed_with_level()
 
-            pos = k.position
+            # Update of animation
+            k.update_functional_building_animation()
 
-            if k.update_functional_building_animation():
-                # animated building update
-                update.has_evolved.append((pos, k.structure_level))
+            # Reset working building with no employee
+            if k.need_employee and k.current_number_of_employees == 0 and k.is_functional():
+                k.set_functional(False)
 
-            voisins = self.get_voisins_tuples(k)
-            has_road = [self.map.roads_layer.is_real_road(v[0],v[1]) for v in voisins]
-            possible_road = [v for v in voisins if self.map.roads_layer.is_real_road(v[0],v[1])]
-
-
-            # Creation of immigrants
+            # =======================================
+            #  Creation of immigrants
+            # =======================================
             if type(k) == buildings.Dwelling and not k.isDestroyed and not k.isBurning and \
                     k.current_number_of_employees < k.max_number_of_employees and any(has_road):
                 if k not in self.paths_for_buildings.keys():
                     self.paths_for_buildings[k] = self.map.walk_to_a_building(self.map.roads_layer.get_entry_position(),
-                                                                              None, k.position,[])[1]
+                                                                              None, k.position,[], walk_through=True)[1]
                 path = self.paths_for_buildings[k]
                 if path and (time.time()-self.tmp_ref_time) > 0.2:
                     self.tmp_ref_time = time.time()
@@ -287,35 +298,53 @@ class Game:
                             del self.paths_for_buildings[k]
 
 
+            # =======================================
+            #  Creation of prefects
+            # =======================================
+            elif k.dic['version'] == "prefecture"  and any(has_road) and \
+                    k.current_number_of_employees < k.max_number_of_employees and not k.isDestroyed and not k.isBurning:
+                if self.unemployedCitizens:
+                    citizen = random.choice(self.unemployedCitizens)
+                    prefet = citizen.change_profession("prefect")
+                    self.walkersAll.remove(citizen)
+                    self.unemployedCitizens.remove(citizen)
 
-            elif k.dic['version'] == "prefecture" and not k.functional and any(has_road):
-                possible_worker = [w for w in self.walkersAll if type(w) == walkers.Citizen]
-                if possible_worker:
-                    prefet = random.choice(possible_worker)
-                    prefet.change_profession(walkers.Prefect)
-                    prefet.prefecture=k
+                    self.walkersAll.append(prefet)
+                    self.walkersAll = list(set(self.walkersAll))
+
+                    prefet.set_working_building(k)
+                    k.add_employee(prefet.id, update_number=True)
+                    if not k.is_functional():
+                        k.set_functional(True)
+
                     prefet.init_pos = possible_road[2]
                     self.walkersGetOut(prefet)
-                    k.set_functional(True)
 
+            # =======================================
+            #  Creation of engineers
+            # =======================================
+            elif k.dic['version'] == "engineer's_post" and any(has_road) and \
+                    k.current_number_of_employees < k.max_number_of_employees and not k.isDestroyed and not k.isBurning:
+                if self.unemployedCitizens:
+                    citizen = random.choice(self.unemployedCitizens)
+                    engineer = citizen.change_profession("engineer")
+                    self.walkersAll.remove(citizen)
+                    self.unemployedCitizens.remove(citizen)
 
-            elif k.dic['version'] == "engineer's_post" and not k.functional and any(has_road):
-                possible_worker = [w for w in self.walkersAll if type(w) == walkers.Citizen]
-                if possible_worker:
-                    engineer = random.choice(possible_worker)
-                    engineer.change_profession(walkers.Engineer)
-                    engineer.engineers_post=k
+                    self.walkersAll.append(engineer)
+                    self.walkersAll = list(set(self.walkersAll))
+
+                    engineer.set_working_building(k)
+                    k.add_employee(engineer.id, update_number=True)
+                    if not k.is_functional():
+                        k.set_functional(True)
+
                     engineer.init_pos = possible_road[2]
                     self.walkersGetOut(engineer)
-                    k.set_functional(True)
 
-
-            """if type(k) == buildings.Dwelling and k.isBurning:
-                for w in self.walkersAll:
-                    if type(w) == walkers.Prefect:
-                        w.work(k)"""
-
-            # We don't want primitive housing (pannel) to burn or to collapse
+            # =======================================
+            #  Control of dwellings with no access to roads
+            # =======================================
             if type(k) == buildings.Dwelling and not k.is_occupied():
                 # we check if a road is next to this dwelling, if not we remove it after Xs
                 removable = True
@@ -336,10 +365,10 @@ class Game:
                 elif built_since > TIME_BEFORE_REMOVING_DWELL:
                     self.timer_track_dwells.pop(pos)
 
-            # ---------------------------------------------------------#
-            # Update of burnt and collapsed buildings
 
-
+            # =======================================
+            #  Update of burnt and collapsed buildings
+            # =======================================
             building_update = self.updatebuilding(k)
             cases = self.map.buildings_layer.get_all_positions_of_element(pos[0], pos[1])
             if building_update["fire"]:
@@ -348,7 +377,8 @@ class Game:
                     k.functional = False
                     self.map.buildings_layer.array[i[0]][i[1]].isBurning = True
                     update.catchedfire.append(i)
-                    self.guide_homeless_citizens(k)
+                    if type(k) == buildings.Dwelling:
+                        self.guide_homeless_citizens(k)
 
             if building_update["collapse"]:
                 # the building is no more functional
@@ -357,15 +387,17 @@ class Game:
                     # the building is no more functional
                     k.functional = False
                     update.collapsed.append(i)
-                    self.guide_homeless_citizens(k)
+                    if type(k) == buildings.Dwelling:
+                        self.guide_homeless_citizens(k)
 
             if building_update["fire_level"][0]:
                 update.fire_level_change.append((k.position,building_update["fire_level"][1]))
             if building_update["collapse_level"][0]:
                 update.collapse_level_change.append((k.position,building_update["collapse_level"][1]))
 
+            # And a final update of all buildings
+            update.has_evolved.append((k.position, k.structure_level))
         return update
-        # ---------------------------------#
 
     def get_citizen_by_id(self, id: int):
         for ctz in self.walkersAll:
@@ -378,21 +410,46 @@ class Game:
         """
         for ctz_id in building.get_all_employees():
             ctz = self.get_citizen_by_id(ctz_id)
+
+            #tmp = 0
+            #for _dwell in self.dwelling_list:
+            #    if _dwell != building and not _dwell.isDestroyed and not _dwell.isBurning and \
+            #        _dwell.current_number_of_employees < _dwell.max_number_of_employees:
+            #        #if ctz.move_to_another_dwell(_dwell.position, self.get_voisins_tuples(building.position)):
+            #           tmp = 1
+            #           break
+            #if tmp == 0:
+            
+            if isinstance(building, buildings.Dwelling):
+                ctz.exit_way()
+                if ctz.work_building:
+                    ctz.work_building.rem_employee(ctz_id)
+                building.flush_employee()
+            else:
+                pass
+
             ctz.exit_way()
+
             self.walkersGetOut(ctz)
-        building.flush_employee()
 
 
 
+    def get_buildings_for_walker(self, walker_position):
+        voisins = self.get_voisins_tuples(walker_position)
+        building_where_to_work = [b for b in self.buildinglist if b.position in voisins]
+        return building_where_to_work
 
-    def create_immigrant(self, path=[], building=None):
+
+    def create_immigrant(self, path=[], building=None, display=False):
         walker = walkers.Immigrant(self.map.roads_layer.get_entry_position()[0],self.map.roads_layer.get_entry_position()[1],
                                    None, 0, self,path,building)
         self.walkersAll.append(walker)
+        self.walkersAll = list(set(self.walkersAll))
         self.walkersGetOut(walker)
 
     def walkersGetOut(self, walker):
         self.walkersOut.append(walker)
+        self.walkersOut = list(set(self.walkersOut))
         pass
 
     def walkersOutUpdates(self, exit=False):  # fps = self.framerate
@@ -493,15 +550,12 @@ class Game:
             print("Not enough money")
             return False
         # we have to determine the exact class of the building bcause they have not the same prototype
-        match version:
-            case 'dwell':
-                building = buildings.Dwelling(self.map.buildings_layer, globalVar.LAYER5)
-
-            case "well" | "fountain"| "fountain1" | "fountain2" | "fountain3" | "fountain4" | "reservoir":
-                building = buildings.WaterStructure(self.map.buildings_layer, globalVar.LAYER5, version)
-
-            case _:
-                building = buildings.Building(self.map.buildings_layer, globalVar.LAYER5, version)
+        if version == "dwell":
+            building = buildings.Dwelling(self.map.buildings_layer, globalVar.LAYER5)
+        elif version in water_structures_types:
+            building = buildings.WaterStructure(self.map.buildings_layer, globalVar.LAYER5, version)
+        else:
+            building = buildings.Building(self.map.buildings_layer, globalVar.LAYER5, version)
 
         # we should check that there is no water on the future positions
         cells_number = building.dic['cells_number']
@@ -510,7 +564,7 @@ class Game:
         if not can_build_out_of_water:
             return False
 
-        if version in ["fruit_farm", "olive_farm", "vegetable_farm", "vine_farm", "wheat_farm", "pig_farm"]:
+        if version in farm_types:
             # we should check if there is yellow grass on the future positions to check
             can_build_on_yellow_grass = all([self.map.grass_layer.cell_is_yellow_grass(line + i, column + j)
                              for j in range(0, cells_number) for i in range(0, cells_number)])
@@ -553,22 +607,24 @@ class Game:
                     pass
                     
 
+    def get_buildings_in_neighboorhood(self, pos):
+        pass
+
     def get_voisins(self,building):
         voisins = set()
         cases = []
         pos = building.position
         for i in range(0, building.dic['cells_number']):
-                    for j in range(0, building.dic['cells_number']):
-                        if (i, j) != (0, 0):
-                            cases.append(self.map.buildinglayer((pos[0] + i, pos[1] + j)))
+            for j in range(0, building.dic['cells_number']):
+                if (i, j) != (0, 0):
+                    cases.append(self.map.buildinglayer((pos[0] + i, pos[1] + j)))
         for case in cases:
             for i in range(-2,2):
                 for j in range(-2,2):
-                                    voisins.add(self.map.buildinglayer.array[case[0] + i][case[1] + j])
+                    voisins.add(self.map.buildinglayer.array[case[0] + i][case[1] + j])
         return voisins
     
-    def get_voisins_tuples(self,building):
-        pos = building.position
+    def get_voisins_tuples(self, pos):
         cases = []
         for i in range(-2,3):
             for j in range(-2,3):
