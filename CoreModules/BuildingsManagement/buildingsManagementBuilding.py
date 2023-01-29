@@ -8,11 +8,16 @@ import time
 max_burning_time = 60000000000000000000000000000000
 DELTA_TIME = 0.2666666
 class Building(element.Element):
-    def __init__(self, buildings_layer, _type, version="dwell", parent=None):
-        self.parent = parent
+    def __init__(self, buildings_layer, _type, version="dwell"):
 
         self.risk_dico = {"fire" : 0, "collapse" : 0}
-        self.risk_level_dico = {"fire": 0, "collapse" : 0} 
+        self.risk_level_dico = {"fire": 0, "collapse" : 0}
+
+        self.current_number_of_employees = 0
+        self.max_number_of_employees = gdata.building_dico[version].max_employs if version != "null" else 0
+
+        # A list of walkers id
+        self.employees_id = set()
 
         # A factor that will be used to control risk increasing speed -- It must takes account the structure level
         # ie a building at level 4 will have a risk speed lower than a another at level 1
@@ -36,6 +41,18 @@ class Building(element.Element):
         self.previous_time = None
 
         super().__init__(buildings_layer, _type, version)
+
+    def add_employee(self, id: int):
+        self.employees_id.add(id)
+
+    def flush_employee(self):
+        self.employees_id = set()
+        self.current_number_of_employees = 0
+    def rem_employee(self, id:int):
+        self.employees_id.remove(id)
+        self.current_number_of_employees -= 1
+    def get_all_employees(self):
+        return  self.employees_id
 
     def is_functional(self):
         return self.functional
@@ -91,7 +108,7 @@ class Building(element.Element):
     def updateLikeability(self):
         pass
 
-    def update_functional_building_animation(self, framerate) ->bool:
+    def update_functional_building_animation(self) ->bool:
         """
         This function will change the structure_level in a circular way so that the visual animation of the building
         can be obtained
@@ -143,8 +160,6 @@ class Building(element.Element):
 class Dwelling(Building):
     def __init__(self, buildings_layer, _type):
         super().__init__(buildings_layer, _type, "dwell")
-        self.current_population = 0
-        self.max_population = 5
         """
         Desirability can prevent a house from evolving. In order to evolve, a house also must have a certain 
         desirability in addition to more services. Desirability is calculated from the nearby buildings. 
