@@ -220,6 +220,7 @@ class Game:
                 if isinstance(walker, walkers.Citizen):
                     walker.work(self.get_buildings_for_walker(walker.init_pos), update)
         for w_to_update in walker_to_update:
+
             w_to_update.get_out_city()
 
         # =======================================
@@ -418,6 +419,7 @@ class Game:
             #           tmp = 1
             #           break
             #if tmp == 0:
+            
             if isinstance(building, buildings.Dwelling):
                 ctz.exit_way()
                 if ctz.work_building:
@@ -425,6 +427,9 @@ class Game:
                 building.flush_employee()
             else:
                 pass
+
+            ctz.exit_way()
+
             self.walkersGetOut(ctz)
 
 

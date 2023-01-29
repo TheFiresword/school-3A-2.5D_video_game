@@ -15,8 +15,10 @@ class Building(element.Element):
         self.risk_level_dico = {"fire": 0, "collapse" : 0}
 
         self.current_number_of_employees = 0
+
         version_without_underscore = version.replace("_", " ", 1)
         self.max_number_of_employees = gdata.building_dico[version_without_underscore].max_employs if version != "null" else 0
+
 
         # A list of walkers id
         self.employees_id = set()

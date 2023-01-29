@@ -152,3 +152,12 @@
                 self.dest_pos = None
                 self.offset_x, self.offset_y = (0, 0)
                 self.compteur = 0
+     #tmp = 0
+            #for _dwell in self.dwelling_list:
+            #    if _dwell != building and not _dwell.isDestroyed and not _dwell.isBurning and \
+            #        _dwell.current_number_of_employees < _dwell.max_number_of_employees:
+            #        #if ctz.move_to_another_dwell(_dwell.position, self.get_voisins_tuples(building)):
+            #           tmp = 1
+            #           break
+            #if tmp == 0:
+    

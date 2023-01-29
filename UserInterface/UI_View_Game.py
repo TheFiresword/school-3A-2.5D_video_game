@@ -171,8 +171,41 @@ class GameView(arcade.View):
         # =======================================
         self.tab = arcade.load_texture(constantes.SPRITE_PATH + "PanelsOther/paneling_00017.png")
         self.bar = arcade.load_texture(constantes.SPRITE_PATH + "Panel/panel0.png")
-        self.money_box = arcade.load_texture(constantes.SPRITE_PATH + "PanelsOther/paneling_00015.png")
-        self.actual_pop_up = pop.create_PoP_Up(image= constantes.SPRITE_PATH + "Pictures/panelwindows_00021.png" ,title="AU FEU",normal_text="tchoupi",carved_text="Y'a le feu quelque part allez éteindre ça\n je suis sur ca marche",top_left_corner=(0,constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]),order=["title_zone","image_zone","carved_text_zone","button_zone"])
+        self.money_box =arcade.load_texture(constantes.SPRITE_PATH + "PanelsOther/paneling_00015.png")
+         #Creation of objects from PoP_Up class
+        #Fire PoP_Up
+        self.fire_show = 0
+        self.fire_Pop_up = pop.create_PoP_Up(image=constantes.SPRITE_PATH + "Pictures/feu2.png", title="Fire in the city",
+                                    normal_text="tchoupi", carved_text="Nov 340 BC              To The new governor\n"
+                                                                         "Inadequate prevention measures have\n"
+                                                                         "allowed fires to start. Even now, flames are\n"
+                                                                         "sweeping through parts of the city.",
+                                    top_left_corner=(0, constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]),
+                                    order=["title_zone", "image_zone", "carved_text_zone", "button_zone"])
+        self.collapse_show = 0
+        #Collapse PoP_Up
+        self.collapse_Pop_up = pop.create_PoP_Up(image=constantes.SPRITE_PATH + "Pictures/feu.png", title="Building Collapse",
+                                        normal_text="tchoupi", carved_text="Nov 340 BC              To The new governor\n"
+                                                                            "A building has just collapsed.\n"
+                                                                            "The maintenance provided\n"
+                                                                            "by the engineers being insufficient,\n"
+                                                                            "the building has become unstable and \n"
+                                                                            "has collapsed under its own weight.",
+                                        top_left_corner=(0, constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]),
+
+                                        order=["title_zone", "image_zone", "carved_text_zone", "button_zone"])
+        #City debt PoP_Up
+        self.money_already_showed = False
+        self.city_debt_Pop_up = pop.create_PoP_Up(image=constantes.SPRITE_PATH + "Pictures/caesar.png",title="City debt",
+                                        normal_text="tchoupi", carved_text="Nov 340 BC              To The new governor\n"
+                                                                             "your city's coffers are empty,\n"
+                                                                             "Caesar has decided to grant you more funds,\n"
+                                                                             "but he will not be so generous next time.\n"
+                                                                             "Develop export to raise funds",
+                                        top_left_corner=(0, constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]),
+                                        order=["title_zone", "image_zone", "carved_text_zone", "button_zone"])
+        self.automatic_pop_up = self.fire_Pop_up
+        self.actual_pop_up = self.fire_Pop_up
         self.money_text = None
         self.fps_text = None
         buttons_render = UI_buttons.buttons
@@ -371,8 +404,21 @@ class GameView(arcade.View):
             self.layer_manager.draw()
             for but in self.layer_manager.children[0]:
                 but.draw_()
-        if self.actual_pop_up.visible:
+        if self.fire_show == 1 and not self.fire_Pop_up.already_closed_once:
+            self.fire_Pop_up.draw_()
+            self.is_paused =True
+            self.count_pauses += 1
+        if self.collapse_show ==1 and not self.collapse_Pop_up.already_closed_once:
+            self.collapse_Pop_up.draw_()
+            self.is_paused =True
+            self.count_pauses += 1
+        if self.game.money < 0 and not self.city_debt_Pop_up.already_closed_once:
+            self.city_debt_Pop_up.draw_()
+            self.is_paused =True
+            self.count_pauses += 1
+        if self.actual_pop_up and self.actual_pop_up.visible:
             self.actual_pop_up.draw_()
+            
 
         # Testing something cool -- error message when building farm on non yellow grass
         self.draw_message_for_farm_building()
@@ -395,6 +441,10 @@ class GameView(arcade.View):
             self.p_key_pressed = False
 
             update = self.game.updategame()
+            if len(update.catchedfire) > 0:
+                self.fire_show += 1
+            if len(update.collapsed) > 0:
+                self.collapse_show +=1
             self.update_treatment(update)
             self.visualmap.fire_count += 1
             for sprite in self.visualmap.fire_layer:
@@ -417,7 +467,7 @@ class GameView(arcade.View):
         (map_pos_x, map_pos_y) = Vec2(x, y) + self.map_camera.position
         self.init_mouse_pos = (map_pos_x, map_pos_y)
         if x < constantes.DEFAULT_SCREEN_WIDTH - 165:
-            if button == arcade.MOUSE_BUTTON_LEFT and not self.actual_pop_up.visible:
+            if button == arcade.MOUSE_BUTTON_LEFT :
                 self.visualmap.red_sprite = arcade.Sprite(constantes.SPRITE_PATH + "Land/LandOverlay/Land2a_00037.png",
                                                           scale=self.visualmap.map_scaling, center_x=map_pos_x,
                                                           center_y=map_pos_y, hit_box_algorithm="Detailed")
@@ -437,6 +487,16 @@ class GameView(arcade.View):
                                 if not nearest_sprite.textures:
                                     (nearest_sprite, d) = arcade.get_closest_sprite(self.visualmap.red_sprite,
                                                                     self.visualmap.grass_layer)
+                    else :
+                        (i,j) = self.visualmap.get_sprite_at_screen_coordinates(nearest_sprite.position)
+                        bat = self.game.map.buildings_layer.get_cell(i,j)
+                        print(bat.dic["version"])
+                        k,p = 0,0 
+                        self.actual_pop_up = pop.info_building_pop_up(bat.dic["version"], bat.current_number_of_employees, bat.max_number_of_employees)
+                        if self.actual_pop_up:
+                            self.actual_pop_up.visible = True
+                            self.is_paused =True
+                            self.count_pauses += 1
                     # self.visualmap.red_sprite.texture = nearest_sprite.texture
                 else:
                     (nearest_sprite, d) = arcade.get_closest_sprite(self.visualmap.red_sprite,
@@ -889,7 +949,6 @@ class GameView(arcade.View):
         """
         This is the function that will really update graphically the sprites of the buildings
         """
-  
         for j in update.catchedfire:
             self.visualmap.update_one_sprite(layer = self.visualmap.buildings_layer,position = j ,update_type="building_fire")
         for k in update.collapsed:

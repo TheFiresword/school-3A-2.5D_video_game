@@ -256,6 +256,7 @@ class Walker:
         return False
 
 
+
 class Immigrant(Walker):
 
     def __init__(self, pos_ligne, pos_col, house, zoom, game, path=[], building=None):
