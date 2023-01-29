@@ -21,8 +21,7 @@ class Game:
         self.name = name
         self.map = _map
         self.startGame()
-
-        self.linked_view = game_view
+        self.scaling = 0
 
         self.money = INIT_MONEY
         self.food = 0
@@ -189,13 +188,14 @@ class Game:
         setattr(self, tmp, None)
         return buildings_position_to_append_to_update_object
 
-    def updategame(self):
+    def updategame(self,scaling):
         """
         This function updates the game
         In fact it updates the buildings of the game but also the walkers
         Differents types of updates can occur: a building evolving, a building burning or a building collapsing
         """
         # The important object that will contain the updates
+        self.scaling = scaling
         update = updates.LogicUpdate()
 
         # =======================================
@@ -203,7 +203,7 @@ class Game:
         # =======================================
         walker_to_update = set()
         for walker in self.walkersOut:
-            status = walker.walk(self.linked_view.visualmap.map_scaling)
+            status = walker.walk(self.scaling)
             if status == globalVar.IMMIGRANT_INSTALLED:
                 # An immigrant just set up --
                 new_status = walker.settle_in()
