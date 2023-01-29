@@ -413,7 +413,7 @@ class Game:
                 if not buf:
                     for prefet in prefets:
                         if not prefet.work_target:
-                            if prefet.move_to_another_dwell(k.position,self.get_voisins_tuples(prefet.init_pos)):
+                            if prefet.move_to_another_dwell(k.position):
                                 print(prefet.current_path_to_follow)
                                 prefet.work_target = k
                             break
