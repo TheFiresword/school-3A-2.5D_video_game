@@ -199,7 +199,8 @@ class Game:
                 # An immigrant just set up --
                 new_status = walker.settle_in()
                 if new_status:
-                    walker = new_status
+                    self.walkersAll.remove(walker)
+                    self.walkersAll.append(new_status)
 
             elif status == globalVar.CITIZEN_IS_OUT:
                 print("citizen_is_out")
