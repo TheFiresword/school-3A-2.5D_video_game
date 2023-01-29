@@ -51,6 +51,8 @@ class Game:
         self.pottery_structures_list = []
         self.bathhouse_structures_list = []
 
+        self.granary_list = [ ]
+
         self.reservoir_list = []
 
         #
@@ -203,31 +205,32 @@ class Game:
         # =======================================
         walker_to_update = set()
         for walker in self.walkersOut:
-            status = walker.walk(self.scaling)
-            if status == globalVar.IMMIGRANT_INSTALLED:
-                # An immigrant just set up --
-                new_status = walker.settle_in()
-                if new_status:
-                    self.walkersAll.remove(walker)
-                    self.walkersAll.append(new_status)
-                    # we add a citizen as an unemployed
-                    self.unemployedCitizens.append(new_status)
 
-            elif status == globalVar.CITIZEN_IS_OUT:
-                walker_to_update.add(walker)
+            if not walker.wait:
+              status = walker.walk(self.scaling)
+              if status == globalVar.IMMIGRANT_INSTALLED:
+                  # An immigrant just set up --
+                  new_status = walker.settle_in()
+                  if new_status:
+                      self.walkersAll.remove(walker)
+                      self.walkersAll.append(new_status)
+                      # we add a citizen as an unemployed
+                      self.unemployedCitizens.append(new_status)
 
-            elif status == globalVar.CITIZEN_ARRIVED:
-                if isinstance(walker,walkers.Prefect):
-                    walker.instinguish_fire()
-                    update.collapsed.append(walker.work_target.position)
-                    walker.work_target = None
-        
-                    print(5)
-            elif status is None:
-                if isinstance(walker, walkers.Citizen):
-                    walker.work(self.get_buildings_for_walker(walker.init_pos), update)
+              elif status == globalVar.CITIZEN_IS_OUT:
+                  walker_to_update.add(walker)
+
+              elif status == globalVar.CITIZEN_ARRIVED:
+                  if isinstance(walker,walkers.Prefect):
+                      walker.instinguish_fire()
+                      update.collapsed.append(walker.work_target.position)
+                      walker.work_target = None
+                      
+              elif status is None:
+                  if isinstance(walker, walkers.Citizen):
+                      walker.work(self.get_buildings_for_walker(walker.init_pos), update)
+
         for w_to_update in walker_to_update:
-
             w_to_update.get_out_city()
 
         # =======================================
@@ -346,8 +349,79 @@ class Game:
                     if not k.is_functional():
                         k.set_functional(True)
 
-                    engineer.init_pos = possible_road[2]
+                    engineer.init_pos = possible_road[0]
                     self.walkersGetOut(engineer)
+
+            # =======================================
+            #  Creation of cart_pushers
+            # =======================================
+            elif k.dic['version'] in farm_types:
+                if any(has_road) and k.current_number_of_employees < k.max_number_of_employees and not k.isDestroyed \
+                        and not k.isBurning:
+                    if self.unemployedCitizens:
+                        citizen = random.choice(self.unemployedCitizens)
+                        pusher_wheat = citizen.change_profession("pusher_wheat")
+                        self.walkersAll.remove(citizen)
+                        self.unemployedCitizens.remove(citizen)
+
+                        self.walkersAll.append(pusher_wheat)
+                        self.walkersAll = list(set(self.walkersAll))
+
+                        pusher_wheat.set_working_building(k)
+                        pusher_wheat.wait = True
+
+                        k.add_employee(pusher_wheat.id, update_number=True)
+                        if not k.is_functional():
+                            k.set_functional(True)
+
+                        pusher_wheat.init_pos = possible_road[0]
+                        self.walkersGetOut(pusher_wheat)
+
+                elif k.is_haverstable():
+                    # Stop animation and production and the cart pusher working in it look for a granary
+                    k.stop_production = True
+                    pusher_id = k.get_all_employees()[0]
+                    pusher = self.get_citizen_by_id(pusher_id)
+                    pusher.wait = False
+
+                    find_granary = False
+                    for granary in self.granary_list:
+                        if granary.is_functional() and not granary.is_full():
+                            if pusher.move_to_another_dwell(granary.position):
+                                find_granary = True
+                                break
+                    if find_granary:
+                        k.reset_animation = True
+
+                elif k.reset_animation:
+                    k.structure_level = 0
+                    k.stop_production = False
+                    k.reset_animation = False
+
+                elif not k.reset_animation:
+                    # wait pusher
+                    pusher_id = k.get_all_employees()[0]
+                    pusher = self.get_citizen_by_id(pusher_id)
+                    if pusher.init_pos in self.get_voisins_tuples(k.position):
+                        # pusher returned
+                        pusher.wait = True
+
+
+
+
+
+            # =======================================
+            #  Granary management
+            # =======================================
+            elif k.dic['version'] == "granary" and not k.isDestroyed and not k.isBurning and \
+                k.current_number_of_employees < k.max_number_of_employees:
+                if self.unemployedCitizens:
+                    citizen = random.choice(self.unemployedCitizens)
+                    self.unemployedCitizens.remove(citizen)
+                    citizen.set_working_building(k)
+                    k.add_employee(citizen.id, update_number=True)
+                    if not k.is_functional():
+                        k.set_functional(True)
 
             # =======================================
             #  Control of dwellings with no access to roads
@@ -508,6 +582,9 @@ class Game:
                         if _element.dic['version'] == "reservoir":
                             self.last_reservoir_removed = copy.copy(_element)
                             self.reservoir_list.remove(_element)
+
+                    if type(_element) == buildings.Granary:
+                        self.granary_list.remove(_element)
                     del _element
         return element_type
 
@@ -617,6 +694,8 @@ class Game:
                     if ajacent_to_water:
                         building.set_functional(True)
 
+            if type(building) == buildings.Granary:
+                self.granary_list.append(_element)
 
         return status
 
@@ -642,8 +721,8 @@ class Game:
                 if (i, j) != (0, 0):
                     cases.append(self.map.buildinglayer((pos[0] + i, pos[1] + j)))
         for case in cases:
-            for i in range(-2,2):
-                for j in range(-2,2):
+            for i in range(-1,2):
+                for j in range(-1,2):
                     voisins.add(self.map.buildinglayer.array[case[0] + i][case[1] + j])
         return voisins
     
