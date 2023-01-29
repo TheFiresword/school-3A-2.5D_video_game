@@ -216,6 +216,13 @@ class Game:
             elif status == globalVar.CITIZEN_IS_OUT:
                 walker_to_update.add(walker)
 
+            elif status == globalVar.CITIZEN_ARRIVED:
+                if isinstance(walker,walkers.Prefect):
+                    walker.instinguish_fire()
+                    update.collapsed.append(walker.work_target.position)
+                    walker.work_target = None
+        
+                    print(5)
             elif status is None:
                 if isinstance(walker, walkers.Citizen):
                     walker.work(self.get_buildings_for_walker(walker.init_pos), update)
@@ -377,6 +384,7 @@ class Game:
                     k.functional = False
                     self.map.buildings_layer.array[i[0]][i[1]].isBurning = True
                     update.catchedfire.append(i)
+                    
                     if type(k) == buildings.Dwelling:
                         self.guide_homeless_citizens(k)
 
@@ -394,6 +402,21 @@ class Game:
                 update.fire_level_change.append((k.position,building_update["fire_level"][1]))
             if building_update["collapse_level"][0]:
                 update.collapse_level_change.append((k.position,building_update["collapse_level"][1]))
+
+            prefets = self.get_prefets()
+            buf = False
+            if k.isBurning:
+                for prefet in prefets:
+                    if prefet.work_target and prefet.work_target == k:
+                        buf = True
+                        break
+                if not buf:
+                    for prefet in prefets:
+                        if not prefet.work_target:
+                            if prefet.move_to_another_dwell(k.position):
+                                print(prefet.current_path_to_follow)
+                                prefet.work_target = k
+                            break
 
             # And a final update of all buildings
             update.has_evolved.append((k.position, k.structure_level))
@@ -630,3 +653,10 @@ class Game:
             for j in range(-2,3):
                 cases.append((pos[0] + i,pos[1] + j))
         return cases
+
+    def get_prefets(self):
+        prefets = []
+        for walker in self.walkersOut:
+            if isinstance(walker, walkers.Prefect):
+                prefets.append(walker)
+        return prefets
