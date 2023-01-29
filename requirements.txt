@@ -1,3 +1,4 @@
 arcade
 pyglet
 pathfinding
+pyautogui

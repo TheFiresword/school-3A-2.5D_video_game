@@ -1,7 +1,8 @@
-import random
+import random, copy
 from Services import servicesGlobalVariables as cst
 from Services import Service_Walker_Sprite_To_File as wstf
-from CoreModules.BuildingsManagement.buildingsManagementBuilding import Dwelling
+from Services import Service_Static_functions
+from CoreModules.BuildingsManagement.buildingsManagementBuilding import Building, Dwelling
 
 
 # ============================================#
@@ -21,7 +22,7 @@ down = "down"
     to the destination is random between tile with effective roads
     
     Some rules about walkers
-    * When a dwell is built immigrants are called till its capacity is reached
+    * When a dwell is built immigrants are called till its capacity is reached  ###ok         
     * A walker lives in a house and if he works, he is linked to a work building (farm, prefecture, etc)
     * As soon as he starts working, 
         he stays no more not at home but he is still supposed to reside in his housing (in term of effective)
@@ -63,6 +64,9 @@ class Walker:
         self.current_path_to_follow = []
         self.dest_compteur = 0
 
+        # Id obtained via an iterator
+        self.id = Service_Static_functions.get_id()
+        self.is_at_home = True
 
     def walk(self, zoom, back=False):
         self.zoom = zoom
@@ -152,13 +156,20 @@ class Walker:
                     if self.dest_compteur == len(self.current_path_to_follow) - 1:
                         self.dest_compteur = 0
                         self.current_path_to_follow.clear()
-                        self.initiate_work(self.__class__.__name__)
+
+                        if type(self) == Immigrant:
+                            return cst.IMMIGRANT_INSTALLED
+                        elif type(self) == Citizen:
+                            if self.dest_pos == self.road_layer.get_exit_position():
+                                return cst.CITIZEN_IS_OUT
+                            else:
+                                return cst.CITIZEN_ARRIVED
+                        return 0
                     else:
                         self.dest_compteur += 1
 
 
-
-    def get_out_city(self):
+    def exit_way(self):
         """
         The walker wants to leave the city
         I calculate the path he must take
@@ -167,7 +178,7 @@ class Walker:
         """
         # We pose that if the walker is already on a path to a building we can't give him another path simultaneously
         if self.current_path_to_follow:
-            return False
+            return None
 
         exit_pos = self.road_layer.get_exit_position()
 
@@ -205,16 +216,7 @@ class Walker:
         for count in range(len(self.current_path_to_follow)):
             self.current_path_to_follow[count] = tuple(reversed(self.current_path_to_follow[count]))
 
-        return
-
-    def initiate_work(self,_type):
-        match _type:
-            case "Immigrant":
-                self.work()
-
-
-    def work(self, building=None):
-        pass
+        return self.current_path_to_follow
 
     def variation_pos_visuel(self, depart, arrive):
         if depart[0] < arrive[0] and depart[1] == arrive[1]:
@@ -226,14 +228,30 @@ class Walker:
         if depart[0] == arrive[0] and depart[1] > arrive[1]:
             return -1 * cst.TILE_WIDTH * self.zoom / (2 * self.fps), cst.TILE_HEIGHT * self.zoom / (2 * self.fps)
 
-    def change_class(self, new_type):
-        self.__class__ = new_type
-        self.paths_up, self.paths_down, self.paths_left, self.paths_right = wstf.walkers_to_sprite(
-            self.__class__.__name__)
+    def change_profession(self, new_type):
+        _new_profession = copy.copy(self)
+        _new_profession.__class__ = new_type
+        _new_profession.paths_up, _new_profession.paths_down, _new_profession.paths_left, _new_profession.paths_right = \
+            wstf.walkers_to_sprite(_new_profession.__class__.__name__)
+        return _new_profession
+
+    def move_to_another_dwell(self, target_pos, init_pos_adjacence):
+        # Normally init_pos is the dwell position
+        for adjacence in init_pos_adjacence:
+            if self.map_associated.walk_to_a_building(adjacence, None, target_pos, self.current_path_to_follow)[1]:
+                return True
+        return False
 
 class Citizen(Walker):
     def work(self, building=None):
         pass
+    def get_out_city(self):
+        print("getooutcity")
+        i = self.game.walkersOut.index(self)
+        del self.game.walkersOut[i]
+        del self
+
+
 class Engineer(Walker):
     def __init__(self):
         self.engineers_post
@@ -255,30 +273,32 @@ class Immigrant(Walker):
         self.current_path_to_follow = path
         self.dest_compteur = 0
         self.house = building
-        building.current_population += 1
+        building.current_number_of_employees += 1
+
         
-    def work(self, building=None):
-        self.game.walkersOut.remove(self)
+    def settle_in(self):
+        """
+        Return the same walker but with a different profession
+        Or None if he is removed
+        """
         # As many immigrants are created when a dwell is built the dwell state must be modified only by the first one
         # but we should also verify that the dwell is not removed before the immigrant goes in
+        assert self in self.game.walkersOut
+        i = self.game.walkersOut.index(self)
+        del self.game.walkersOut[i]
 
-        if self.house.dic['version']=="null":
-            print("no")
         if self.house != self.building_layer.array[self.house.position[0]][self.house.position[1]]:
             # The walker shoud be destroyed
             del self
-        else:
-            self.house.structure_level = 1
-            self.house.functional = True
-        #### Ancienne version
-        if self.house!=self.building_layer.array[self.house.position[0]][self.house.position[1]]:
-            # The walker shoud be destroyed
-            pass
-        elif not self.house.is_occupied():
+            return None
+        if not self.house.is_occupied():
             self.house.set_functional(True)
-
             self.game.updated.append(self.house)
-            self.change_class(Citizen)
+        # Then we add the walker to the dwell employees
+        self.house.add_employee(self.id)
+        return self.change_profession(Citizen)
+
+
 
     
 

@@ -16,10 +16,12 @@ import time
 ATTENTION: Building en feu pourrait etre updated
 """
 class Game:
-    def __init__(self, _map, name="save"):
+    def __init__(self, _map, name="save", game_view = None):
         self.name = name
         self.map = _map
         self.startGame()
+
+        self.linked_view = game_view
 
         self.money = INIT_MONEY
         self.food = 0
@@ -36,6 +38,8 @@ class Game:
         self.updated = []
 
         # some lists of specific buildings
+        self.dwelling_list = []
+
         self.water_structures_list = []
         self.food_structures_list = []
         self.temple_structures_list = []
@@ -60,10 +64,13 @@ class Game:
 
         # Timer
         self.init_time = time.time()
-
+        self.timer_for_immigrant_arrival = {}
+        self.tmp_ref_time = time.time()
         # a dic of timers to track dwells with no roads
         # it associates each position of dwell with a timer
         self.timer_track_dwells = {}
+
+        self.paths_for_buildings = { }
 
     def startGame(self):
         # ---------------------------------#
@@ -185,6 +192,22 @@ class Game:
         In fact it updates the buildings of the game
         Differents types of updates can occur: a building evolving, a building burning or a building collapsing
         """
+        walker_to_update = set()
+        for walker in self.walkersOut:
+            status = walker.walk(self.linked_view.visualmap.map_scaling)
+            if status == globalVar.IMMIGRANT_INSTALLED:
+                # An immigrant just set up --
+                new_status = walker.settle_in()
+                if new_status:
+                    walker = new_status
+
+            elif status == globalVar.CITIZEN_IS_OUT:
+                print("citizen_is_out")
+                walker_to_update.add(walker)
+
+        for w_to_update in walker_to_update:
+            w_to_update.get_out_city()
+
 
         update = updates.LogicUpdate()
 
@@ -225,39 +248,61 @@ class Game:
         for reservoir in self.reservoir_list:
             self.update_water_for_fountain_or_bath(reservoir)
 
+
         for k in self.buildinglist:
             # Update of the risk speed level
             k.update_risk_speed_with_level()
 
             pos = k.position
 
-            if k.update_functional_building_animation(self.framerate):
+            if k.update_functional_building_animation():
                 # animated building update
                 update.has_evolved.append((pos, k.structure_level))
 
             voisins = self.get_voisins_tuples(k)
             has_road = [self.map.roads_layer.is_real_road(v[0],v[1]) for v in voisins]
             possible_road = [v for v in voisins if self.map.roads_layer.is_real_road(v[0],v[1])]
-            # Creation of walkers
-            if type(k) == buildings.Dwelling and k.current_population < k.max_population and any(has_road):
-                path = self.map.walk_to_a_building(self.map.roads_layer.get_entry_position(),None, k.position,[])[1]
-                if path:
-                    for i in range(k.max_population - k.current_population):
-                        self.create_walker(path.copy(),k)
+
+
+            # Creation of immigrants
+            if type(k) == buildings.Dwelling and not k.isDestroyed and not k.isBurning and \
+                    k.current_number_of_employees < k.max_number_of_employees and any(has_road):
+                if k not in self.paths_for_buildings.keys():
+                    self.paths_for_buildings[k] = self.map.walk_to_a_building(self.map.roads_layer.get_entry_position(),
+                                                                              None, k.position,[])[1]
+                path = self.paths_for_buildings[k]
+                if path and (time.time()-self.tmp_ref_time) > 0.2:
+                    self.tmp_ref_time = time.time()
+                    # We call the required number of immigrants sequentially but with a delay of 2s to render
+                    if k not in self.timer_for_immigrant_arrival.keys():
+                        self.timer_for_immigrant_arrival[k] = time.time()
+                    current_time = time.time()
+                    if int( current_time - self.timer_for_immigrant_arrival[k]) > 0.5:
+                        self.create_immigrant(path.copy(), k)
+                        self.timer_for_immigrant_arrival[k] = current_time
+                        # We remove the timer associated to this house if the max_population is reached
+                        if k.current_number_of_employees == k.max_number_of_employees:
+                            del self.timer_for_immigrant_arrival[k]
+                            del self.paths_for_buildings[k]
+
+
+
             elif k.dic['version'] == "prefecture" and not k.functional and any(has_road):
                 possible_worker = [w for w in self.walkersAll if type(w) == walkers.Citizen]
                 if possible_worker:
                     prefet = random.choice(possible_worker)
-                    prefet.change_class(walkers.Prefect)
+                    prefet.change_profession(walkers.Prefect)
                     prefet.prefecture=k
                     prefet.init_pos = possible_road[2]
                     self.walkersGetOut(prefet)
                     k.set_functional(True)
+
+
             elif k.dic['version'] == "engineer's_post" and not k.functional and any(has_road):
                 possible_worker = [w for w in self.walkersAll if type(w) == walkers.Citizen]
                 if possible_worker:
                     engineer = random.choice(possible_worker)
-                    engineer.change_class(walkers.Engineer)
+                    engineer.change_profession(walkers.Engineer)
                     engineer.engineers_post=k
                     engineer.init_pos = possible_road[2]
                     self.walkersGetOut(engineer)
@@ -302,6 +347,7 @@ class Game:
                     k.functional = False
                     self.map.buildings_layer.array[i[0]][i[1]].isBurning = True
                     update.catchedfire.append(i)
+                    self.guide_homeless_citizens(k)
 
             if building_update["collapse"]:
                 # the building is no more functional
@@ -310,6 +356,7 @@ class Game:
                     # the building is no more functional
                     k.functional = False
                     update.collapsed.append(i)
+                    self.guide_homeless_citizens(k)
 
             if building_update["fire_level"][0]:
                 update.fire_level_change.append((k.position,building_update["fire_level"][1]))
@@ -319,9 +366,34 @@ class Game:
         return update
         # ---------------------------------#
 
+    def get_citizen_by_id(self, id: int):
+        for ctz in self.walkersAll:
+            if ctz.id ==  id:
+                return ctz
+
+    def guide_homeless_citizens(self, building):
+        """
+        Note: Retire les citoyens même s'ils ne sont pas effectivement sortis
+        """
+        for ctz_id in building.get_all_employees():
+            ctz = self.get_citizen_by_id(ctz_id)
+
+            tmp = 0
+            for _dwell in self.dwelling_list:
+                if _dwell != building and not _dwell.isDestroyed and not _dwell.isBurning and \
+                    _dwell.current_number_of_employees < _dwell.max_number_of_employees:
+                    if ctz.move_to_another_dwell(_dwell.position, self.get_voisins_tuples(building)):
+                       tmp = 1
+                       break
+            if tmp == 0:
+                ctz.exit_way()
+            self.walkersGetOut(ctz)
+        building.flush_employee()
 
 
-    def create_walker(self,path=[],building=None):
+
+
+    def create_immigrant(self, path=[], building=None):
         walker = walkers.Immigrant(self.map.roads_layer.get_entry_position()[0],self.map.roads_layer.get_entry_position()[1],
                                    None, 0, self,path,building)
         self.walkersAll.append(walker)
@@ -354,6 +426,9 @@ class Game:
                         self.timer_track_dwells.pop(pos)
                     """
                     self.buildinglist.remove(_element)
+                    if type(_element) == buildings.Dwelling:
+                        self.dwelling_list.remove(_element)
+
                     if type(_element) == buildings.WaterStructure:
                         # we must copy the element because if will potentially be  removed or changed in memory
                         self.last_water_structure_removed = copy.copy(_element)
@@ -459,6 +534,7 @@ class Game:
             if version == "dwell":
                 # if user just built a dwell we associate a timer so that the dwell can be removed after x seconds
                 self.timer_track_dwells[(line, column)] = time.time()
+                self.dwelling_list.append(building)
 
             if type(building) == buildings.WaterStructure:
                 self.water_structures_list.append(building)

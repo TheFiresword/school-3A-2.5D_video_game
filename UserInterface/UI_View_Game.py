@@ -236,7 +236,7 @@ class GameView(arcade.View):
     def setup(self):
         if not self.game:
             self.game = game.Game(map.MapLogic((constantes.TILE_COUNT//2, 0),(0, constantes.TILE_COUNT//2),
-                                               constantes.TILE_COUNT-7),name = self.name)
+                                               constantes.TILE_COUNT-7),name = self.name, game_view= self)
         else :
             self.name = self.game.name
         self.money_text=text.Sprite_sentence("Dn: " +str(self.game.money),"white",(205,constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4))
@@ -401,8 +401,6 @@ class GameView(arcade.View):
                 sprite.set_texture(self.visualmap.fire_count % len(sprite.textures))
 
             self.move_map_camera_with_keys()
-            for walker in self.game.walkersOut:
-                walker.walk(self.visualmap.map_scaling)
             self.visualmap.update_walker_list(self.game.walkersOut)
             self.money_text = text.Sprite_sentence("Dn: " +str(self.game.money),"white",(320-(len(self.money_text.sentence)+5) * constantes.FONT_WIDTH/4,constantes.DEFAULT_SCREEN_HEIGHT-self.bar.image.size[1]/4))
             self.fps_text=text.Sprite_sentence( str(self.speed_ratio) + "%","black",(constantes.DEFAULT_SCREEN_WIDTH -162 + 85,constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT/2 +10))

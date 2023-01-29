@@ -42,7 +42,7 @@ building_dico = {
     "colosseum": Building_info(500, -1, 25, "colosseum", False, False),
     "dock": Building_info(100, -1, 12, "dock", False, False),
     "doctor": Building_info(30, -1, 5, "", True, False),
-    "dwell": Building_info(10, 1, 0, "dwell", False, False),
+    "dwell": Building_info(10, 1, 5, "dwell", False, False),
     "engineer's post": Building_info(30, 1, 6, "engineer's_post", False, False),
     "forum": Building_info(75, 4, 6, "forum", False, False),
     "fruit farm": Building_info(40, -1, 10, "fruit_farm", True, False),

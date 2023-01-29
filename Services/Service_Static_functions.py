@@ -20,3 +20,18 @@ def draw_normal_cursor():
     cursor = window.get_system_mouse_cursor(window.CURSOR_DEFAULT)
     window.set_mouse_cursor(cursor)
     window.set_mouse_visible(True)
+
+
+class IdIterator:
+    def __init__(self):
+        self.id = 0
+        pass
+    def __next__(self):
+        id = self.id
+        self.id += 1
+        return  id
+
+shared_iterator = IdIterator()
+
+def get_id():
+    return  next(shared_iterator)
