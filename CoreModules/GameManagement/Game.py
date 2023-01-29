@@ -203,10 +203,10 @@ class Game:
                     self.walkersAll.append(new_status)
 
             elif status == globalVar.CITIZEN_IS_OUT:
-                print("citizen_is_out")
                 walker_to_update.add(walker)
 
         for w_to_update in walker_to_update:
+
             w_to_update.get_out_city()
 
 
@@ -378,15 +378,6 @@ class Game:
         """
         for ctz_id in building.get_all_employees():
             ctz = self.get_citizen_by_id(ctz_id)
-
-            #tmp = 0
-            #for _dwell in self.dwelling_list:
-            #    if _dwell != building and not _dwell.isDestroyed and not _dwell.isBurning and \
-            #        _dwell.current_number_of_employees < _dwell.max_number_of_employees:
-            #        #if ctz.move_to_another_dwell(_dwell.position, self.get_voisins_tuples(building)):
-            #           tmp = 1
-            #           break
-            #if tmp == 0:
             ctz.exit_way()
             self.walkersGetOut(ctz)
         building.flush_employee()

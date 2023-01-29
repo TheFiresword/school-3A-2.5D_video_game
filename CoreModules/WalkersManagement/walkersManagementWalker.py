@@ -161,10 +161,8 @@ class Walker:
                             return cst.IMMIGRANT_INSTALLED
                         elif type(self) == Citizen:
                             if self.init_pos == self.road_layer.get_exit_position():
-                                print(1)
                                 return cst.CITIZEN_IS_OUT
                             else:
-                                print(2)
                                 return cst.CITIZEN_ARRIVED
 
                         return 0
@@ -266,10 +264,9 @@ class Citizen(Walker):
         pass
 
     def get_out_city(self):
-        print("getooutcity")
         i = self.game.walkersOut.index(self)
         del self.game.walkersOut[i]
-        del self
+        self.game.walkersAll.remove(self)
 
 
 class Engineer(Walker):

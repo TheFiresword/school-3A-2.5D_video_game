@@ -100,6 +100,7 @@ class Full_PoP_Up():
         self.height = 0
         self.pos=top_left_corner
         self.visible = False
+        self.already_closed_once = False
         self.setup()
     
     def setup(self):
@@ -120,6 +121,7 @@ class Full_PoP_Up():
 
     def on_click_next(self,event):
         self.visible = False
+        self.already_closed_once = True
         self.zones["button_zone"].manager.disable()
     
     def on_click_question(self,event):
@@ -242,7 +244,123 @@ def build_panel(panel,pos,width,height):
                 last = True
         return sprite_list
             
+def info_building_pop_up(name, number_occupants, required_occupants):
+        pop_up = None
+        text = str(number_occupants) + " Employees" + "  " + str(required_occupants) + " " + "(required)"
+        #Temples of gods POP_UPS
+        if name == "mercury_temple":
+            pop_up =create_PoP_Up(image=cst.SPRITE_PATH + "Pictures/panelwindows_00024.png", title="Temple of " + name,
+                                normal_text="", carved_text=text,
+                                top_left_corner=(0, cst.DEFAULT_SCREEN_HEIGHT - 50),
+                                order=["title_zone", "image_zone", "carved_text_zone", "button_zone"])
+        elif name == "ares_temple":
+            pop_up = create_PoP_Up(image=cst.SPRITE_PATH + "Pictures/panelwindows_00022.png", title="Temple of " + name,
+                                       normal_text="", carved_text=text,
+                                       top_left_corner=(0, cst.DEFAULT_SCREEN_HEIGHT - 50),
+                                       order=["title_zone", "image_zone", "carved_text_zone", "button_zone"])
+        elif name == "dwell":
+            pop_up = create_PoP_Up(image=cst.SPRITE_PATH + "Pictures/panelwindows_00022.png", title="Temple of " + name,
+                                       normal_text="", carved_text=text,
+                                       top_left_corner=(0, cst.DEFAULT_SCREEN_HEIGHT - 50),
+                                       order=["title_zone", "image_zone", "carved_text_zone", "button_zone"])                               
+        elif name == "neptune_temple":
+            pop_up = create_PoP_Up(image=cst.SPRITE_PATH + "Pictures/panelwindows_00023.png", title="Temple of " + name,
+                                       normal_text="", carved_text=text,
+                                       top_left_corner=(0, cst.DEFAULT_SCREEN_HEIGHT - 50),
+                                       order=["title_zone", "image_zone", "carved_text_zone", "button_zone"])
+        elif name == "mars_temple":
+            pop_up = create_PoP_Up(image=cst.SPRITE_PATH + "Pictures/panelwindows_00025.png", title="Temple of " + name,
+                                       normal_text="", carved_text=text,
+                                       top_left_corner=(0, cst.DEFAULT_SCREEN_HEIGHT - 50),
+                                       order=["title_zone", "image_zone", "carved_text_zone", "button_zone"])
+        elif name == "venus_temple":
+            pop_up = create_PoP_Up(image=cst.SPRITE_PATH + "Pictures/panelwindows_00026.png", title="Temple of " + name,
+                                       normal_text="", carved_text=text,
+                                       top_left_corner=(0, cst.DEFAULT_SCREEN_HEIGHT - 50),
+                                       order=["title_zone", "image_zone", "carved_text_zone", "button_zone"])
+        #Engineering structures POP_UPS
+        elif name == "engineer's_post":
+            pop_up = create_PoP_Up(title="Engineer's_post\n"
+                                             "Our engineers are always outside inspecting\n"
+                                             "and repairing damaged buildings in the city.\n",
+                                   normal_text="", carved_text=text,
+                                   top_left_corner=(0, cst.DEFAULT_SCREEN_HEIGHT - 50),
+                                   order=["title_zone", "carved_text_zone", "button_zone"])
+        elif name == "quai":
+            pop_up = create_PoP_Up(title="Quai\n"
+                                     "Our boat is heading towards the fishing area\n",
+                               normal_text="", carved_text=text,
+                               top_left_corner=(0, cst.DEFAULT_SCREEN_HEIGHT - 50),
+                               order=["title_zone", "carved_text_zone", "button_zone"])
+        #Education POP_UPS
+        elif name == "school":
+            pop_up = create_PoP_Up(title="School\n"
+                                         "it is here that children are taught\n"
+                                         "the basics of reading, writing and rhetoric\n",
+                                   normal_text="", carved_text=text,
+                                   top_left_corner=(0, cst.DEFAULT_SCREEN_HEIGHT - 50),
+                                   order=["title_zone", "carved_text_zone", "button_zone"])
 
+        elif name == "university":
+            pop_up = create_PoP_Up(title="University\n"
+                                          "young people who aspire to become learned citizens come\n"
+                                          "here to perfect their education in rhetoric and history\n",
+                                   normal_text="", carved_text=text,
+                                   top_left_corner=(0, cst.DEFAULT_SCREEN_HEIGHT - 50),
+                                   order=["title_zone", "carved_text_zone", "button_zone"])
+        elif name == "library":
+            pop_up = create_PoP_Up(title="Library\n"
+                                         "Literary works from the four corners of the empire are brought\n"
+                                         "together in this building for the attention of scholars and the curious.\n",
+                                   normal_text="", carved_text=text,
+                                   top_left_corner=(0, cst.DEFAULT_SCREEN_HEIGHT - 50),
+                                   order=["title_zone", "carved_text_zone", "button_zone"])
+        #Water Equipments POP_UPS
+        elif name == "fountain":
+            pop_up = create_PoP_Up(title="Fountain\n"
+                                         "The population draws all the water they need from the fountains,\n"
+                                         "which must be located in the supply zone of a reservoir\n",
+                                   normal_text="", carved_text=text,
+                                   top_left_corner=(0, cst.DEFAULT_SCREEN_HEIGHT - 50),
+                                   order=["title_zone", "carved_text_zone", "button_zone"])
+        elif name == "reservoir":
+            pop_up = create_PoP_Up(title="Reservoir\n"
+                                         "This giant cistern contains drinking water which is then\n"
+                                         "distributed through clay pipes in a wide perimeter\n",
+                                   normal_text="", carved_text=text,
+                                   top_left_corner=(0, cst.DEFAULT_SCREEN_HEIGHT - 50),
+                                   order=["title_zone", "carved_text_zone", "button_zone"])
+        elif name == "aqueduct":
+            pop_up = create_PoP_Up(title="Aqueduct\n"
+                                     "This aqueduct carries water between two reservoirs\n",
+                               normal_text="", carved_text=text,
+                               top_left_corner=(0, cst.DEFAULT_SCREEN_HEIGHT - 50),
+                               order=["title_zone", "carved_text_zone", "button_zone"])
+
+        #Security POP_UPS
+        elif name == "prefecture":
+            pop_up = create_PoP_Up(title="Prefecture\n",
+                                   normal_text="", carved_text=text,
+                                   top_left_corner=(0, cst.DEFAULT_SCREEN_HEIGHT - 50),
+                                   order=["title_zone", "carved_text_zone", "button_zone"])
+
+        elif name == "military_academy":
+            pop_up = create_PoP_Up(title="Military academy\n"
+                                   "When new recruits come out of the barracks, they want to improve\n"
+                                    "their fighting techniques at the academy\n",
+                                   normal_text="", carved_text=text,
+                                   top_left_corner=(0, cst.DEFAULT_SCREEN_HEIGHT - 50),
+                                   order=["title_zone", "carved_text_zone", "button_zone"])
+        elif name == "barracks":
+            pop_up = create_PoP_Up(title="Barracks\n"
+                                   "",
+                                   normal_text="", carved_text=text,
+                                   top_left_corner=(0, cst.DEFAULT_SCREEN_HEIGHT - 50),
+                                   order=["title_zone", "carved_text_zone", "button_zone"])
+        #Entertainement POP_UPS
+
+
+        return pop_up
 
             
             
