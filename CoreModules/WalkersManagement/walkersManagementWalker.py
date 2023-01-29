@@ -67,6 +67,7 @@ class Walker:
         # Id obtained via an iterator
         self.id = Service_Static_functions.get_id()
         self.is_at_home = True
+        self.is_being_removed = False
 
     def walk(self, zoom, back=False):
         self.zoom = zoom
@@ -249,6 +250,8 @@ class Citizen(Walker):
         print("getooutcity")
         i = self.game.walkersOut.index(self)
         del self.game.walkersOut[i]
+        assert self in self.game.walkersAll
+        self.game.walkersAll.remove(self)
         del self
 
 
@@ -289,6 +292,8 @@ class Immigrant(Walker):
 
         if self.house != self.building_layer.array[self.house.position[0]][self.house.position[1]]:
             # The walker shoud be destroyed
+            assert self in self.game.walkersAll
+            self.game.walkersAll.remove(self)
             del self
             return None
         if not self.house.is_occupied():
