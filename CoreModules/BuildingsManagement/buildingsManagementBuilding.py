@@ -281,14 +281,41 @@ class Dwelling(Building):
 
 
 class Farm(Building):
-    MAX_PRODUCTION = 50
-    PRODUCTION_PER_PART = 10
     def __init__(self, buildings_layer, _type, production="wheat_farm"):
         super().__init__(buildings_layer, _type, production)
-        quantity = 0
+        self.quantity = 0
+        self.stop_production = False
+        self.reset_animation = False
+
+    def update_functional_building_animation(self) ->bool:
+        """
+        This function will change the structure_level in a circular way so that the visual animation of the building
+        can be obtained
+        """
+        # the animation of functional buildings
+        if self.is_functional() and not self.stop_production:
+            if not self.previous_time:
+                self.previous_time = time.time()
+            else:
+                delta_timer = 3*DELTA_TIME
+                init_level = 0
+
+                if time.time()- self.previous_time > delta_timer:
+                    self.previous_time = time.time()
+                    self.structure_level += 1
+                    self.quantity += gdata.PRODUCTION_PER_PART
+                    if self.structure_level == self.max_level:
+                        self.structure_level = init_level
+                    assert (self.structure_level <= self.max_level - 1)
+                    return True
+
+                return False
+        return False
 
     def is_haverstable(self):
-        return self.quantity == MAX_PRODUCTION
+        if self.is_functional() and not self.stop_production:
+            return self.quantity >= gdata.MAX_PRODUCTION
+        return False
 
 class WaterStructure(Building):
     def __init__(self, buildings_layer, _type, version="well"):
@@ -298,3 +325,9 @@ class WaterStructure(Building):
             # a well is always functional and don't need employees
             self.functional = True
 
+class Granary(Building):
+    def __init__(self, buildings_layer, _type, production="granary"):
+        super().__init__(buildings_layer, _type, production)
+        self.storage = 0
+    def is_full(self):
+        return self.storage >= 5*gdata.MAX_PRODUCTION
