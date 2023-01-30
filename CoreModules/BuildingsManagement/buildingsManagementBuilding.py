@@ -67,7 +67,8 @@ class Building(element.Element):
 
     def set_functional(self, value: bool):
         if value and not self.functional:
-            if self.dic["version"] not in ["ares_temple","mars_temple","mercury_temple","neptune_temple","venus_temple"]:
+            if self.dic["version"] not in ["ares_temple","mars_temple","mercury_temple","neptune_temple","venus_temple",
+                                           ]:
                 self.update_level("stat_inc")
             self.functional = True
             return True
@@ -312,8 +313,28 @@ class Farm(Building):
                 return False
         return False
 
+    def in_state_0(self):
+        return not self.functional
+    def in_state_1(self):
+        return self.current_number_of_employees < self.max_number_of_employees and not self.isDestroyed and not \
+            self.isBurning and not self.stop_production
+    def in_state_2(self, pusher):
+        return self.current_number_of_employees != 0 and not self.isDestroyed and not \
+            self.isBurning and not self.stop_production and pusher.wait and not self.is_haverstable()
+    def in_state_3(self, pusher):
+        return self.current_number_of_employees != 0 and self.is_haverstable() and \
+               not self.isDestroyed and not self.isBurning and not self.stop_production and pusher.wait and not self.reset_animation
+
+    def in_state_4(self, pusher):
+        return self.current_number_of_employees != 0 and self.is_haverstable() and \
+               not self.isDestroyed and not self.isBurning and not self.stop_production  and not pusher.wait and self.reset_animation
+
+    def in_state_5(self, pusher, neighboors_pos):
+        return self.current_number_of_employees != 0 and not self.isDestroyed and not self.isBurning and not \
+            self.stop_production and not pusher.wait and not self.reset_animation and pusher.init_pos in neighboors_pos
+
     def is_haverstable(self):
-        if self.is_functional() and not self.stop_production:
+        if self.is_functional():
             return self.quantity >= gdata.MAX_PRODUCTION
         return False
 
@@ -326,11 +347,11 @@ class WaterStructure(Building):
             self.functional = True
 
 class Granary(Building):
-    def __init__(self, buildings_layer, _type, production="granary"):
-        super().__init__(buildings_layer, _type, production)
+    def __init__(self, buildings_layer, _type):
+        super().__init__(buildings_layer, _type, "granary")
         self.storage = 0
     def is_full(self):
         return self.storage >= 5*gdata.MAX_PRODUCTION
 
     def inc_storage(self):
-        self.storage += gdata.MAX_PRODUCTION
+        self.storage += int(gdata.MAX_PRODUCTION//4)

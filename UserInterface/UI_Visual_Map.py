@@ -298,8 +298,6 @@ class VisualMap:
             sprite.set_texture(0)
 
         if update_type in ["stat_inc", "stat_dec"]:
-            if special_value >= len(sprite.textures):
-                print(special_value)
             sprite.set_texture(special_value)
 
         if update_type == "reset":

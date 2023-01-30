@@ -342,5 +342,7 @@ class RoadLayer(layer.Layer):
         return False, count
 
     def is_real_road(self, line, column):
-        return self.array[line][column].dic['version'] not in ["null", "entry_bottom", "entry_top", "entry_left",
+        if position_is_valid(line, column):
+            return self.array[line][column].dic['version'] not in ["null", "entry_bottom", "entry_top", "entry_left",
                                             "entry_right", "exit_top", "exit_bottom", "exit_left", "exit_right"]
+        return False

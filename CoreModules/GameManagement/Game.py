@@ -227,8 +227,13 @@ class Game:
 
                     elif isinstance(walker, walkers.Cart_Pusher_Wheat):
                         granary = walker.transition_building
-                        granary.inc_storage()
-                        walker.move_to_another_dwell(walker.work_building.position)
+                        if granary:
+                            walker.transition_buildind = None
+                            granary.inc_storage()
+                            walker.move_to_another_dwell(walker.work_building.position)
+                        else:
+                            # arrived at it's house
+                            walker.wait = True
 
                 elif status is None:
                     if isinstance(walker, walkers.Citizen):
@@ -381,9 +386,11 @@ class Game:
             #  Creation of cart_pushers
             # =======================================
             elif k.dic['version'] in farm_types:
-                if k.current_number_of_employees < k.max_number_of_employees:
-                    if self.unemployedCitizens and any(has_road) and not k.isDestroyed and not k.isBurning:
-                        print(k.current_number_of_employees)
+                if k.in_state_0():
+                    print("etat 0")
+                    k.stop_production = True
+                    if self.unemployedCitizens and any(has_road):
+
                         citizen = random.choice(self.unemployedCitizens)
                         ### pour toutes les fermes
                         pusher_wheat = citizen.change_profession("pusher_wheat")
@@ -394,44 +401,72 @@ class Game:
                         self.walkersAll = list(set(self.walkersAll))
 
                         pusher_wheat.set_working_building(k)
+                        #print(pusher_wheat.work_building)
                         pusher_wheat.wait = True
-
-                        k.add_employee(pusher_wheat.id, update_number=True)
-                        if not k.is_functional():
-                            k.set_functional(True)
-
-                        i = random.randint(0, len(possible_road))
-                        pusher_wheat.init_pos = possible_road[i]
                         self.walkersGetOut(pusher_wheat)
 
-                elif k.is_haverstable() and not k.isDestroyed and not k.isBurning:
-                    # Stop animation and production and the cart pusher working in it look for a granary
+                        k.add_employee(pusher_wheat.id, update_number=True)
+                        k.set_functional(True)
+                        k.stop_production = False
 
-                    k.stop_production = True
+                        i = random.randint(0, len(possible_road))
+                        #print(f'{len(possible_road)} and {i}')
+                        pusher_wheat.init_pos = possible_road[0]
+
+                else:
                     pusher_id = list(k.get_all_employees())[0]
                     pusher = self.get_citizen_by_id(pusher_id)
-                    pusher.wait = False
-                    find_granary = False
-                    for granary in self.granary_list:
-                        if granary.is_functional() and not granary.is_full():
-                            if pusher.move_to_another_dwell(granary.position):
-                                print("Je dois bouger")
-                                find_granary = True
-                                pusher.transition_building = granary
-                                break
-                    if find_granary:
-                        k.reset_animation = True
 
-                elif k.reset_animation and not k.isDestroyed and not k.isBurning:
-                    k.structure_level = 0
-                    k.stop_production = False
-                    k.reset_animation = False
+                    if k.in_state_1():
+                        print("etat 1")
+                        if self.unemployedCitizens and any(has_road):
+                            citizen = random.choice(self.unemployedCitizens)
+                            ### pour toutes les fermes
+                            pusher_wheat = citizen.change_profession("pusher_wheat")
+                            self.walkersAll.remove(citizen)
+                            self.unemployedCitizens.remove(citizen)
 
-                elif not k.reset_animation and not k.isDestroyed and not k.isBurning:
-                    # wait pusher
-                    pusher_id = list(k.get_all_employees())[0]
-                    pusher = self.get_citizen_by_id(pusher_id)
-                    if pusher.init_pos in self.get_voisins_tuples(k.position):
+                            self.walkersAll.append(pusher_wheat)
+                            self.walkersAll = list(set(self.walkersAll))
+
+                            pusher_wheat.set_working_building(k)
+                            pusher_wheat.wait = True
+                            k.add_employee(pusher_wheat.id, update_number=True)
+
+                            pusher_wheat.init_pos = possible_road[0]
+                            self.walkersGetOut(pusher_wheat)
+
+                    elif k.in_state_2(pusher):
+                        print("etat 2")
+                        k.stop_production = False
+
+                    elif k.in_state_3(pusher):
+                        print("etat 3")
+                        # Stop animation and production and the cart pusher working in it look for a granary
+                        k.stop_production = True
+                        find_granary = False
+                        for granary in self.granary_list:
+                            if granary.is_functional() and not granary.is_full():
+                                if pusher.move_to_another_dwell(granary.position):
+                                    find_granary = True
+                                    pusher.transition_building = granary
+                                    break
+                        if find_granary:
+                            pusher.wait = False
+                            # print("reset anim etat2"+str(k.reset_animation))
+                            k.reset_animation = True
+                        else:
+                            k.stop_production = False
+
+                    elif k.in_state_4(pusher):
+                        print("Etat4")
+                        k.structure_level = 0
+                        k.quantity = 0
+                        k.stop_production = False
+                        k.reset_animation = False
+
+                    elif  k.in_state_5(pusher, self.get_voisins_tuples(k.position)):
+                        # wait pusher
                         # pusher returned
                         pusher.wait = True
 
@@ -439,7 +474,7 @@ class Game:
             # =======================================
             #  Granary management
             # =======================================
-            elif k.dic['version'] == "granary" and not k.isDestroyed and not k.isBurning and \
+            elif k.dic['version'] == "granary" and any(has_road) and not k.isDestroyed and not k.isBurning and \
                 k.current_number_of_employees < k.max_number_of_employees:
                 if self.unemployedCitizens:
                     citizen = random.choice(self.unemployedCitizens)
@@ -691,6 +726,8 @@ class Game:
             building = buildings.WaterStructure(self.map.buildings_layer, globalVar.LAYER5, version)
         elif version in farm_types:
             building = buildings.Farm(self.map.buildings_layer, globalVar.LAYER5, version)
+        elif version == "granary":
+            building = buildings.Granary(self.map.buildings_layer, globalVar.LAYER5)
         else:
             building = buildings.Building(self.map.buildings_layer, globalVar.LAYER5, version)
 
@@ -732,7 +769,7 @@ class Game:
                         building.set_functional(True)
 
             if type(building) == buildings.Granary:
-                self.granary_list.append(_element)
+                self.granary_list.append(building)
 
         return status
 
