@@ -184,7 +184,7 @@ class GameView(arcade.View):
                                     order=["title_zone", "image_zone", "carved_text_zone", "button_zone"])
         self.collapse_show = 0
         #Collapse PoP_Up
-        self.collapse_Pop_up = pop.create_PoP_Up(image=constantes.SPRITE_PATH + "Pictures/feu.png", title="Building Collapse",
+        self.collapse_Pop_up = pop.create_PoP_Up(image=constantes.SPRITE_PATH + "Pictures/effondrement.png", title="Building Collapse",
                                         normal_text="tchoupi", carved_text="Nov 340 BC              To The new governor\n"
                                                                             "A building has just collapsed.\n"
                                                                             "The maintenance provided\n"
@@ -472,7 +472,7 @@ class GameView(arcade.View):
                                                           scale=self.visualmap.map_scaling, center_x=map_pos_x,
                                                           center_y=map_pos_y, hit_box_algorithm="Detailed")
                 self.visualmap.red_sprite.visible = True
-                if not self.builder_mode and not self.builder_content == "road":
+                if not self.builder_mode and not self.remove_mode and not self.builder_content == "road":
                     (nearest_sprite, d) = arcade.get_closest_sprite(self.visualmap.red_sprite,
                                                                     self.visualmap.buildings_layer)
                     if not nearest_sprite.textures:

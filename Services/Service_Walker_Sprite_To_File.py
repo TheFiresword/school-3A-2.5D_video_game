@@ -47,6 +47,15 @@ def walkers_to_sprite(type_walker):
                     range(0, 12)]
             right = [const.SPRITE_PATH + "Citizen1/Type1/Citizen01_{:05d}".format(sprite_number + k * 8) + ".png" for k in
                      range(0, 12)]
-
+        case "Priest":
+            sprite_number = 209
+            up = [const.SPRITE_PATH + "Citizen1/Type3/Citizen01_{:05d}".format(sprite_number + 2 + k * 8) + ".png" for k in
+                  range(0, 12)]
+            left = [const.SPRITE_PATH + "Citizen1/Type3/Citizen01_{:05d}".format(sprite_number + 6 + k * 8) + ".png" for k in
+                    range(0, 12)]
+            down = [const.SPRITE_PATH + "Citizen1/Type3/Citizen01_{:05d}".format(sprite_number + 4 + k * 8) + ".png" for k in
+                    range(0, 12)]
+            right = [const.SPRITE_PATH + "Citizen1/Type3/Citizen01_{:05d}".format(sprite_number + k * 8) + ".png" for k in
+                     range(0, 12)]
 
     return up, left, down, right

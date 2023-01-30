@@ -466,24 +466,19 @@ def mapping_function(element_type, type_version) -> [str, int]:
 
         #Temples of gods
         elif type_version == "ares_temple":#ok
-            return [(const.SPRITE_PATH + "Temples/Temples_00001.png", 2),
-                        (const.SPRITE_PATH + "Temples/Temples_00002.png", 3)]
+            return [(const.SPRITE_PATH + "Temples/Temples_00001.png", 2)]
 
         elif type_version == "mars_temple":#ok
-            return [(const.SPRITE_PATH + "Temples/Temples_00003.png", 2),
-                        (const.SPRITE_PATH + "Temples/Temples_00004.png", 3)]
+            return [(const.SPRITE_PATH + "Temples/Temples_00003.png", 2)]
 
         elif type_version == "mercury_temple":#ok
-            return [(const.SPRITE_PATH + "Temples/Temples_00005.png", 2),
-                    (const.SPRITE_PATH + "Temples/Temples_00006.png", 3)]
+            return [(const.SPRITE_PATH + "Temples/Temples_00005.png", 2)]
 
         elif type_version == "neptune_temple":#ok
-            return [(const.SPRITE_PATH + "Temples/Temples_00007.png", 2),
-                    (const.SPRITE_PATH + "Temples/Temples_00008.png", 3)]
+            return [(const.SPRITE_PATH + "Temples/Temples_00007.png", 2)]
 
         elif type_version == "venus_temple":#ok
-            return [(const.SPRITE_PATH + "Temples/Temples_00009.png", 2),
-                        (const.SPRITE_PATH + "Temples/Temples_00010.png", 3)]
+            return [(const.SPRITE_PATH + "Temples/Temples_00009.png", 2)]
 
         elif type_version == "oracle":#ok
             return [(const.SPRITE_PATH + "Temples/Temples_00011.png", 2)]

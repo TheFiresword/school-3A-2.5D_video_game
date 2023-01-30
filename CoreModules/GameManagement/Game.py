@@ -348,6 +348,27 @@ class Game:
 
                     engineer.init_pos = possible_road[2]
                     self.walkersGetOut(engineer)
+            # =======================================
+            #  Creation of priest
+            # =======================================
+            elif k.dic['version'] in ["ares_temple","mars_temple","mercury_temple","neptune_temple","venus_temple"] and any(has_road) and \
+                    k.current_number_of_employees < k.max_number_of_employees and not k.isDestroyed and not k.isBurning:
+                if self.unemployedCitizens:
+                    citizen = random.choice(self.unemployedCitizens)
+                    priest = citizen.change_profession("priest")
+                    self.walkersAll.remove(citizen)
+                    self.unemployedCitizens.remove(citizen)
+
+                    self.walkersAll.append(priest)
+                    self.walkersAll = list(set(self.walkersAll))
+
+                    priest.set_working_building(k)
+                    k.add_employee(priest.id, update_number=True)
+                    if not k.is_functional():
+                        k.set_functional(True)
+
+                    priest.init_pos = possible_road[2]
+                    self.walkersGetOut(priest)
 
             # =======================================
             #  Control of dwellings with no access to roads
