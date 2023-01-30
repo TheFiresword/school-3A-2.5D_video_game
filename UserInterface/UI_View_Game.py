@@ -821,6 +821,7 @@ class GameView(arcade.View):
 
     def button_click_road(self, event):
         print("button road")
+        self.dragged_sprite.clear()
         self.remove_mode = False
         window = arcade.get_window()
         window.set_mouse_visible(True)

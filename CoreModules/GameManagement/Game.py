@@ -228,9 +228,11 @@ class Game:
                     elif isinstance(walker, walkers.Cart_Pusher_Wheat):
                         granary = walker.transition_building
                         if granary:
-                            walker.transition_buildind = None
+                            walker.transition_building = None
                             granary.inc_storage()
                             walker.move_to_another_dwell(walker.work_building.position)
+                            print(walker.work_building.position)
+                            print(walker.current_path_to_follow)
                         else:
                             # arrived at it's house
                             walker.wait = True
@@ -387,7 +389,7 @@ class Game:
             # =======================================
             elif k.dic['version'] in farm_types:
                 if k.in_state_0():
-                    print("etat 0")
+                    #print("etat 0")
                     k.stop_production = True
                     if self.unemployedCitizens and any(has_road):
 
@@ -401,7 +403,7 @@ class Game:
                         self.walkersAll = list(set(self.walkersAll))
 
                         pusher_wheat.set_working_building(k)
-                        #print(pusher_wheat.work_building)
+                        print(pusher_wheat.work_building.position)
                         pusher_wheat.wait = True
                         self.walkersGetOut(pusher_wheat)
 
@@ -418,7 +420,7 @@ class Game:
                     pusher = self.get_citizen_by_id(pusher_id)
 
                     if k.in_state_1():
-                        print("etat 1")
+                        #print("etat 1")
                         if self.unemployedCitizens and any(has_road):
                             citizen = random.choice(self.unemployedCitizens)
                             ### pour toutes les fermes
@@ -437,11 +439,11 @@ class Game:
                             self.walkersGetOut(pusher_wheat)
 
                     elif k.in_state_2(pusher):
-                        print("etat 2")
+                        #print("etat 2")
                         k.stop_production = False
 
                     elif k.in_state_3(pusher):
-                        print("etat 3")
+                        #print("etat 3")
                         # Stop animation and production and the cart pusher working in it look for a granary
                         k.stop_production = True
                         find_granary = False
