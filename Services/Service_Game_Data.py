@@ -111,7 +111,7 @@ text_carry = ["Wheat Farm","Vegetable Farm","Olive Farm","Vine Farm","Pig Farm",
 removing_cost = 2
 risk_random_ratio = 40
 
-MAX_PRODUCTION = 50
+MAX_PRODUCTION = 200
 PRODUCTION_PER_PART = 10
 
 def get_housing_requirements(level):
