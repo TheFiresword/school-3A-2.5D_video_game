@@ -1,4 +1,5 @@
 import arcade
+from CoreModules.WalkersManagement import walkersManagementWalker as walkersi
 from Services import servicesGlobalVariables as constantes
 from Services import Service_Static_functions as fct
 from Services import Service_Game_Data as gdata
@@ -159,7 +160,25 @@ class VisualMap:
 
     def update_walker_list(self, walkersout):
         self.walker_to_render.clear()
+        walkerlist = list()
+        prefetlist = list()
+        engineerlist = list()
         for walker in walkersout:
+            walkerlist.append(walker)
+            if type(walker) == walkersi.Prefect:
+                prefetlist.append(walker)
+            elif type(walker) == walkersi.Engineer:
+                engineerlist.append(walker)
+
+        walkerrender = list()
+        if self.collapse_risk_layer_show:
+            walkerrender = engineerlist
+        elif self.fire_risk_layer_show:
+            walkerrender = prefetlist
+        else:
+            walkerrender = walkerlist
+
+        for walker in walkerrender:
             support_sprite = (self.get_sprite_associated(walker.init_pos))
             walker_pos_x,walker_pos_y = support_sprite.center_x,support_sprite.center_y+10
             walker_pos_x += walker.offset_x

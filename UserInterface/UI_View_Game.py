@@ -412,7 +412,7 @@ class GameView(arcade.View):
             self.collapse_Pop_up.draw_()
             self.is_paused =True
             self.count_pauses += 1
-        if self.game.money < 0 and not self.city_debt_Pop_up.already_closed_once:
+        if self.game.money <= 10 and not self.city_debt_Pop_up.already_closed_once:
             self.city_debt_Pop_up.draw_()
             self.is_paused =True
             self.count_pauses += 1

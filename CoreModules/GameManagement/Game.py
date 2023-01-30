@@ -9,7 +9,7 @@ from CoreModules.WalkersManagement import walkersManagementWalker as walkers
 
 import copy
 
-INIT_MONEY = 1000000000
+INIT_MONEY = 100000000
 TIME_BEFORE_REMOVING_DWELL = 3 #seconds
 import time
 
