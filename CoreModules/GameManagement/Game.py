@@ -531,28 +531,36 @@ class Game:
         """
         Note: Retire les citoyens même s'ils ne sont pas effectivement sortis
         """
-        for ctz_id in building.get_all_employees():
-            ctz = self.get_citizen_by_id(ctz_id)
-
-            #tmp = 0
-            #for _dwell in self.dwelling_list:
-            #    if _dwell != building and not _dwell.isDestroyed and not _dwell.isBurning and \
-            #        _dwell.current_number_of_employees < _dwell.max_number_of_employees:
-            #        #if ctz.move_to_another_dwell(_dwell.position, self.get_voisins_tuples(building.position)):
-            #           tmp = 1
-            #           break
-            #if tmp == 0:
-            
-            if isinstance(building, buildings.Dwelling):
+        if type(building) == buildings.Dwelling:
+            for ctz_id in building.get_all_employees():
+                ctz = self.get_citizen_by_id(ctz_id)
                 ctz.exit_way()
                 if ctz in self.unemployedCitizens:
                     self.unemployedCitizens.remove(ctz)
                 ctz.wait = False
                 if ctz.work_building:
                     ctz.work_building.rem_employee(ctz_id)
-                building.flush_employee()
+                self.walkersGetOut(ctz)
+            building.flush_employee()
 
-            self.walkersGetOut(ctz)
+        else:
+            for ctz_id in building.get_all_employees():
+                ctz = self.get_citizen_by_id(ctz_id)
+                # Return in its house
+                if ctz.move_to_another_dwell(ctz.house.position, walk_through=True):
+                    self.walkersAll.remove(ctz)
+                    if ctz in self.walkersOut:
+                        self.walkersOut.remove(ctz)
+                    ctz = ctz.change_profession("citizen")
+                    self.walkersAll.append(ctz)
+                    self.walkersAll = list(set(self.walkersAll))
+                    self.unemployedCitizens.append(ctz)
+                    ctz.work_building = None
+                    ctz.wait = False
+                    self.walkersGetOut(ctz)
+                    break
+
+            building.flush_employee()
 
 
 
@@ -597,8 +605,8 @@ class Game:
                         self.timer_track_dwells.pop(pos)
                     """
                     self.buildinglist.remove(_element)
+                    self.guide_homeless_citizens(_element)
                     if type(_element) == buildings.Dwelling:
-                        self.guide_homeless_citizens(_element)
                         self.dwelling_list.remove(_element)
 
                     if type(_element) == buildings.WaterStructure:
@@ -669,6 +677,7 @@ class Game:
         if status and not dynamically:
             self.money -= road_dico['cost'] * count
         return status
+
 
     def add_building(self, line, column, version) -> bool:
         txt= " ".join(version.split("_"))
