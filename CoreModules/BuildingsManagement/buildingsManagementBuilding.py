@@ -331,3 +331,6 @@ class Granary(Building):
         self.storage = 0
     def is_full(self):
         return self.storage >= 5*gdata.MAX_PRODUCTION
+
+    def inc_storage(self):
+        self.storage += gdata.MAX_PRODUCTION
