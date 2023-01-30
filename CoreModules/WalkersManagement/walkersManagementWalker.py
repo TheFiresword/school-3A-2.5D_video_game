@@ -257,10 +257,12 @@ class Walker:
         return new
 
 
-    def move_to_another_dwell(self, target_pos):
+    def move_to_another_dwell(self, target_pos, walk_through = False):
         # Normally init_pos is the dwell position
-        (a,b) = self.map_associated.walk_to_a_building(init_pos = self.init_pos, dest_pos = self.dest_pos,building_target_pos = target_pos, current_path_to_follow = self.current_path_to_follow)
-        if not a in [False,None]:
+        (a,b) = self.map_associated.walk_to_a_building(init_pos = self.init_pos, dest_pos = self.dest_pos,
+                    building_target_pos = target_pos, current_path_to_follow = self.current_path_to_follow,
+                                                       walk_through= walk_through)
+        if a not in [False,None]:
             self.current_path_to_follow = b        
             return True
         return False
@@ -433,10 +435,6 @@ class Cart_Pusher_Wheat(Citizen):
     def work(self, buildings, game_update_object):
         pass
 
-    def move_to_another_dwell(self, target_pos):
-        # Normally init_pos is the dwell position
-        return super.move_to_another_dwell(target_pos)
-        # return False
 class Delivery_Boy(Walker):
     def work(self):
         pass
