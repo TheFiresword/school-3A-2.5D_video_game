@@ -70,6 +70,8 @@ class Walker:
         self.id = Service_Static_functions.get_id()
         self.is_at_home = True
 
+        self.wait = False
+
     def walk(self, zoom, back=False):
         self.zoom = zoom
 
@@ -323,7 +325,6 @@ class Citizen(Walker):
         self.id = id
         self.is_at_home = is_at_home
 
-        self.wait = False
 
     def work(self, buildings, game_update_object):
         pass
@@ -333,8 +334,6 @@ class Citizen(Walker):
             self.game.walkersAll.remove(self)
         if self in self.game.walkersOut:
             self.game.walkersOut.remove(self)
-        if self in self.game.unemployedCitizens:
-            self.game.unemployedCitizens.remove(self)
         del self
 
     def set_working_building(self, building):
@@ -431,11 +430,10 @@ class Cart_Pusher_Wheat(Citizen):
     def work(self, buildings, game_update_object):
         pass
 
-    def move_to_another_dwell(self, target_pos, init_pos_adjacence):
+    def move_to_another_dwell(self, target_pos):
         # Normally init_pos is the dwell position
-        if not self.wait:
-            super.move_to_another_dwell(target_pos, init_pos_adjacence)
-        return False
+        return super.move_to_another_dwell(target_pos)
+        # return False
 class Delivery_Boy(Walker):
     def work(self):
         pass
