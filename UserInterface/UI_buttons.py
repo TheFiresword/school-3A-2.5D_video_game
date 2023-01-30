@@ -49,9 +49,7 @@ class QuitButton(Text_Button_background):
 
 class SettingButton(Text_Button_background):
     def on_click(self, event: arcade.gui.UIOnClickEvent):
-        window = arcade.get_window()
-        window.settingscreen.setup()
-        window.show_view(window.settingscreen)
+        pass
 
 
 class NewGameButton(Text_Button_background):
