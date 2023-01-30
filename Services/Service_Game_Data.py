@@ -36,7 +36,8 @@ building_dico = {
     "venus temple": Building_info(50, -1, 1*const.WALKER_UNIT, "venus_temple", False, False),
     "amphitheater": Building_info(100, -1, 2*const.WALKER_UNIT, "amphitheater", False, False),
     "barber": Building_info(25, -1, 1*const.WALKER_UNIT, "barber", True, False),
-    "normal_bath": Building_info(50, -1, 2*const.WALKER_UNIT, "normal_bath", False, True),
+    "normal bath": Building_info(50, -1, 2*const.WALKER_UNIT, "normal_bath", False, True),
+    
     "barracks": Building_info(150, -1, 2*const.WALKER_UNIT, "barracks", False, True),
     "clay pit": Building_info(40, -1, 2*const.WALKER_UNIT, "clay_pit", True, False),
     "colosseum": Building_info(500, -1, 5*const.WALKER_UNIT, "colosseum", False, False),
@@ -63,6 +64,7 @@ building_dico = {
     "low bridge": Building_info(40, -1, 2*const.WALKER_UNIT, "", False, False),
     "lararium": Building_info(30, -1, 2*const.WALKER_UNIT, "", False, False),
     "lighthouse": Building_info(1250, -1, 2*const.WALKER_UNIT, "", False, False),
+    "luxurious bath": Building_info(50, -1, 2*const.WALKER_UNIT, "luxurious_bath", False, True),
     "marble quarry": Building_info(40, -1, 2*const.WALKER_UNIT, "marble_quarry", True, False),
     "market": Building_info(40, -1, 2*const.WALKER_UNIT, "market", True, False),
     "oil workshop": Building_info(40, -1, 2*const.WALKER_UNIT, "oil_workshop", True, False),
@@ -95,15 +97,15 @@ building_dico = {
 
 road_dico = {'cost': 4}
 
-text_water = ["Reservoir","Aqueduct","Fountain","Well"]
-text_health = ["Barber","Baths","Doctor","Hospital"]
-text_religion = ["Ares Temple","Neptune Temple","Mercury Temple","Mars Temple","Venus Temple","Lararium"]
-text_roll = ["School","Academy","Librairy"]
-text_entertainment = ["Theater","Tavern","Amphitheater","Arena","Colosseum","Gladiator School","Lion House","Actor Colony"]
-text_education = ["Status","Trees","Parks","Paths","Governer's Mansion","Garden","Plaza","Road blocs","Forums","Senate"]
-text_hammer = ["Engineer's post", "Low Bridge", "Ship Bridge", "Dock","Work camp","Architects Guild","Lighthouse"]
-text_sword = ["Wall","Tower","Gatehouse","Palisade","Prefecture","Fort","Military academi","Barracks","Watchtower"]
-text_carry = ["Wheat Farm","Vegetable Farm","Olive Farm","Clay Pit","Iron Mine","Weapons Workshop","Wine Workshop","Furniture Workshop","Pottery Workshop","Market","Granary","Warehouse","Caravan serai"]
+text_water = ["Reservoir","Fountain","Well"]
+text_health = ["Barber","Normal Bath","Luxurious Bath","Hospital"]
+text_religion = ["Ares Temple","Neptune Temple","Mercury Temple","Mars Temple","Venus Temple"]
+text_roll = ["School"]
+text_entertainment = ["Theater","Amphitheater","Colosseum","Gladiator School","Lion House","Actor Colony"]
+text_education = ["Senate"]
+text_hammer = ["Engineer's post"]
+text_sword = ["Prefecture"]
+text_carry = ["Wheat Farm","Vegetable Farm","Olive Farm","Vine Farm","Pig Farm","Fruit Farm","Clay Pit","Furniture Workshop","Market","Granary"]
 
 
 removing_cost = 2
