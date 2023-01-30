@@ -36,7 +36,8 @@ building_dico = {
     "venus temple": Building_info(50, -1, 1*const.WALKER_UNIT, "venus_temple", False, False),
     "amphitheater": Building_info(100, -1, 2*const.WALKER_UNIT, "amphitheater", False, False),
     "barber": Building_info(25, -1, 1*const.WALKER_UNIT, "barber", True, False),
-    "normal_bath": Building_info(50, -1, 2*const.WALKER_UNIT, "normal_bath", False, True),
+    "normal bath": Building_info(50, -1, 2*const.WALKER_UNIT, "normal_bath", False, True),
+    
     "barracks": Building_info(150, -1, 2*const.WALKER_UNIT, "barracks", False, True),
     "clay pit": Building_info(40, -1, 2*const.WALKER_UNIT, "clay_pit", True, False),
     "colosseum": Building_info(500, -1, 5*const.WALKER_UNIT, "colosseum", False, False),
@@ -45,7 +46,7 @@ building_dico = {
     "dwell": Building_info(10, 1, 1*const.WALKER_UNIT, "dwell", False, False),
     "engineer's post": Building_info(30, 1, 1*const.WALKER_UNIT, "engineer's_post", False, False),
     "forum": Building_info(75, 4, 1*const.WALKER_UNIT, "forum", False, False),
-    "fruit farm": Building_info(40, -1, 2*const.WALKER_UNIT, "fruit_farm", True, False),
+    "fruit farm": Building_info(40, -1, 1*const.WALKER_UNIT, "fruit_farm", True, False),
     "furniture workshop": Building_info(40, -1, 2*const.WALKER_UNIT, "furniture_workshop", True, False),
     "fort": Building_info(40, -1, 2*const.WALKER_UNIT, "fort", True, False),
     "fountain": Building_info(15, -1, 2*const.WALKER_UNIT, "fountain", True, False),
@@ -63,14 +64,15 @@ building_dico = {
     "low bridge": Building_info(40, -1, 2*const.WALKER_UNIT, "", False, False),
     "lararium": Building_info(30, -1, 2*const.WALKER_UNIT, "", False, False),
     "lighthouse": Building_info(1250, -1, 2*const.WALKER_UNIT, "", False, False),
+    "luxurious bath": Building_info(50, -1, 2*const.WALKER_UNIT, "luxurious_bath", False, True),
     "marble quarry": Building_info(40, -1, 2*const.WALKER_UNIT, "marble_quarry", True, False),
     "market": Building_info(40, -1, 2*const.WALKER_UNIT, "market", True, False),
     "oil workshop": Building_info(40, -1, 2*const.WALKER_UNIT, "oil_workshop", True, False),
     "military academi": Building_info(1000, -1, 2*const.WALKER_UNIT, "military_academy", True, False),
-    "olive farm": Building_info(40, -1, 2*const.WALKER_UNIT, "olive_farm", True, False),
+    "olive farm": Building_info(40, -1, 1*const.WALKER_UNIT, "olive_farm", True, False),
     "palisade": Building_info(6, -1, 0*const.WALKER_UNIT, "", False, False),
     "plaza": Building_info(15, -1, 0*const.WALKER_UNIT, "plaza", False, False),
-    "pig farm": Building_info(40, -1, 2*const.WALKER_UNIT, "pig_farm", True, False),
+    "pig farm": Building_info(40, -1, 1*const.WALKER_UNIT, "pig_farm", True, False),
     "prefecture": Building_info(40, -1, 1*const.WALKER_UNIT, "prefecture", True, False),
     "pottery workshop": Building_info(40, -1, 2*const.WALKER_UNIT, "pottery_workshop", True, False),
     "reservoir": Building_info(40, -1, 0*const.WALKER_UNIT, "reservoir", True, False),
@@ -81,11 +83,11 @@ building_dico = {
     "theater": Building_info(50, -1, 2*const.WALKER_UNIT, "theater", False, False),
     "tower": Building_info(40, -1, 2*const.WALKER_UNIT, "tower", True, False),
     "timber yard": Building_info(40, -1, 2*const.WALKER_UNIT, "timber_yard", True, False),
-    "vegetable farm": Building_info(40, -1, 2*const.WALKER_UNIT, "vegetable_farm", True, False),
-    "vine farm": Building_info(40, -1, 2*const.WALKER_UNIT, "vine_farm", True, False),
+    "vegetable farm": Building_info(40, -1, 1*const.WALKER_UNIT, "vegetable_farm", True, False),
+    "vine farm": Building_info(40, -1, 1*const.WALKER_UNIT, "vine_farm", True, False),
     "watchtower": Building_info(100, -1, 2*const.WALKER_UNIT, "", False, True),
     "weapons workshop": Building_info(40, -1, 2*const.WALKER_UNIT, "weapons_workshop", True, False),
-    "wheat farm": Building_info(40, -1, 2*const.WALKER_UNIT, "wheat_farm", True, False),
+    "wheat farm": Building_info(40, -1, 1*const.WALKER_UNIT, "wheat_farm", True, False),
     "wine workshop": Building_info(40, -1, 2*const.WALKER_UNIT, "wine_workshop", True, False),
     "warehouse": Building_info(40, -1, 2*const.WALKER_UNIT, "warehouse", True, False),
     "work camp": Building_info(150, -1, 2*const.WALKER_UNIT, "", False, False),
@@ -95,20 +97,22 @@ building_dico = {
 
 road_dico = {'cost': 4}
 
-text_water = ["Reservoir","Aqueduct","Fountain","Well"]
-text_health = ["Barber","Baths","Doctor","Hospital"]
-text_religion = ["Ares Temple","Neptune Temple","Mercury Temple","Mars Temple","Venus Temple","Lararium"]
-text_roll = ["School","Academy","Librairy"]
-text_entertainment = ["Theater","Tavern","Amphitheater","Arena","Colosseum","Gladiator School","Lion House","Actor Colony"]
-text_education = ["Status","Trees","Parks","Paths","Governer's Mansion","Garden","Plaza","Road blocs","Forums","Senate"]
-text_hammer = ["Engineer's post", "Low Bridge", "Ship Bridge", "Dock","Work camp","Architects Guild","Lighthouse"]
-text_sword = ["Wall","Tower","Gatehouse","Palisade","Prefecture","Fort","Military academi","Barracks","Watchtower"]
-text_carry = ["Wheat Farm","Vegetable Farm","Olive Farm","Clay Pit","Iron Mine","Weapons Workshop","Wine Workshop","Furniture Workshop","Pottery Workshop","Market","Granary","Warehouse","Caravan serai"]
+text_water = ["Reservoir","Fountain","Well"]
+text_health = ["Barber","Normal Bath","Luxurious Bath","Hospital"]
+text_religion = ["Ares Temple","Neptune Temple","Mercury Temple","Mars Temple","Venus Temple"]
+text_roll = ["School"]
+text_entertainment = ["Theater","Amphitheater","Colosseum","Gladiator School","Lion House","Actor Colony"]
+text_education = ["Senate"]
+text_hammer = ["Engineer's post"]
+text_sword = ["Prefecture"]
+text_carry = ["Wheat Farm","Vegetable Farm","Olive Farm","Vine Farm","Pig Farm","Fruit Farm","Clay Pit","Furniture Workshop","Market","Granary"]
 
 
 removing_cost = 2
 risk_random_ratio = 40
 
+MAX_PRODUCTION = 50
+PRODUCTION_PER_PART = 10
 
 def get_housing_requirements(level):
 
