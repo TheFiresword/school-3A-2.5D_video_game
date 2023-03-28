@@ -3,11 +3,12 @@
 
 // comment on met les coordonnées des trucs ???
 
-#define DETRUIRE            1
-#define CONSTRUIRE_PANNEAU  2
-#define PANNEAU_TO_TENTE    3
-#define TENTE_TO_MAISON     4
-#define POSER_CHEMIN        5
-#define WALKER              6
-#define PREFECTURE          7
-#define PUIT                8
+#define PELLE               0
+#define CONSTRUIRE_BAT      1
+#define EVOLUER_BAT         2
+#define POSER_CHEMIN        3
+#define WALKER_NEW          4
+#define WALKER_DEAD         5
+#define INCENDIE            6
+#define ECROULEMENT         7
+#define EMPLOI              8
