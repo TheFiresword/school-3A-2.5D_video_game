@@ -5,8 +5,8 @@
 
 #define DETRUIRE            1
 #define CONSTRUIRE_PANNEAU  2
-#define PANNEAU_TO_TANTE    3
-#define TANTE_TO_MAISON     4
+#define PANNEAU_TO_TENTE    3
+#define TENTE_TO_MAISON     4
 #define POSER_CHEMIN        5
 #define WALKER              6
 #define PREFECTURE          7
