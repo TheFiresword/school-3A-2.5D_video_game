@@ -124,7 +124,6 @@ class LoadScreen(arcade.View):
 
     def leave_button_on_click(self,event):
         window = arcade.get_window()
-        window.settingscreen.setup()
         if self.fromview == "welcome":
             window.show_view(window.welcomescreen)
         if self.fromview == "game":
@@ -132,7 +131,6 @@ class LoadScreen(arcade.View):
     
     def validate_button_on_click(self,event):
         window = arcade.get_window()
-        window.settingscreen.setup()
         if self.selected_game != "":
             window.gamescreen = rgv.GameView(_game=sal.load_game(self.selected_game.split(".")[0]))
             window.show_view(window.gamescreen)

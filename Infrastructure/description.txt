@@ -1,1 +1,0 @@
-Gestion des bases de données, en l'occurence, les fichiers qui contiennent les données nécéssaires
