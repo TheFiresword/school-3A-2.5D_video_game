@@ -9,6 +9,7 @@ from pyglet.math import Vec2
 class VisualMap:
 
     def __init__(self):
+        self.game = None
         self.grass_layer = None #sprite list for grass layer
         self.hills_layer = None #sprite list for hills layer
         self.trees_layer = None #sprite list for trees layer
@@ -16,6 +17,7 @@ class VisualMap:
         self.fire_layer = None #sprite list for buildings on fire layer
         self.fire_count = 0 #count of fire state
         self.fire_layer_show = True #sprite list for fire risk layer   
+        self.ownership_layer_show = False #sprite list for ownership layer
         self.destroyed_layer = None #sprite list for destroyed layer
         self.destroyed_layer_show = True 
         self.collapse_risk_layer = None #sprite list for risk of collapsing layer
@@ -23,20 +25,24 @@ class VisualMap:
         self.buildings_layer = None #sprite list for buildings layer
         self.walker_to_render = None 
         self.fire_risk_layer = None
+        self.ownership_layer = None #sprite list for ownership layer
         self.fire_risk_layer_show = False
         self.map_scaling = constantes.SPRITE_SCALING
         self.red_sprite = arcade.Sprite()
         self.red_sprite.visible = False
+        self.ownership_sprite = arcade.load_texture(constantes.SPRITE_PATH + "Land/LandOverlay/Land2a_00037.png")
         self.destroyed = constantes.SPRITE_PATH + "Land/LandOverlay/Land2a_00112.png"
         pass
     
     def setup(self, game):
+        self.game = game
         self.grass_layer = arcade.SpriteList(use_spatial_hash=True)
         self.hills_layer = arcade.SpriteList()
         self.trees_layer = arcade.SpriteList()
         self.roads_layer = arcade.SpriteList()
         self.buildings_layer = arcade.SpriteList()
         self.walker_to_render = arcade.SpriteList()
+        self.ownership_layer = arcade.SpriteList()
         self.destroyed_layer = arcade.SpriteList() #sprite list of destroyed buildings
         self.fire_layer = arcade.SpriteList() #sprite list of burning buildings
         self.fire_risk_layer = arcade.SpriteList() 
@@ -47,6 +53,7 @@ class VisualMap:
         self.update_layers(self.roads_layer, game.map.roads_layer.array)
         self.update_layers(self.buildings_layer, game.map.buildings_layer.array)
         self.update_walker_list(game.walkersOut)
+
         pass
 
 
@@ -127,7 +134,7 @@ class VisualMap:
                 _sprite.center_x += (count-1)*constantes.TILE_WIDTH/2*self.map_scaling
                 _sprite.center_y += overflowing_height/2
                 
-                if hasattr(array[i][j],"isBurning") and hasattr(array[i][j],"isDestroyed") and hasattr(array[i][j],"risk_level_dico"):
+                if hasattr(array[i][j],"isBurning") and hasattr(array[i][j],"isDestroyed") and hasattr(array[i][j],"risk_level_dico") and hasattr(array[i][j],"owner"):
                     if array[i][j].isBurning or array[i][j].isDestroyed:
                         _sprite.visible = False
                     if array[i][j].isBurning:
@@ -149,11 +156,20 @@ class VisualMap:
                         collapse_risk_sprite.center_y = self.grass_layer[k].center_y + h/2
                     collapse_risk_sprite.visible = array[i][j].dic["version"] not in ["null","occupied"]
                     self.fire_risk_layer.append(fire_risk_sprite)
-                    self.collapse_risk_layer.append(collapse_risk_sprite)                    
+                    self.collapse_risk_layer.append(collapse_risk_sprite)        
+                    temp = [ i[0] for i in self.game.players]
+                    if array[i][j].owner  in temp:
+                        this_sprite = arcade.Sprite(texture=self.ownership_sprite)
+                        this_sprite.center_x, this_sprite.center_y = _sprite.center_x, _sprite.center_y
+                        player_index = temp.index(array[i][j].owner)
+                        this_sprite.color = self.game.players[player_index][1]
+                        this_sprite.scale = self.map_scaling
+                        self.ownership_layer.append(this_sprite)
                 k -= 1
                 layer.append(_sprite)
         layer.reverse()
         if layer == self.buildings_layer:
+            self.ownership_layer.reverse()
             self.fire_risk_layer.reverse()
             self.collapse_risk_layer.reverse()
           
@@ -202,7 +218,7 @@ class VisualMap:
         layers = [(self.grass_layer, game.map.grass_layer.activate), (self.roads_layer, game.map.roads_layer.activate),
                   (self.hills_layer, game.map.hills_layer.activate), (self.trees_layer, game.map.trees_layer.activate),
                   (self.buildings_layer, game.map.buildings_layer.activate),(self.fire_layer,self.fire_layer_show),(self.destroyed_layer,self.destroyed_layer_show)
-                  ,(self.fire_risk_layer,self.fire_risk_layer_show),(self.collapse_risk_layer,self.collapse_risk_layer_show)]
+                  ,(self.fire_risk_layer,self.fire_risk_layer_show),(self.collapse_risk_layer,self.collapse_risk_layer_show),(self.ownership_layer,self.ownership_layer_show)]
         for k in layers:
             if k[1]: k[0].draw()
 
