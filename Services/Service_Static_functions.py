@@ -1,7 +1,8 @@
 import Services.servicesGlobalVariables as constantes
 import arcade
 
-
+def position_is_valid(i, j):
+    return (0 <= i < constantes.TILE_COUNT) and (0 <= j < constantes.TILE_COUNT)
 def convert_sprite_list_index_to_logic_position(sprite_list_index):
     """
         Il faut tenir compte du fait que les spritesList sont inversées pour l'affichage et donc que l'ordre est inversé
