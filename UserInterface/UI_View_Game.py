@@ -5,7 +5,6 @@ from uuid import uuid4
 
 from CoreModules.WalkersManagement.walkersManagementWalker import Immigrant
 
-from UserInterface import UI_Section as uis
 from UserInterface import UI_buttons
 from UserInterface import UI_HUD_Build as hudb
 from UserInterface import UI_Visual_Map as uivm
@@ -162,7 +161,7 @@ class GameView(arcade.View):
                                               "sword":False,
                                               "carry":False,
                                               }
-        self.menusect = uis.MenuSect()
+
         self.map_camera = arcade.Camera()
         self.menu_camera = arcade.Camera()
         self.minimap_camera = arcade.Camera()
