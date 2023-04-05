@@ -38,6 +38,7 @@ class Game:
 
         self.framerate = globalVar.DEFAULT_FPS
         self.updated = []
+        self.players = [["moi", (0,0,255)]]
 
         # some lists of specific buildings
         self.dwelling_list = []
@@ -732,6 +733,7 @@ class Game:
             building = buildings.Granary(self.map.buildings_layer, globalVar.LAYER5)
         else:
             building = buildings.Building(self.map.buildings_layer, globalVar.LAYER5, version)
+        building.owner = "moi"
 
         # we should check that there is no water on the future positions
         cells_number = building.dic['cells_number']

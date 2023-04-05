@@ -237,6 +237,14 @@ class GameView(arcade.View):
         self.collapse_layer_button = UI_buttons.Text_Button_background(x=constantes.DEFAULT_SCREEN_WIDTH-282,y = constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height -51,width=120,height=25,texture=UI_buttons.texture_panel11,my_text="Collapse",color="black")
         self.layer_manager.add(self.collapse_layer_button)
         self.collapse_layer_button.on_click = self.button_collapse_layer_on_click
+        self.owner_layer_button = UI_buttons.Text_Button_background(x=constantes.DEFAULT_SCREEN_WIDTH - 282,
+                                                                       y=constantes.DEFAULT_SCREEN_HEIGHT - self.bar.height - 75,
+                                                                       width=120, height=25,
+                                                                       texture=UI_buttons.texture_panel11,
+                                                                       my_text="owner", color="black")
+        self.owner_layer_button.on_click = self.button_owner_layer_on_click
+        self.layer_manager.add(self.owner_layer_button)
+        self.collapse_layer_button.on_click = self.button_collapse_layer_on_click
         self.bar_manager.add(self.load_button)
         self.bar_manager.enable()
 
@@ -890,6 +898,7 @@ class GameView(arcade.View):
         self.visualmap.collapse_risk_layer_show = False
         self.visualmap.destroyed_layer_show = False
         self.visualmap.fire_layer_show = False
+        self.visualmap.ownership_layer_show = False
     
     def button_collapse_layer_on_click(self,event):
         self.visualmap.buildings_layer.visible = False
@@ -897,6 +906,15 @@ class GameView(arcade.View):
         self.visualmap.collapse_risk_layer_show = True
         self.visualmap.destroyed_layer_show = False
         self.visualmap.fire_layer_show = False
+        self.visualmap.ownership_layer_show = False
+
+    def button_owner_layer_on_click(self,event):
+        self.visualmap.buildings_layer.visible = False
+        self.visualmap.fire_risk_layer_show = False
+        self.visualmap.collapse_risk_layer_show = False
+        self.visualmap.destroyed_layer_show = False
+        self.visualmap.fire_layer_show = False
+        self.visualmap.ownership_layer_show = True
     
     def button_normal_layer_on_click(self,event):
         self.visualmap.buildings_layer.visible = True
@@ -904,6 +922,7 @@ class GameView(arcade.View):
         self.visualmap.collapse_risk_layer_show = False
         self.visualmap.destroyed_layer_show = True
         self.visualmap.fire_layer_show = True
+        self.visualmap.ownership_layer_show = False
         self.visualmap.update_layers(self.visualmap.buildings_layer,self.game.map.buildings_layer.array)
 
 
