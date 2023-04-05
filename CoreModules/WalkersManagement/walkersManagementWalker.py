@@ -4,7 +4,6 @@ from Services import Service_Walker_Sprite_To_File as wstf
 from Services import Service_Static_functions
 from CoreModules.BuildingsManagement.buildingsManagementBuilding import Building, Dwelling
 
-
 # ============================================#
 # Relative to pathfinding--We use the library pathfinding
 from pathfinding.core.grid import Grid
@@ -20,7 +19,7 @@ down = "down"
     A walker is an entity,with a actual position, a destination (other tile to move to), to walk to the destination tile it has to do 
     at least several steps so we count the number of step (self.compteur)and we deduce the offset for the visual display , the choice 
     to the destination is random between tile with effective roads
-    
+
     Some rules about walkers
     * When a dwell is built immigrants are called till its capacity is reached  ###ok         
     * A walker lives in a house and if he works, he is linked to a work building (farm, prefecture, etc)
@@ -28,14 +27,17 @@ down = "down"
         he stays no more not at home but he is still supposed to reside in his housing (in term of effective) ###ok
         he changes clothes and appearance ###ok
         he walks in the city within a range and distribute its service to the buildings that need it ###ok
-        
+
         -But if he is a prefect he is called to wherever a building is burning and has to go there 
         -And if he is a cart pusher he does not walk randomly but stays at farm building untill he is asked to push 
              product to somewhere.
+        - If she is a market trader then she walks randomly from the granary -- She collects food from the granary if it
+        is not empty and distributes it to the house -- If she has no food, she checks for the granary every 10s
+
     * When his house burns or collapses, he looks for another house that still has space -- if no house is found then
     he leaves the town ###ok
     * When his work building burns or collapses he goes back at home and is reallocated to another task if possible
-    
+
     * We don't take account desirability for now
 """
 
@@ -64,6 +66,7 @@ class Walker:
             self.__class__.__name__)
         self.direction = list()
         self.current_path_to_follow = []
+        self.previous_path = None
         self.dest_compteur = 0
 
         # Id obtained via an iterator
@@ -91,11 +94,13 @@ class Walker:
         if not self.dest_pos:
             possible = []
             if (not (right_tile[0] == -1 or right_tile[0] == cst.TILE_COUNT or right_tile[1] == -1 or right_tile[
-                1] == cst.TILE_COUNT)) and self.road_layer.is_real_road(right_tile[0], right_tile[1]) and self.head != left:
+                1] == cst.TILE_COUNT)) and self.road_layer.is_real_road(right_tile[0],
+                                                                        right_tile[1]) and self.head != left:
                 possible.append(right_tile)
 
             if (not (left_tile[0] == -1 or left_tile[0] == cst.TILE_COUNT or left_tile[1] == -1 or left_tile[
-                1] == cst.TILE_COUNT)) and self.road_layer.is_real_road(left_tile[0], left_tile[1]) and self.head != right:
+                1] == cst.TILE_COUNT)) and self.road_layer.is_real_road(left_tile[0],
+                                                                        left_tile[1]) and self.head != right:
                 possible.append(left_tile)
 
             if (not (up_tile[0] == -1 or up_tile[0] == cst.TILE_COUNT or up_tile[1] == -1 or up_tile[1] ==
@@ -133,7 +138,6 @@ class Walker:
         elif self.dest_pos == down_tile:
             self.head = down
 
-
         if self.compteur < self.fps - 1:
             self.compteur += 1
             (a, b) = self.variation_pos_visuel(self.init_pos, self.dest_pos)
@@ -148,17 +152,19 @@ class Walker:
             self.offset_x, self.offset_y = (0, 0)
             self.compteur = 0
             if back:
+                if self.current_path_to_follow:
                     if self.dest_compteur >= len(self.current_path_to_follow):
                         self.dest_compteur = 0
                         self.current_path_to_follow.reverse()
                     else:
-                        self.current_path_to_follow=self.current_path_to_follow[self.dest_compteur]
+                        self.current_path_to_follow = self.current_path_to_follow[self.dest_compteur]
                         self.current_path_to_follow.reverse()
                         self.dest_compteur += 1
             else:
                 if self.current_path_to_follow:
                     if self.dest_compteur == len(self.current_path_to_follow) - 1:
                         self.dest_compteur = 0
+                        # self.previous_path = self.current_path_to_follow.reverse().copy()
                         self.current_path_to_follow.clear()
 
                         if type(self) == Immigrant:
@@ -172,7 +178,6 @@ class Walker:
                         return 0
                     else:
                         self.dest_compteur += 1
-
 
     def exit_way(self):
         """
@@ -189,7 +194,7 @@ class Walker:
 
         integer_array_associated_with_map = [
             [1 if self.map_associated.cell_is_walkable(row, column, can_walk_on_signal=True)
-            else  50 if self.map_associated.cell_is_walkable_desperately(row, column)
+             else 50 if self.map_associated.cell_is_walkable_desperately(row, column)
             else 0 for column in range(cst.TILE_COUNT)]
             for row in range(cst.TILE_COUNT)]
 
@@ -232,48 +237,51 @@ class Walker:
             return cst.TILE_WIDTH * self.zoom / (2 * self.fps), -1 * cst.TILE_HEIGHT * self.zoom / (2 * self.fps)
         if depart[0] == arrive[0] and depart[1] > arrive[1]:
             return -1 * cst.TILE_WIDTH * self.zoom / (2 * self.fps), cst.TILE_HEIGHT * self.zoom / (2 * self.fps)
+        else:
+            return cst.TILE_WIDTH * self.zoom / (2 * self.fps), cst.TILE_HEIGHT * self.zoom / (2 * self.fps)
 
     def change_profession(self, new_type):
-        new = None
+        _class = None
         if new_type == "citizen":
-            new = Citizen(self.init_pos[0],self.init_pos[1],self.house,self.zoom,self.game,self.fps,self.head,
-            self.init_pos,self.dest_pos,self.compteur,self.offset_x,self.offset_y,self.id,self.is_at_home,
-                          self.direction,self.current_path_to_follow.copy(),self.dest_compteur)
+            _class = Citizen
         elif new_type == "prefect":
-            new = Prefect(self.init_pos[0],self.init_pos[1],self.house,self.zoom,self.game,self.fps,self.head,
-            self.init_pos,self.dest_pos,self.compteur,self.offset_x,self.offset_y,self.id,self.is_at_home,
-                          self.direction,self.current_path_to_follow.copy(),self.dest_compteur)
+            _class = Prefect
         elif new_type == "engineer":
-            new = Engineer(self.init_pos[0],self.init_pos[1],self.house,self.zoom,self.game,self.fps,self.head,
-            self.init_pos,self.dest_pos,self.compteur,self.offset_x,self.offset_y,self.id,self.is_at_home,
-                          self.direction,self.current_path_to_follow.copy(),self.dest_compteur)
+            _class = Engineer
         elif new_type == "priest":
-            new = Priest(self.init_pos[0],self.init_pos[1],self.house,self.zoom,self.game,self.fps,self.head,self.init_pos,self.dest_pos,self.compteur,self.offset_x,self.offset_y,self.id,self.is_at_home,
-                          self.direction,self.current_path_to_follow.copy(),self.dest_compteur)
+            _class = Priest
         elif new_type == "pusher_wheat":
-            new = Cart_Pusher_Wheat(self.init_pos[0],self.init_pos[1],self.house,self.zoom,self.game,self.fps,self.head,
-            self.init_pos,self.dest_pos,self.compteur,self.offset_x,self.offset_y,self.id,self.is_at_home,
-                          self.direction,self.current_path_to_follow.copy(),self.dest_compteur)
+            _class = Cart_Pusher_Wheat
+        elif new_type == "market_trader":
+            _class = Market_Trader
+        elif new_type == "soldier":
+            _class = Soldier
+
+        new = _class(self.init_pos[0], self.init_pos[1], self.house, self.zoom, self.game, self.fps, self.head,
+                     self.init_pos, self.dest_pos, self.compteur, self.offset_x, self.offset_y, self.id,
+                     self.is_at_home,
+                     self.direction, self.current_path_to_follow, self.dest_compteur)
         return new
 
-
-    def move_to_another_dwell(self, target_pos, walk_through = False):
+    def move_to_another_dwell(self, target_pos, walk_through=False):
         # Normally init_pos is the dwell position
-        (a,b) = self.map_associated.walk_to_a_building(init_pos = self.init_pos, dest_pos = self.dest_pos,
-                    building_target_pos = target_pos, current_path_to_follow = self.current_path_to_follow,
-                                                       walk_through= walk_through)
-        print(b)
-        if a not in [False,None]:
-            self.current_path_to_follow = b        
+        (a, b) = self.map_associated.walk_to_a_building(init_pos=self.init_pos, dest_pos=self.dest_pos,
+                                                        building_target_pos=target_pos,
+                                                        current_path_to_follow=self.current_path_to_follow,
+                                                        walk_through=walk_through)
+        # print(str(target_pos) + " towards" + str(b))
+        if a not in [False, None]:
+            self.current_path_to_follow = b
             return True
         return False
 
 
-
 class Immigrant(Walker):
 
-    def __init__(self, pos_ligne, pos_col, house, zoom, game, path=[], building=None):
+    def __init__(self, pos_ligne, pos_col, house, zoom, game, path=None, building=None):
         super(Immigrant, self).__init__(pos_ligne, pos_col, house, zoom, game)
+        if path is None:
+            path = []
         self.current_path_to_follow = path
         self.dest_compteur = 0
         self.house = building
@@ -301,22 +309,12 @@ class Immigrant(Walker):
         self.house.add_employee(self.id)
         return self.change_profession("citizen")
 
-    """def find_house(self,path=[]):
-        # Parcourir la liste des maisons, trouver celle dans lesquelle peut s'installer(nombre d'habitant, niveau d'habitaion)
-        for building in self.game.buildinglist:
-            if type(building) == Dwelling and building.current_population<building.max_population:
-                if not path:
-                    self.current_path_to_follow = self.map_associated.walk_to_a_building(self.init_pos,self.dest_pos,building.position,self.current_path_to_follow)[1]
-                self.house = building
-                building.current_population += 1
-                return
-        pass"""
 
-class Citizen(Walker):
-
-    def __init__(self,pos_ligne, pos_col, house, zoom, game,fps,head,init_pos,dest_pos,compteur,offset_x,offset_y,id,
-                 is_at_home,direction,current_path,dest_compteur):
-        super(Citizen, self).__init__(pos_ligne, pos_col, house, zoom, game)
+class PreCitizen(Walker):
+    def __init__(self, pos_ligne, pos_col, house, zoom, game, fps, head, init_pos, dest_pos, compteur, offset_x,
+                 offset_y, id,
+                 is_at_home, direction, current_path, dest_compteur):
+        super().__init__(pos_ligne, pos_col, house, zoom, game)
         self.fps = fps
         self.zoom = zoom
         self.head = head
@@ -331,9 +329,19 @@ class Citizen(Walker):
         self.id = id
         self.is_at_home = is_at_home
 
+        self.beg_loading_ref = None
 
     def work(self, buildings, game_update_object):
         pass
+
+
+class Citizen(PreCitizen):
+    def __init__(self, pos_ligne, pos_col, house, zoom, game, fps, head, init_pos, dest_pos, compteur, offset_x,
+                 offset_y, id,
+                 is_at_home, direction, current_path, dest_compteur):
+        super().__init__(pos_ligne, pos_col, house, zoom, game, fps, head, init_pos, dest_pos, compteur, offset_x,
+                         offset_y, id,
+                         is_at_home, direction, current_path, dest_compteur)
 
     def get_out_city(self):
         if self in self.game.walkersAll:
@@ -345,24 +353,14 @@ class Citizen(Walker):
     def set_working_building(self, building):
         self.work_building = building
 
+
 class Engineer(Citizen):
-    def __init__(self,pos_ligne, pos_col, house, zoom, game,fps,head,init_pos,dest_pos,compteur,offset_x,offset_y,id,
-                 is_at_home,direction,current_path, dest_compteur):
-        super(Engineer, self).__init__(pos_ligne, pos_col, house, zoom, game,fps,head,init_pos,dest_pos,compteur,offset_x,offset_y,id,
-                 is_at_home,direction,current_path,dest_compteur)
-        self.fps = fps
-        self.zoom = zoom
-        self.head = head
-        self.init_pos = init_pos
-        self.dest_pos = dest_pos
-        self.compteur = compteur
-        self.offset_x, self.offset_y = offset_x, offset_y
-        self.house = house
-        self.direction = direction
-        self.current_path_to_follow = current_path
-        self.dest_compteur = dest_compteur
-        self.id = id
-        self.is_at_home = is_at_home
+    def __init__(self, pos_ligne, pos_col, house, zoom, game, fps, head, init_pos, dest_pos, compteur, offset_x,
+                 offset_y, id,
+                 is_at_home, direction, current_path, dest_compteur):
+        super().__init__(pos_ligne, pos_col, house, zoom, game, fps, head, init_pos, dest_pos, compteur, offset_x,
+                         offset_y, id,
+                         is_at_home, direction, current_path, dest_compteur)
 
     def work(self, buildings, game_update_object):
         """
@@ -370,30 +368,19 @@ class Engineer(Citizen):
         """
         for b in buildings:
             b.reset_damage_risk()
-            game_update_object.collapse_level_change.append((b.position, self.game.updatebuilding(b)["collapse_level"][1]))
+            game_update_object.collapse_level_change.append(
+                (b.position, self.game.updatebuilding(b)["collapse_level"][1]))
         pass
 
 
 class Prefect(Citizen):
-    def __init__(self,pos_ligne, pos_col, house, zoom, game,fps,head,init_pos,dest_pos,compteur,offset_x,offset_y,id,
-                 is_at_home,direction,current_path, dest_compteur):
-        super(Prefect, self).__init__(pos_ligne, pos_col, house, zoom, game,fps,head,init_pos,dest_pos,compteur,offset_x,offset_y,id,
-                 is_at_home,direction,current_path,dest_compteur)
-        self.fps = fps
-        self.zoom = zoom
-        self.head = head
-        self.init_pos = init_pos
-        self.dest_pos = dest_pos
-        self.compteur = compteur
-        self.offset_x, self.offset_y = offset_x, offset_y
-        self.house = house
-        self.direction = direction
-        self.current_path_to_follow = current_path
-        self.dest_compteur = dest_compteur
-        self.id = id
-        self.is_at_home = is_at_home
+    def __init__(self, pos_ligne, pos_col, house, zoom, game, fps, head, init_pos, dest_pos, compteur, offset_x,
+                 offset_y, id,
+                 is_at_home, direction, current_path, dest_compteur):
+        super().__init__(pos_ligne, pos_col, house, zoom, game, fps, head, init_pos, dest_pos, compteur, offset_x,
+                         offset_y, id,
+                         is_at_home, direction, current_path, dest_compteur)
         self.work_target = None
-
 
     def work(self, buildings, game_update_object):
         """
@@ -405,78 +392,89 @@ class Prefect(Citizen):
         pass
 
     def instinguish_fire(self):
-        print("arrivé")
         self.work_target.isBurning = False
         self.work_target.isDestroyed = True
-        
-
 
 
 class Cart_Pusher_Wheat(Citizen):
-    def __init__(self,pos_ligne, pos_col, house, zoom, game,fps,head,init_pos,dest_pos,compteur,offset_x,offset_y,id,
-                 is_at_home,direction,current_path, dest_compteur):
-        super(Cart_Pusher_Wheat, self).__init__(pos_ligne, pos_col, house, zoom, game,fps,head,init_pos,dest_pos,compteur,offset_x,offset_y,id,
-                 is_at_home,direction,current_path,dest_compteur)
-        self.fps = fps
-        self.zoom = zoom
-        self.head = head
-        self.init_pos = init_pos
-        self.dest_pos = dest_pos
-        self.compteur = compteur
-        self.offset_x, self.offset_y = offset_x, offset_y
-        self.house = house
-        self.direction = direction
-        self.current_path_to_follow = current_path
-        self.dest_compteur = dest_compteur
-        self.id = id
-        self.is_at_home = is_at_home
+    def __init__(self, pos_ligne, pos_col, house, zoom, game, fps, head, init_pos, dest_pos, compteur, offset_x,
+                 offset_y, id,
+                 is_at_home, direction, current_path, dest_compteur):
+        super(Cart_Pusher_Wheat, self).__init__(pos_ligne, pos_col, house, zoom, game, fps, head, init_pos, dest_pos,
+                                                compteur, offset_x, offset_y, id,
+                                                is_at_home, direction, current_path, dest_compteur)
 
         self.transition_building = None
 
+
+class Market_Trader(Citizen):
+    def __init__(self, pos_ligne, pos_col, house, zoom, game, fps, head, init_pos, dest_pos, compteur, offset_x,
+                 offset_y, id,
+                 is_at_home, direction, current_path, dest_compteur):
+        super(Market_Trader, self).__init__(pos_ligne, pos_col, house, zoom, game, fps, head, init_pos, dest_pos,
+                                            compteur, offset_x, offset_y, id,
+                                            is_at_home, direction, current_path, dest_compteur)
+        self.products_qty = 0
+
+    def can_distribute(self):
+        return self.products_qty > 0
+
     def work(self, buildings, game_update_object):
-        pass
+        """
+        This function receives a list of buildings it must update food if they need
+        """
+        if self.can_distribute():
+            for b in buildings:
+                b.update_requirements()
+                status = b.update_with_supply('food', evolvable=True)
+                if status:
+                    game_update_object.has_evolved.append((b.position, b.structure_level))
+                    self.products_qty -= self.work_building.dec_storage(really=False) // 10
+        else:
+            self.go_to_gran_if_possible()
 
-    def move_to_another_dwell(self, target_pos, walk_through = True):
-        # Normally init_pos is the dwell position
-        (a,b) = self.map_associated.walk_to_a_building(init_pos = self.init_pos, dest_pos = self.dest_pos,
-                    building_target_pos = target_pos, current_path_to_follow = self.current_path_to_follow,
-                                                       walk_through= walk_through)
-        print(b)
-        if a not in [False,None]:
-            self.current_path_to_follow = b        
-            return True
-        return False
+    def go_to_gran_if_possible(self):
+        if not self.can_distribute() and self.work_building and self.work_building.is_not_empty() \
+                and not self.current_path_to_follow:
+            print(f" J'ai {self.products_qty} et donc Je vais au grenier qui contient {self.work_building.storage}")
+            return self.move_to_another_dwell(self.work_building.position)
 
-class Delivery_Boy(Walker):
-    def work(self):
-        pass
-
-
-class Market_Trader(Walker):
-    def work(self):
-        pass
 
 class Priest(Citizen):
-    def __init__(self,pos_ligne, pos_col, house, zoom, game,fps,head,init_pos,dest_pos,compteur,offset_x,offset_y,id,
-                 is_at_home,direction,current_path, dest_compteur):
-        super(Priest, self).__init__(pos_ligne, pos_col, house, zoom, game,fps,head,init_pos,dest_pos,compteur,offset_x,offset_y,id,
-                 is_at_home,direction,current_path,dest_compteur)
-        self.fps = fps
-        self.zoom = zoom
-        self.head = head
-        self.init_pos = init_pos
-        self.dest_pos = dest_pos
-        self.compteur = compteur
-        self.offset_x, self.offset_y = offset_x, offset_y
-        self.house = house
-        self.direction = direction
-        self.current_path_to_follow = current_path
-        self.dest_compteur = dest_compteur
-        self.id = id
-        self.is_at_home = is_at_home
+    def __init__(self, pos_ligne, pos_col, house, zoom, game, fps, head, init_pos, dest_pos, compteur, offset_x,
+                 offset_y, id,
+                 is_at_home, direction, current_path, dest_compteur):
+        super(Priest, self).__init__(pos_ligne, pos_col, house, zoom, game, fps, head, init_pos, dest_pos, compteur,
+                                     offset_x, offset_y, id,
+                                     is_at_home, direction, current_path, dest_compteur)
 
     def work(self, buildings, game_update_object):
         """
         This function receives a list of buildings it must reset risk
         """
-        pass
+        for b in buildings:
+            b.update_requirements()
+            if b.update_with_supply('temple', evolvable=True):
+                game_update_object.has_evolved.append((b.position, b.structure_level))
+
+
+class Soldier(Citizen):
+    def __init__(self, pos_ligne, pos_col, house, zoom, game, fps, head, init_pos, dest_pos, compteur, offset_x,
+                 offset_y, id,
+                 is_at_home, direction, current_path, dest_compteur):
+        super(Soldier, self).__init__(pos_ligne, pos_col, house, zoom, game, fps, head, init_pos, dest_pos, compteur,
+                                      offset_x, offset_y, id,
+                                      is_at_home, direction, current_path, dest_compteur)
+        self.work_target = None
+        self.wait = True
+        self.going_back_mlt = False
+
+    def s_work(self, building):
+        """
+        This function receives a list of buildings it must reset risk
+        """
+        status = self.move_to_another_dwell(building.position)
+        if status:
+            self.going_back_mlt = False
+            self.wait = False
+            self.work_target = building

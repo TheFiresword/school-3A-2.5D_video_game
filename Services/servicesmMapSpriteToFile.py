@@ -35,6 +35,7 @@ yellow_grass_types = [ "yellow"] + ["000" + str(i)for i in range(18, 30)]
 
 water_structures_types = ["well", "fountain", "fountain1", "fountain2", "fountain3", "fountain4", "reservoir"]
 farm_types = ["fruit_farm", "olive_farm", "vegetable_farm", "vine_farm", "wheat_farm", "pig_farm"]
+temple_types = ["ares_temple", "mars_temple", "neptune_temple", "venus_temple", "oracle"]
 def mapping_function(element_type, type_version) -> [str, int]:
     """
     Fonction de mapping version d'un élément -> chemin de fichier
@@ -391,7 +392,7 @@ def mapping_function(element_type, type_version) -> [str, int]:
         elif type_version == "fort":
             return [(const.SPRITE_PATH + "Security/Security_00003.png", 3)]
         elif type_version == "military_academy":
-            return [(const.SPRITE_PATH + "Security/Security_00001.png", 3)]
+            return [(const.SPRITE_PATH + "Security/Security_00020.png", 3)]
 
         elif type_version == "reservoir":#ok
             return [(const.SPRITE_PATH + "WaterEquipments/WaterEquipments_00002.png", 3),
@@ -482,8 +483,7 @@ def mapping_function(element_type, type_version) -> [str, int]:
 
         elif type_version == "oracle":#ok
             return [(const.SPRITE_PATH + "Temples/Temples_00011.png", 2)]
-        elif type_version in ["ofarm", "ffarm", "pfarm", "vfarm", "vifarm", "wfarm" ]:
-            return [(const.SPRITE_PATH + "farm.png", 2)]
+
 
 def get_structures_range(element_type, type_version) -> int:
     if element_type != "buildings":
