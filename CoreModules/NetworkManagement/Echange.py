@@ -3,6 +3,8 @@ from enum import IntEnum, unique
 from functools import reduce
 from typing import Any, Callable, Dict, Tuple, Union
 
+from CoreModules.GameManagement.Update import LogicUpdate
+
 import sysv_ipc
 
 """
@@ -27,7 +29,7 @@ class Packet:
         sourceAddress: str,
         destinationAddress: str,
         packetType: Union[int, PacketTypes] = PacketTypes.Default,
-        final=False
+        final=False,
     ) -> None:
 
         self.body = body
@@ -43,9 +45,9 @@ class Packet:
     @staticmethod
     def addressFromIntAddress(intAddress: int) -> str:
         return f"{intAddress >> 24 & 0xFF}.{intAddress >> 16 & 0xFF}.{intAddress >> 8 & 0xFF}.{intAddress & 0xFF}"
-    
+
     @staticmethod
-    def parseType(type:int) -> Tuple[PacketTypes, bool]:
+    def parseType(type: int) -> Tuple[PacketTypes, bool]:
         return bool(type & 1), type >> 1
 
     @staticmethod
@@ -55,7 +57,7 @@ class Packet:
             enumerate(address.split(".")[::-1]),
             0,
         )
-    
+
     @classmethod
     def unpack(cls, data: Union[bytearray, bytes]):
         (
@@ -71,7 +73,7 @@ class Packet:
             port,
             cls.addressFromIntAddress(intSourceAddress),
             cls.addressFromIntAddress(intDestinationAddress),
-            *cls.parseType(packetType)
+            *cls.parseType(packetType),
         )
 
     def generalPack(self, *data):
@@ -86,6 +88,43 @@ class Packet:
 
     def pack(self):
         return self.generalPack(self.body)
+
+
+def encode_update_packets(update: LogicUpdate):
+    MESSAGE_BODY_LIMIT = 6
+    packets = []
+    update_elements = [
+        [update.catchedfire, 1],
+        [update.has_evolved, 2],
+        [update.collapsed, 3],
+    ]
+
+    updateIndex = 0
+
+    while sum(len(update_element) for update_element, _ in update_elements) > 0:
+        packetBody = []
+        while (
+            len(packetBody) + len(update_elements[updateIndex][0]) < MESSAGE_BODY_LIMIT
+        ):
+            packetBody += [update_elements[updateIndex][1]] + update_elements[
+                updateIndex
+            ][0].pop()
+
+            if len(update_elements[updateIndex]) == 0:
+                updateIndex += 1
+
+            if updateIndex >= len(update_elements) or sum(len(update_element) for update_element, _ in update_elements) == 0:
+                break
+
+        packetBody += [0] * (MESSAGE_BODY_LIMIT - len(packetBody))
+
+        # TODO : generaliser l'adresse et le port
+        packets.append(
+            Packet(bytearray(packetBody), 8000, "127.0.0.1", "127.0.0.1", final=False)
+        )
+
+    packets[-1].final = True
+    return packets
 
 
 class Echange:
@@ -107,9 +146,10 @@ class Echange:
     def receive(self, type: int = 0, block: bool = False):
         data, type = self.mq_rcv.receive(type=type, block=block)
         return Packet.unpack(data)
-    
+
+
 if __name__ == "__main__":
-    p = Packet(b"test", 8000, "127.0.0.1","127.0.0.1", PacketTypes.Default, True)
+    p = Packet(b"test", 8000, "127.0.0.1", "127.0.0.1", PacketTypes.Default, True)
     print(p)
     print(p.pack())
     print(Packet.unpack(p.pack()))
