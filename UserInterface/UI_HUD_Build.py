@@ -31,7 +31,7 @@ def hollow_build(x, y, visualmap: UI_Visual_Map.VisualMap, building=None):
 def hollow(x, y, visualmap: UI_Visual_Map.VisualMap):
     # Le curseur pelle
     sprite = arcade.Sprite()
-    sprite.texture = arcade.load_texture(const.SPRITE_PATH + "ColoredCursors\Shovel_150.png")
+    sprite.texture = arcade.load_texture(const.SPRITE_PATH + "ColoredCursors/Shovel_150.png")
     sprite.scale = visualmap.map_scaling
     sprite.center_x = x + sprite.width/2
     sprite.center_y = y + sprite.height/2 - 2

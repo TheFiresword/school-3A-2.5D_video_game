@@ -5,8 +5,7 @@ from Services import servicesGlobalVariables as constantes
 import CoreModules.MapManagement.mapManagementMap as map
 from UserInterface import UI_View_Welcome as wv
 from UserInterface import UI_View_Game as rgv
-
-from UserInterface import UI_View_Settings as sv
+from UserInterface import UI_View_Login as lgv
 from UserInterface import UI_View_Load as lv
 class MainWindow(arcade.Window):
 
@@ -17,10 +16,8 @@ class MainWindow(arcade.Window):
         self.name="save_1"
         # Différents écrans:
         self.welcomescreen = wv.WelcomeScreen()
-        self.settingscreen = sv.SettingScreen()
         self.loadscreen = lv.LoadScreen()
-        #map1 = map.MapLogic()
-        #self.gamescreen = gv.MapView(map1)
+        self.loginscreen = lgv.ReseauLoginScreen()
         self.gamescreen = rgv.GameView(_game=None,name=self.name)
 
     # Lancement

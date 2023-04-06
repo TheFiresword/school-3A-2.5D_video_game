@@ -47,8 +47,11 @@ class QuitButton(Text_Button_background):
         arcade.exit()
 
 
-class SettingButton(Text_Button_background):
+class LoginButton(Text_Button_background):
     def on_click(self, event: arcade.gui.UIOnClickEvent):
+        window = arcade.get_window()
+        window.hide_view()
+        window.show_view(window.loginscreen)
         pass
 
 
