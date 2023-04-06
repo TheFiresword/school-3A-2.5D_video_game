@@ -1,4 +1,4 @@
-import random
+import random, math
 
 from CoreModules.MapManagement import mapManagementLayer as overlay
 import CoreModules.BuildingsManagement.buildingsManagementBuilding as building
@@ -12,24 +12,25 @@ from pathfinding.core.grid import Grid
 from pathfinding.finder import *
 from pathfinding.finder import msp
 
-DEFAULT_WATER_DELIMITER = globalVar.TILE_COUNT-7
+DEFAULT_WATER_DELIMITER = globalVar.TILE_COUNT - 7
+
+
 class MapLogic:
     def __init__(self, entry, exit, water_delimiter):
         # Booléen qui dit si la map est affichée ou pas
         self.active = True
 
-        values = [0, globalVar.TILE_COUNT-1]
+        values = [0, globalVar.TILE_COUNT - 1]
 
         self.entry = entry if type(entry) is tuple and (entry[0] in values or entry[1] in values) else \
             random.choice([(i, j) for i in range(0, globalVar.TILE_COUNT) for j in range(0, globalVar.TILE_COUNT)
-                           if i in values or j in values ])
+                           if i in values or j in values])
 
         self.exit = exit if type(exit) == tuple and (exit[0] in values or exit[1] in values) else \
             random.choice([(i, j) for i in range(0, globalVar.TILE_COUNT) for j in range(0, globalVar.TILE_COUNT)
                            if i in values or j in values])
 
-        self.water_delimiter = water_delimiter if water_delimiter < globalVar.TILE_COUNT-4 else DEFAULT_WATER_DELIMITER
-
+        self.water_delimiter = water_delimiter if water_delimiter < globalVar.TILE_COUNT - 4 else DEFAULT_WATER_DELIMITER
 
         # -------------------------------------------------------------------------------------------------------------#
         # GRASS
@@ -43,36 +44,37 @@ class MapLogic:
 
             for i in range(0, globalVar.TILE_COUNT):
                 for j in range(0, globalVar.TILE_COUNT):
-                    if i <= globalVar.TILE_COUNT//4 and j <= 2*globalVar.TILE_COUNT//5:
+                    if i <= globalVar.TILE_COUNT // 4 and j <= 2 * globalVar.TILE_COUNT // 5:
                         random_version = random.choice(possible_yellow_grass)
 
-                    elif self.water_delimiter < i < globalVar.TILE_COUNT-1:
+                    elif self.water_delimiter < i < globalVar.TILE_COUNT - 1:
                         random_version = random.choice(possible_water_ground[0])
-                    elif i == globalVar.TILE_COUNT-1:
-                        random_version = random.choice(possible_water_ground[3]+possible_water_ground[6]+possible_water_ground[1])
-                    elif  i == self.water_delimiter:
+                    elif i == globalVar.TILE_COUNT - 1:
+                        random_version = random.choice(
+                            possible_water_ground[3] + possible_water_ground[6] + possible_water_ground[1])
+                    elif i == self.water_delimiter:
                         random_version = random.choice(possible_water_ground[1])
 
-                    elif globalVar.TILE_COUNT//2 -2 < i < globalVar.TILE_COUNT//2 +2 and globalVar.TILE_COUNT//2 -2 \
-                            < j < globalVar.TILE_COUNT//2 +2:
+                    elif globalVar.TILE_COUNT // 2 - 2 < i < globalVar.TILE_COUNT // 2 + 2 and globalVar.TILE_COUNT // 2 - 2 \
+                            < j < globalVar.TILE_COUNT // 2 + 2:
                         random_version = random.choice(possible_water_ground[0])
 
-                    elif i == globalVar.TILE_COUNT//2 -2 and globalVar.TILE_COUNT//2 -2 < j < globalVar.TILE_COUNT//2 +2:
+                    elif i == globalVar.TILE_COUNT // 2 - 2 and globalVar.TILE_COUNT // 2 - 2 < j < globalVar.TILE_COUNT // 2 + 2:
                         random_version = "water_barrier_line1"
-                    elif i == globalVar.TILE_COUNT//2 +2 and globalVar.TILE_COUNT//2 -2 < j < globalVar.TILE_COUNT//2 +2:
+                    elif i == globalVar.TILE_COUNT // 2 + 2 and globalVar.TILE_COUNT // 2 - 2 < j < globalVar.TILE_COUNT // 2 + 2:
                         random_version = "water_barrier_line0"
-                    elif i == globalVar.TILE_COUNT//2 +2 and j == globalVar.TILE_COUNT//2 -2 :
+                    elif i == globalVar.TILE_COUNT // 2 + 2 and j == globalVar.TILE_COUNT // 2 - 2:
                         random_version = "water_barrier_top_left"
-                    elif i == globalVar.TILE_COUNT//2 +2 and j == globalVar.TILE_COUNT//2 +2 :
+                    elif i == globalVar.TILE_COUNT // 2 + 2 and j == globalVar.TILE_COUNT // 2 + 2:
                         random_version = "water_barrier_top_right"
 
-                    elif j == globalVar.TILE_COUNT//2 -2 and globalVar.TILE_COUNT//2 -2 < i < globalVar.TILE_COUNT//2 +2:
+                    elif j == globalVar.TILE_COUNT // 2 - 2 and globalVar.TILE_COUNT // 2 - 2 < i < globalVar.TILE_COUNT // 2 + 2:
                         random_version = "water_barrier_col1"
-                    elif j == globalVar.TILE_COUNT//2 +2 and globalVar.TILE_COUNT//2 -2 < i < globalVar.TILE_COUNT//2 +2:
+                    elif j == globalVar.TILE_COUNT // 2 + 2 and globalVar.TILE_COUNT // 2 - 2 < i < globalVar.TILE_COUNT // 2 + 2:
                         random_version = "water_barrier_col0"
-                    elif j == globalVar.TILE_COUNT//2 +2 and i == globalVar.TILE_COUNT//2 -2 :
+                    elif j == globalVar.TILE_COUNT // 2 + 2 and i == globalVar.TILE_COUNT // 2 - 2:
                         random_version = "water_barrier_bot_right"
-                    elif j == globalVar.TILE_COUNT//2 +2 and i == globalVar.TILE_COUNT//2 +2 :
+                    elif j == globalVar.TILE_COUNT // 2 + 2 and i == globalVar.TILE_COUNT // 2 + 2:
                         random_version = "water_barrier_bot_left"
 
 
@@ -87,7 +89,7 @@ class MapLogic:
         if 1:
             self.hills_layer = overlay.Layer(globalVar.LAYER2)
 
-            possible_cell_hills = nameSprite.hill_types[0]+nameSprite.hill_types[1]+nameSprite.hill_types[2]
+            possible_cell_hills = nameSprite.hill_types[0] + nameSprite.hill_types[1] + nameSprite.hill_types[2]
 
             for i in range(0, globalVar.TILE_COUNT * 2 // 5):
                 version = random.choice(possible_cell_hills)
@@ -111,7 +113,7 @@ class MapLogic:
             self.trees_layer = overlay.Layer(globalVar.LAYER3)
 
             possible_trees = nameSprite.tree_types
-            for i in range(int(globalVar.TILE_COUNT / 4)+1, int(globalVar.TILE_COUNT * 3 / 4)+1):
+            for i in range(int(globalVar.TILE_COUNT / 4) + 1, int(globalVar.TILE_COUNT * 3 / 4) + 1):
                 random_version = random.choice(possible_trees)
                 my_normal_tree = element.Element(self.trees_layer, globalVar.LAYER3, random_version)
                 self.trees_layer.set_cell(i, 5, my_normal_tree)
@@ -152,12 +154,13 @@ class MapLogic:
         Remove if only it is not grass, not hill
         """
         type = self.get_element_in_cell(line, column)
-        for layer in [self.roads_layer, self.buildings_layer, self.trees_layer] :
+        for layer in [self.roads_layer, self.buildings_layer, self.trees_layer]:
             if layer.type == type:
                 _element = layer.get_cell(line, column)
                 status = layer.remove_cell(line, column)
                 return status, type, _element
         return False, None, None
+
     def cell_is_walkable(self, line, column, can_walk_on_signal=False):
         """A cell is walkable when it contains a valid road"""
         if can_walk_on_signal:
@@ -168,11 +171,10 @@ class MapLogic:
     def cell_is_walkable_desperately(self, line, column):
         """A cell is walkable desperately when it is just a grass not water"""
         return self.get_element_in_cell(line, column) == globalVar.LAYER1 and \
-               self.grass_layer.array[line][column].dic['version'] not in nameSprite.water_types
-    
+            self.grass_layer.array[line][column].dic['version'] not in nameSprite.water_types
 
-    def walk_to_a_building(self,init_pos,dest_pos=None, building_target_pos=None,current_path_to_follow=None,
-                           walk_through = False) -> bool:
+    def walk_to_a_building(self, init_pos, dest_pos=None, building_target_pos=None, current_path_to_follow=None,
+                           walk_through=False) -> tuple:
         """
         This function uses pathfinding to calculate the path that a walker should follow to move from its position to
         a building position.
@@ -182,11 +184,11 @@ class MapLogic:
         """
         # We pose that if the walker is already on a path to a building we can't give him another path simultaneously
         if current_path_to_follow:
-            return False,[]
+            return False, []
         # I create an array that associates value 1 to any road that is not 'null' and 0 if not.
         if not walk_through:
             integer_array_associated_with_roads_layer = [
-                [1 if self.cell_is_walkable(row, column) else 0 for column in range(globalVar.TILE_COUNT) ]
+                [1 if self.cell_is_walkable(row, column) else 0 for column in range(globalVar.TILE_COUNT)]
                 for row in range(globalVar.TILE_COUNT)]
         else:
             integer_array_associated_with_roads_layer = [
@@ -199,10 +201,9 @@ class MapLogic:
 
         finder = bi_a_star.AStarFinder()
 
-
         line, column = building_target_pos
 
-        cells_number = self.buildings_layer.get_cells_number(line, column)
+        cells_number = int(math.sqrt(self.buildings_layer.get_cells_number(line, column)))
 
         # If the building is a dwell then the walker can walk to it if there is a road in a range of 2 cells
         building = self.buildings_layer.get_cell(line, column)
@@ -216,24 +217,23 @@ class MapLogic:
             if self.roads_layer.is_real_road(line + i, column - 1):
                 possible_cells_to_approch_target.append((line + i, column - 1))
             # If the building is a dwell then the walker can walk to it if there is a road in a range of 2 cells
-            elif self.roads_layer.is_real_road(line + i, column - 2) and dwell:
+            if self.roads_layer.is_real_road(line + i, column - 2) and dwell:
                 possible_cells_to_approch_target.append((line + i, column - 2))
 
             if self.roads_layer.is_real_road(line - 1, column + i):
                 possible_cells_to_approch_target.append((line - 1, column + i))
-            elif self.roads_layer.is_real_road(line - 2, column + i) and dwell:
+            if self.roads_layer.is_real_road(line - 2, column + i) and dwell:
                 possible_cells_to_approch_target.append((line - 2, column + i))
-
 
             if self.roads_layer.is_real_road(line + cells_number, column + i):
                 possible_cells_to_approch_target.append((line + cells_number, column + i))
-            elif self.roads_layer.is_real_road(line + cells_number + 1, column + i) and dwell:
+            if self.roads_layer.is_real_road(line + cells_number + 1, column + i) and dwell:
                 possible_cells_to_approch_target.append((line + cells_number + 1, column + i))
 
             if self.roads_layer.is_real_road(line + i, column + cells_number):
                 possible_cells_to_approch_target.append((line + i, column + cells_number))
-            elif self.roads_layer.is_real_road(line + i, column + cells_number+1) and dwell:
-                possible_cells_to_approch_target.append((line + i, column + cells_number+1))
+            if self.roads_layer.is_real_road(line + i, column + cells_number + 1) and dwell:
+                possible_cells_to_approch_target.append((line + i, column + cells_number + 1))
 
         # we have to take in consideration the case where the walker is already walking to a random destination
         # then the start position for the pathfinding is considered to be this destination
@@ -245,7 +245,7 @@ class MapLogic:
         for i in range(len(possible_cells_to_approch_target)):
             pathfinding_grid.cleanup()
             _end = pathfinding_grid.node(possible_cells_to_approch_target[i][1],
-                                              possible_cells_to_approch_target[i][0])
+                                         possible_cells_to_approch_target[i][0])
 
             path, runs = finder.find_path(_start, _end, pathfinding_grid)
             if path:
@@ -255,7 +255,6 @@ class MapLogic:
                     tmp = init_pos[1], init_pos[0]
                     path.remove(tmp)
                 path_founds.append(path)
-
 
         if path_founds:
             # we have at least one valid path, we choose the smallest one and we move the walker through this path
@@ -267,11 +266,10 @@ class MapLogic:
                 current_path_to_follow[count] = tuple(reversed(current_path_to_follow[count]))
 
             # print(f'taille: {len(path_founds)} -- {self.current_path_to_follow}')
-            return True,current_path_to_follow
+            return True, current_path_to_follow
         # There is no path to this building
         # print("Sorry no path")
-        return False,current_path_to_follow
-
+        return False, current_path_to_follow
 
     def path_entry_to_exit(self, entry, exit):
         integer_array_associated_with_map = [
@@ -282,14 +280,14 @@ class MapLogic:
 
         finder = bi_a_star.AStarFinder()
 
-        if entry[0] == 0 or entry[0] == globalVar.TILE_COUNT-1:
-            entry_cell = (entry[0], entry[1]+1)
+        if entry[0] == 0 or entry[0] == globalVar.TILE_COUNT - 1:
+            entry_cell = (entry[0], entry[1] + 1)
         else:
-            entry_cell = (entry[0]+1, entry[1])
-        if exit[0] == 0 or exit[0] == globalVar.TILE_COUNT-1:
-            exit_cell = (exit[0], exit[1]+1)
+            entry_cell = (entry[0] + 1, entry[1])
+        if exit[0] == 0 or exit[0] == globalVar.TILE_COUNT - 1:
+            exit_cell = (exit[0], exit[1] + 1)
         else:
-            exit_cell = (exit[0]+1, exit[1])
+            exit_cell = (exit[0] + 1, exit[1])
 
         _start = pathfinding_grid.node(entry_cell[1], entry_cell[0])
         _end = pathfinding_grid.node(exit_cell[1], exit_cell[0])
