@@ -51,7 +51,7 @@ void mq_from_py(packet *packet)
 
     printf("A packet have been received from python\n");
     printf("message\n");
-    printNHex(1024, packet);
+    printNHex(sizeof(packet), packet);
 }
 
 void mq_to_py(packet *packet)
@@ -71,5 +71,5 @@ void mq_to_py(packet *packet)
 
     printf("A packet have been sent to python\n");
     printf("message\n");
-    printNHex(1024, packet);
+    printNHex(sizeof(packet), packet);
 }

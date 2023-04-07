@@ -1,11 +1,13 @@
 import struct
 from enum import IntEnum, unique
 from functools import reduce
-from typing import Any, Callable, Dict, Tuple, Union
+from typing import Tuple, Union
 
 import sysv_ipc
 
 from CoreModules.GameManagement.Update import LogicUpdate
+
+BODY_SIZE = 512 - 12
 
 """
 Implementation du protocole definit dans : https://docs.google.com/spreadsheets/d/19Q2D6Y_1bfit8nrRQ_JPPvHSeOotOISHyBvppbNOFP4/edit?usp=sharing
@@ -19,7 +21,7 @@ class PacketTypes(IntEnum):
 
 
 class Packet:
-    binPattern: str = "<BH2I501s"
+    binPattern: str = f"<2H2I{BODY_SIZE}s"
     assert struct.calcsize(binPattern) == 512
 
     def __init__(
@@ -31,7 +33,6 @@ class Packet:
         packetType: Union[int, PacketTypes] = PacketTypes.Default,
         final=False,
     ) -> None:
-
         self.body = body
         self.port = port
         self.sourceAddress = sourceAddress
@@ -100,7 +101,6 @@ def encode_update_packets(update: LogicUpdate):
             out += [t]
         return out
 
-    MESSAGE_BODY_LIMIT = 501
     packets = []
     update_elements = [
         [update.catchedfire, 1],
@@ -112,9 +112,7 @@ def encode_update_packets(update: LogicUpdate):
 
     while sum(len(update_element) for update_element, _ in update_elements) > 0:
         packetBody = []
-        while (
-            len(packetBody) + len(update_elements[updateIndex][0]) < MESSAGE_BODY_LIMIT
-        ):
+        while len(packetBody) + len(update_elements[updateIndex][0]) < BODY_SIZE:
             if len(update_elements[updateIndex][0]) == 0:
                 updateIndex += 1
                 continue
@@ -129,11 +127,17 @@ def encode_update_packets(update: LogicUpdate):
             ):
                 break
 
-        packetBody += [0] * (MESSAGE_BODY_LIMIT - len(packetBody))
+        packetBody += [0] * (BODY_SIZE - len(packetBody))
 
         # TODO : generaliser l'adresse et le port
         packets.append(
-            Packet(bytearray(packetBody), 9200, "192.168.241.176", "192.168.241.154", final=False)
+            Packet(
+                bytearray(packetBody),
+                9200,
+                "192.168.241.176",
+                "192.168.241.154",
+                final=False,
+            )
         )
     if len(packets) > 0:
         packets[-1].final = True
@@ -141,7 +145,6 @@ def encode_update_packets(update: LogicUpdate):
 
 
 def decode_update_packets(packet: Packet):
-
     update_dict = {
         1: [lambda x, y: (x, y), 2],
         2: [lambda x, y, z: ((x, y), z), 3],
