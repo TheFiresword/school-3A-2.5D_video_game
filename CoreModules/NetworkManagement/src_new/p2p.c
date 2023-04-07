@@ -12,6 +12,56 @@
 static packet snd_buffer = {};
 static packet rcv_buffer = {};
 
+void send_pickle_file(char *filename, char *buffer)
+{
+    FILE *fp;
+    fp = fopen(filename, "wb"); // Ouvrir le fichier en mode binaire pour l'écriture
+    if (fp == NULL)
+    {
+        fprintf(stderr, "Impossible d'ouvrir le fichier %s\n", filename);
+        exit(EXIT_FAILURE);
+    }
+
+    fwrite(buffer, sizeof(char), strlen(buffer), fp); // Écrire le contenu du buffer dans le fichier
+    fclose(fp);
+
+    printf("Le contenu du buffer a été écrit dans le fichier %s\n", filename);
+}
+
+void receive_picle_file(int server_socket, char *filename)
+// le contenu reçu par un recv est directement écris dans le fichier filename
+{
+    int filefd;
+    ssize_t nread;
+    char buffer[MAX_SIZE];
+
+    // Ouvrir le fichier en mode écriture, tronquer le fichier s'il existe déjà
+    if ((filefd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0666)) == -1)
+    {
+        perror("open");
+        exit(EXIT_FAILURE);
+    }
+
+    // Réception du fichier bloc par bloc
+    while ((nread = recv(server_socket, buffer, MAX_SIZE, 0)) > 0)
+    {
+        if (write(filefd, buffer, nread) == -1)
+        {
+            perror("write");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    // Fermer le fichier
+    close(filefd);
+
+    if (nread == -1)
+    {
+        perror("recv");
+        exit(EXIT_FAILURE);
+    }
+}
+
 void p2p_run(char *personal_address, int personal_port, char *client2_address, int client2_port)
 {
     printf("\033[1;33m[Setting up personal socket ...]\033[1;0m\n");
@@ -103,6 +153,7 @@ void p2p_handle_rcv(int socket_descriptor, struct sockaddr *sock_addr, int sock_
             printf("acceptation d'un client\n");
             int new_client_socket_descriptor = accept(socket_descriptor, sock_addr, (socklen_t *)&sock_addr_size);
             FD_SET(new_client_socket_descriptor, &readfds);
+            receive_picle_file(new_client_socket_descriptor, "../../../Assets/games/newsauvegarde.pkl");
         }
         else
         {
@@ -128,4 +179,5 @@ void p2p_handle_snd(int client2_socket_descriptor)
 
     if (send(client2_socket_descriptor, &snd_buffer, sizeof(snd_buffer), 0) < 0)
         stop("Send failed");
+    send_pickle_file(client2_socket_descriptor, "../../../Assets/games/sauvegarde.pkl");
 }
