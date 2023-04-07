@@ -133,12 +133,10 @@ def encode_update_packets(update: LogicUpdate):
 
         # TODO : generaliser l'adresse et le port
         packets.append(
-            Packet(bytearray(packetBody), 8000, "127.0.0.1", "127.0.0.1", final=False)
+            Packet(bytearray(packetBody), 9200, "192.168.241.176", "192.168.241.154", final=False)
         )
-
     if len(packets) > 0:
         packets[-1].final = True
-
     return packets
 
 
@@ -198,7 +196,7 @@ class Echange:
 echanger = Echange(12345, 54321, clear=True)
 
 if __name__ == "__main__":
-    p = Packet(b"test", 8000, "127.0.0.1", "127.0.0.1", PacketTypes.Default, True)
+    p = Packet(b"test", 9200, "127.0.0.1", "127.0.0.1", PacketTypes.Default, True)
     print(p)
     print(p.pack())
     print(Packet.unpack(p.pack()))
