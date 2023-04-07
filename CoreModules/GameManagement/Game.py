@@ -675,7 +675,7 @@ class Game:
                         self.timer_track_dwells.pop(pos)
                     """
                     self.buildinglist.remove(_element)
-                    self.guide_homeless_citizens(_element)
+                    self.guide_homeless_and_jobless_citizens(_element)
                     if type(_element) == buildings.Dwelling:
                         self.dwelling_list.remove(_element)
 
@@ -824,12 +824,18 @@ class Game:
     def get_buildings_in_neighboorhood(self, pos):
         pass
     
-    def get_voisins_tuples(self, pos):
-        cases = []
-        for i in range(-2,3):
-            for j in range(-2,3):
-                cases.append((pos[0] + i,pos[1] + j))
-        return cases
+    def get_voisins_tuples(self, building, offset=2):
+        voisins_tuples = set()
+        pos_x, pos_y = building.position
+        cell_num = building.dic['cells_number']
+        for i in range(pos_x - offset, pos_x + cell_num + offset):
+            for j in range(pos_y - offset, pos_y + cell_num + offset):
+                if i == pos_x and j == pos_y:
+                    continue
+                if not position_is_valid(i, j):
+                    continue
+                voisins_tuples.add((i, j))
+        return voisins_tuples
 
     def get_prefets(self):
         prefets = []
