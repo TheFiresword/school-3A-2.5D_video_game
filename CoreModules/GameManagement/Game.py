@@ -767,6 +767,8 @@ class Game:
             building = buildings.Farm(self.map.buildings_layer, globalVar.LAYER5, version)
         elif version == "granary":
             building = buildings.Granary(self.map.buildings_layer, globalVar.LAYER5)
+        elif version in temple_types:
+            building = buildings.Temple(self.map.buildings_layer, globalVar.LAYER5, version)
         elif version == "military_academy":
             building = buildings.MilitaryAc(self.map.buildings_layer, globalVar.LAYER5)
         else:
