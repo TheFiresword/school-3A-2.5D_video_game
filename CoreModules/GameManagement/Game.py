@@ -6,6 +6,7 @@ from Services.servicesmMapSpriteToFile import water_structures_types, farm_types
 from CoreModules.GameManagement import Update as updates
 from CoreModules.BuildingsManagement import buildingsManagementBuilding as buildings
 from CoreModules.WalkersManagement import walkersManagementWalker as walkers
+from CoreModules.NetworkManagement.Echange import echanger , encode_update_packets ,decode_update_packets, Packet
 
 import copy
 
@@ -39,6 +40,7 @@ class Game:
 
         self.framerate = globalVar.DEFAULT_FPS
         self.updated = []
+        self.players = [["moi", (0,0,255)]]
 
         self.players = [(self.owner, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))),
                         (('127.0.0.1', 1000), (255, 0, 0))]
@@ -574,7 +576,11 @@ class Game:
         self.actions_on_buildings(building_list1, update)
         self.actions_on_buildings(building_list2, update)
 
-        return update
+        sending_update_packets = encode_update_packets(update)
+        self.send_update_packets(sending_update_packets)
+        incoming_packets = [ echanger.receive() for _ in range(echanger.getter_current_messages()[0]) ]
+        self.include_incoming_packets(incoming_packets,update)
+        return update            
 
     def attack(self, building_pos):
         if (len(self.military_structures_list) != 0):
@@ -585,7 +591,7 @@ class Game:
 
     def get_citizen_by_id(self, id: int):
         for ctz in self.walkersAll:
-            if ctz.id == id:
+            if ctz.id ==  id:
                 return ctz
 
     def guide_homeless_and_jobless_citizens(self, building):
@@ -625,8 +631,9 @@ class Game:
                 ctz.work_building = None
                 self.walkersGetOut(ctz)
                 break
-
             building.flush_employee()
+    
+
 
     def get_buildings_for_walker_with_offset(self, walker_position, walker_class):
         match walker_class:
@@ -644,9 +651,8 @@ class Game:
         return building_where_to_work
 
     def create_immigrant(self, path=[], building=None, display=False):
-        walker = walkers.Immigrant(self.map.roads_layer.get_entry_position()[0],
-                                   self.map.roads_layer.get_entry_position()[1],
-                                   None, 0, self, path, building)
+        walker = walkers.Immigrant(self.map.roads_layer.get_entry_position()[0],self.map.roads_layer.get_entry_position()[1],
+                                   None, 0, self,path,building)
         self.walkersAll.append(walker)
         self.walkersAll = list(set(self.walkersAll))
         self.walkersGetOut(walker)
@@ -693,12 +699,10 @@ class Game:
 
                     if type(_element) == buildings.Granary:
                         self.granary_list.remove(_element)
-
                     if type(_element) == buildings.Temple:
                         self.temple_structures_list.remove(_element)
                     if type(_element) == buildings.MilitaryAc:
                         self.military_structures_list.remove(_element)
-
                     del _element
         return element_type
 
@@ -752,14 +756,15 @@ class Game:
             return False
 
         status, count = self.map.roads_layer.add_roads_serie(start_pos, end_pos,
-                                                             self.map.collisions_layers, memorize=dynamically)
+                    self.map.collisions_layers, memorize=dynamically)
 
         if status and not dynamically:
             self.money -= road_dico['cost'] * count
         return status
 
+
     def add_building(self, line, column, version) -> bool:
-        txt = " ".join(version.split("_"))
+        txt= " ".join(version.split("_"))
         if self.money < building_dico[txt].cost:
             print("Not enough money")
             return False
@@ -783,14 +788,14 @@ class Game:
         # we should check that there is no water on the future positions
         cells_number = building.dic['cells_number']
         can_build_out_of_water = all([not self.map.grass_layer.cell_is_water(line + i, column + j)
-                                      for j in range(0, cells_number) for i in range(0, cells_number)])
+                             for j in range(0, cells_number) for i in range(0, cells_number)])
         if not can_build_out_of_water:
             return False
 
         if version in farm_types:
             # we should check if there is yellow grass on the future positions to check
             can_build_on_yellow_grass = all([self.map.grass_layer.cell_is_yellow_grass(line + i, column + j)
-                                             for j in range(0, cells_number) for i in range(0, cells_number)])
+                             for j in range(0, cells_number) for i in range(0, cells_number)])
 
             if not can_build_on_yellow_grass:
                 return False
@@ -812,34 +817,29 @@ class Game:
                     # Functionality of a reservoir is calculated directly when it's created
                     # A reservoir is functional when adjacent to a river or a coast (water)
                     ajacent_to_water = any([self.map.grass_layer.cell_is_water(line + i, column + j)
-                                            for j in range(-1, cells_number + 1) for i in range(-1, cells_number + 1) if
-                                            i in [-1, cells_number]
-                                            or j in [-1, cells_number]])
+                    for j in range(-1, cells_number+1) for i in range(-1, cells_number+1) if i in [-1, cells_number]
+                                            or j in[-1, cells_number]])
                     if ajacent_to_water:
                         building.set_functional(True)
 
             if type(building) == buildings.Granary:
                 self.granary_list.append(building)
-
             if type(building) == buildings.Temple:
                 self.temple_structures_list.append(building)
 
             if type(building) == buildings.MilitaryAc:
                 self.military_structures_list.append(building)
+            
+            body = str(building.position[0]) +',' + str(building.position[1]) + ',' + str(1)
+            packet = Packet(bytearray(body), 8000, "127.0.0.1", "127.0.0.1", final=True)
+            echanger.send(packet)
+            
+
         return status
-
-    def update_likability(self, building):
-        voisins = self.get_voisins(building)
-        score = 0
-        for voisin in voisins:
-            version = voisin.dic["version"]
-            if version not in ["null"]:
-                if version == "dwell":
-                    pass
-
+                    
     def get_buildings_in_neighboorhood(self, pos):
         pass
-
+    
     def get_voisins_tuples(self, building, offset=2):
         voisins_tuples = set()
         pos_x, pos_y = building.position
@@ -859,3 +859,12 @@ class Game:
             if isinstance(walker, walkers.Prefect):
                 prefets.append(walker)
         return prefets
+    
+    def include_incoming_packets(self, packets : list(Packet)):
+        for packet in packets:
+            pass
+        
+
+    def send_update_packets(self, packets):
+        for packet in packets:
+            echanger.send(packet,True)
