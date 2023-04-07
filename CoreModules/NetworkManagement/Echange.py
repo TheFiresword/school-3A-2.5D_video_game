@@ -91,6 +91,15 @@ class Packet:
 
 
 def encode_update_packets(update: LogicUpdate):
+    def flatten(t):
+        out = []
+        if type(t) in [list, tuple]:
+            for el in t:
+                out += flatten(el)
+        else:
+            out += [t]
+        return out
+
     MESSAGE_BODY_LIMIT = 501
     packets = []
     update_elements = [
@@ -110,9 +119,8 @@ def encode_update_packets(update: LogicUpdate):
                 updateIndex += 1
                 continue
 
-            packetBody += [update_elements[updateIndex][1]] + update_elements[
-                updateIndex
-            ][0].pop()
+            update_data = flatten(update_elements[updateIndex][0].pop())
+            packetBody += [update_elements[updateIndex][1]] + update_data
 
             if (
                 updateIndex >= len(update_elements)
@@ -128,7 +136,7 @@ def encode_update_packets(update: LogicUpdate):
             Packet(bytearray(packetBody), 8000, "127.0.0.1", "127.0.0.1", final=False)
         )
 
-    if len(packets > 0):
+    if len(packets) > 0:
         packets[-1].final = True
 
     return packets
@@ -138,7 +146,7 @@ def decode_update_packets(packet: Packet):
 
     update_dict = {
         1: [lambda x, y: (x, y), 2],
-        2: [lambda x, y, z: [(x, y), z], 3],
+        2: [lambda x, y, z: ((x, y), z), 3],
         3: [lambda x, y: (x, y), 2],
     }
 
