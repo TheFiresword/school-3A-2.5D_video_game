@@ -10,12 +10,18 @@ from CoreModules.GameManagement.Update import LogicUpdate
 """
 Implementation du protocole definit dans : https://docs.google.com/spreadsheets/d/19Q2D6Y_1bfit8nrRQ_JPPvHSeOotOISHyBvppbNOFP4/edit?usp=sharing
 """
-
-
+ 
 @unique
 class PacketTypes(IntEnum):
-    Default = 1
-    NewPoint = 2
+    Default = 0
+    Ajouter = 1
+    Supprimer = 2
+    Ajout_Route = 3
+    Suppr_Route = 4
+    Sauvegarde = 5
+    Update = 6
+    Init = 7
+
 
 
 class Packet:
@@ -133,7 +139,7 @@ def encode_update_packets(update: LogicUpdate):
 
         # TODO : generaliser l'adresse et le port
         packets.append(
-            Packet(bytearray(packetBody), 9200, "192.168.241.176", "192.168.241.154", final=False)
+            Packet(bytearray(packetBody), 9200, "192.168.241.176", "192.168.241.154", final=False, packetType=PacketTypes.Update)
         )
     if len(packets) > 0:
         packets[-1].final = True
@@ -168,7 +174,21 @@ def decode_update_packets(packet: Packet):
         "collapsed": updates[3],
     }
 
+def decode_ponctual_packets(packet: Packet):
+    
+    ponctual_dict = {
+        1: [lambda x, y, z: ((x, y), z), 3],
+        2: [lambda x, y, z: ((x, y), z), 3],
+        3: [lambda x, y, z: ((x, y), z), 3],
+        4: [lambda x, y, z: ((x, y), z), 3],
+        5: [lambda _: None, 0],
+        7: [lambda x, y: (x, y) , 2],
+    }
 
+    body = [int(hexa) for hexa in packet.body]
+    assert len(body) == ponctual_dict[packet.type][1], f"Packet {packet.type} has a wrong body length"
+    return ponctual_dict[packet.type][0](*body)
+    
 class Echange:
     def __init__(self, mq_key_rcv: int, mq_key_snd: int, clear=False) -> None:
         self.mq_rcv = sysv_ipc.MessageQueue(mq_key_rcv, sysv_ipc.IPC_CREAT)
@@ -200,3 +220,78 @@ if __name__ == "__main__":
     print(p)
     print(p.pack())
     print(Packet.unpack(p.pack()))
+
+dict_demon={1: 'academy',
+            2: 'actor_colony',
+            3: 'aqueduct',
+            4: 'ares_temple', 
+            5: 'neptune_temple', 
+            6: 'mercury_temple', 
+            7: 'mars_temple', 
+            8: 'venus_temple', 
+            9: 'amphitheater', 
+            10: 'barber', 
+            11: 'normal_bath', 
+            12: 'barracks',
+            13: 'clay_pit', 
+            14: 'colosseum', 
+            15: 'dock', 
+            16: 'dwell', 
+            17: "engineer's_post", 
+            18: 'forum', 
+            19: 'fruit_farm', 
+            20: 'furniture_workshop', 
+            21: 'fort', 
+            22: 'fountain', 
+            23: 'garden', 
+            24: 'gladiator_school', 
+            25: 'gov_housing_house',
+            26: 'gov_housing_villa', 
+            27: 'gov_housing_palace', 
+            28: 'granary', 
+            29: 'hospital', 
+            30: 'iron_mine', 
+            31: 'library', 
+            32: 'lion_house', 
+            33: 'market', 
+            34: 'oil_mill', 
+            35: 'olive_farm', 
+            36: 'oracle', 
+            37: 'palace', 
+            38: 'perfumery', 
+            39: 'police_station', 
+            40: 'pottery', 
+            41: 'prefecture', 
+            42: "proconsul's_palace", 
+            43: "procurator's_palace", 
+            44: 'quarry', 
+            45: 'roadblock', 
+            46: 'rock_quarry', 
+            47: 'school', 
+            48: 'shipyard', 
+            49: 'smithy', 
+            50: 'statue', 
+            51: 'stone_mason', 
+            52: 'storage_yard', 
+            53: 'tax_office', 
+            54: 'teacher', 
+            55: 'temple_of_vesta', 
+            56: 'theater', 
+            57: 'timber_yard', 
+            58: 'toolmaker', 
+            59: 'townhouse', 
+            60: 'trading_post', 
+            61: 'trireme_shipyard', 
+            62: 'tunnel', 
+            63: 'university', 
+            64: 'vase_painter', 
+            65: 'vintner', 
+            66: 'wall',
+            67: 'wine_press',
+            68: 'workshop'
+}
+
+def find_key(value, dict):
+    for keys, values in dict.items():
+        if values == value:
+            return keys
