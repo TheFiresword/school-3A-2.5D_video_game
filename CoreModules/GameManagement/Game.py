@@ -6,7 +6,7 @@ from Services.servicesmMapSpriteToFile import water_structures_types, farm_types
 from CoreModules.GameManagement import Update as updates
 from CoreModules.BuildingsManagement import buildingsManagementBuilding as buildings
 from CoreModules.WalkersManagement import walkersManagementWalker as walkers
-from CoreModules.NetworkManagement.Echange import echanger , encode_update_packets ,decode_update_packets, Packet
+from CoreModules.NetworkManagement.Echange import echanger, dict_demon , encode_update_packets ,decode_update_packets,decode_ponctual_packets,find_key, Packet , PacketTypes
 
 import copy
 
@@ -831,8 +831,8 @@ class Game:
             if type(building) == buildings.MilitaryAc:
                 self.military_structures_list.append(building)
             
-            body = [building.position[0],building.position[1],1]
-            packet = Packet(bytearray(body), 9200, "192.168.241.176", "192.168.241.154", final=True)
+            body = [building.position[0],building.position[1],find_key(building.dic["version"],dict_demon)]
+            packet = Packet(bytearray(body), 9200, "192.168.241.176", "192.168.241.154", final=True, packetType=PacketTypes.Ajouter)
             echanger.send(packet)
             
 
@@ -863,7 +863,27 @@ class Game:
     
     def include_incoming_packets(self, packets,update):
         for packet in packets:
-            pass
+            if packet.type == PacketTypes.Update:
+                update_dict = decode_update_packets(packet)
+                # TODO : update the update
+            else:
+                ponctual_data = decode_ponctual_packets(packet)
+                match packet.type:
+                    case PacketTypes.Ajouter:
+                        self.add_building(ponctual_data[0][0],ponctual_data[0][1],dict_demon[ponctual_data[1]])
+                    case PacketTypes.Supprimer:
+                        self.remove_element(ponctual_data[0][0],ponctual_data[0][1])
+                    case PacketTypes.Ajout_Route:
+                        self.add_road(ponctual_data[0][0],ponctual_data[0][1],ponctual_data[1])
+                    case PacketTypes.Suppr_Route:
+                        self.remove_element(ponctual_data[0][0],ponctual_data[0][1])
+                    case PacketTypes.Sauvegarde:
+                        # TODO : partie save
+                        pass
+                    case PacketTypes.Init:
+                        # TODO : partie init
+                        pass
+        pass
         
 
     def send_update_packets(self, packets):
