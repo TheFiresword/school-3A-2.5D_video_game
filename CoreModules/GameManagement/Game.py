@@ -575,10 +575,11 @@ class Game:
 
         self.actions_on_buildings(building_list1, update)
         self.actions_on_buildings(building_list2, update)
-
-        sending_update_packets = encode_update_packets(update)
-        self.send_update_packets(sending_update_packets)
+        #print(update.catchedfire,update.collapsed,update.has_evolved)
+        #sending_update_packets = encode_update_packets(update)
+        #self.send_update_packets(sending_update_packets)
         incoming_packets = [ echanger.receive() for _ in range(echanger.getter_current_messages()[0]) ]
+        #print(incoming_packets)
         self.include_incoming_packets(incoming_packets,update)
         return update            
 
@@ -830,8 +831,8 @@ class Game:
             if type(building) == buildings.MilitaryAc:
                 self.military_structures_list.append(building)
             
-            body = str(building.position[0]) +',' + str(building.position[1]) + ',' + str(1)
-            packet = Packet(bytearray(body), 8000, "127.0.0.1", "127.0.0.1", final=True)
+            body = [building.position[0],building.position[1],1]
+            packet = Packet(bytearray(body), 9200, "192.168.241.176", "192.168.241.154", final=True)
             echanger.send(packet)
             
 
@@ -860,7 +861,7 @@ class Game:
                 prefets.append(walker)
         return prefets
     
-    def include_incoming_packets(self, packets : list(Packet)):
+    def include_incoming_packets(self, packets,update):
         for packet in packets:
             pass
         
