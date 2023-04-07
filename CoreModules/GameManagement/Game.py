@@ -689,6 +689,10 @@ class Game:
 
                     if type(_element) == buildings.Granary:
                         self.granary_list.remove(_element)
+                    if type(_element) == buildings.Temple:
+                        self.temple_structures_list.remove(_element)
+                    if type(_element) == buildings.MilitaryAc:
+                        self.military_structures_list.remove(_element)
                     del _element
         return element_type
 
