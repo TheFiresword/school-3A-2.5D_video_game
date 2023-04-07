@@ -3,9 +3,9 @@ from enum import IntEnum, unique
 from functools import reduce
 from typing import Any, Callable, Dict, Tuple, Union
 
-from CoreModules.GameManagement.Update import LogicUpdate
-
 import sysv_ipc
+
+from CoreModules.GameManagement.Update import LogicUpdate
 
 """
 Implementation du protocole definit dans : https://docs.google.com/spreadsheets/d/19Q2D6Y_1bfit8nrRQ_JPPvHSeOotOISHyBvppbNOFP4/edit?usp=sharing
@@ -91,7 +91,7 @@ class Packet:
 
 
 def encode_update_packets(update: LogicUpdate):
-    MESSAGE_BODY_LIMIT = 6
+    MESSAGE_BODY_LIMIT = 501
     packets = []
     update_elements = [
         [update.catchedfire, 1],
@@ -106,14 +106,19 @@ def encode_update_packets(update: LogicUpdate):
         while (
             len(packetBody) + len(update_elements[updateIndex][0]) < MESSAGE_BODY_LIMIT
         ):
+            if len(update_elements[updateIndex][0]) == 0:
+                updateIndex += 1
+                continue
+
             packetBody += [update_elements[updateIndex][1]] + update_elements[
                 updateIndex
             ][0].pop()
 
-            if len(update_elements[updateIndex]) == 0:
-                updateIndex += 1
-
-            if updateIndex >= len(update_elements) or sum(len(update_element) for update_element, _ in update_elements) == 0:
+            if (
+                updateIndex >= len(update_elements)
+                or sum(len(update_element) for update_element, _ in update_elements)
+                == 0
+            ):
                 break
 
         packetBody += [0] * (MESSAGE_BODY_LIMIT - len(packetBody))
