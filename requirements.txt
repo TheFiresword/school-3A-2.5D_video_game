@@ -2,3 +2,4 @@ arcade
 pyglet
 pathfinding
 pyautogui
+requests

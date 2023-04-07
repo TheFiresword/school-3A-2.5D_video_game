@@ -5,6 +5,7 @@ from typing import Any, Callable, Dict, Tuple, Union
 
 import sysv_ipc
 
+
 from CoreModules.GameManagement.Update import LogicUpdate
 
 """
@@ -57,7 +58,6 @@ class Packet:
             enumerate(address.split(".")[::-1]),
             0,
         )
-
     @classmethod
     def unpack(cls, data: Union[bytearray, bytes]):
         (
@@ -73,7 +73,9 @@ class Packet:
             port,
             cls.addressFromIntAddress(intSourceAddress),
             cls.addressFromIntAddress(intDestinationAddress),
+
             *cls.parseType(packetType),
+
         )
 
     def generalPack(self, *data):
@@ -88,6 +90,7 @@ class Packet:
 
     def pack(self):
         return self.generalPack(self.body)
+
 
 
 def encode_update_packets(update: LogicUpdate):
@@ -134,6 +137,7 @@ def encode_update_packets(update: LogicUpdate):
 def decode_update_packets(packet: Packet):
     pass
 
+
 class Echange:
     def __init__(self, mq_key_rcv: int, mq_key_snd: int, clear=False) -> None:
         self.mq_rcv = sysv_ipc.MessageQueue(mq_key_rcv, sysv_ipc.IPC_CREAT)
@@ -153,6 +157,7 @@ class Echange:
     def receive(self, type: int = 0, block: bool = False):
         data, type = self.mq_rcv.receive(type=type, block=block)
         return Packet.unpack(data)
+    
     
     def getter_current_messages(self):
         return (self.mq_rcv.current_messages, self.mq_snd.current_messages)

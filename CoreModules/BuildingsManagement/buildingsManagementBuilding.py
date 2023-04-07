@@ -12,8 +12,6 @@ DELTA_TIME = 0.2666666
 
 class Building(element.Element):
     def __init__(self, buildings_layer, _type, version="dwell"):
-
-        self.owner = None
         self.risk_dico = {"fire" : 0, "collapse" : 0}
         self.risk_level_dico = {"fire": 0, "collapse" : 0}
 
