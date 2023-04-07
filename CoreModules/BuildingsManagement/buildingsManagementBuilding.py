@@ -8,17 +8,18 @@ import time
 # global var
 max_burning_time = 60000000000000000000000000000000
 DELTA_TIME = 0.2666666
+
+
 class Building(element.Element):
     def __init__(self, buildings_layer, _type, version="dwell"):
-        self.owner = None
         self.risk_dico = {"fire" : 0, "collapse" : 0}
         self.risk_level_dico = {"fire": 0, "collapse" : 0}
 
         self.current_number_of_employees = 0
 
         version_without_underscore = version.replace("_", " ", 1)
-        self.max_number_of_employees = gdata.building_dico[version_without_underscore].max_employs if version != "null" else 0
-
+        self.max_number_of_employees = gdata.building_dico[
+            version_without_underscore].max_employs if version != "null" else 0
 
         # A list of walkers id
         self.employees_id = set()
@@ -46,6 +47,8 @@ class Building(element.Element):
         # A timer to control animation of buildings
         self.previous_time = None
 
+        self.fire_fighter_is_coming = False
+
         super().__init__(buildings_layer, _type, version)
 
     def add_employee(self, id: int, update_number=False):
@@ -56,19 +59,22 @@ class Building(element.Element):
     def flush_employee(self):
         self.employees_id = set()
         self.current_number_of_employees = 0
-    def rem_employee(self, id:int):
+
+    def rem_employee(self, id: int):
         self.employees_id.remove(id)
         self.current_number_of_employees -= constantes.WALKER_UNIT
+
     def get_all_employees(self):
-        return  self.employees_id
+        return self.employees_id
 
     def is_functional(self):
         return self.functional
 
     def set_functional(self, value: bool):
         if value and not self.functional:
-            if self.dic["version"] not in ["ares_temple","mars_temple","mercury_temple","neptune_temple","venus_temple",
-                                           ]:
+            if self.dic["version"] not in ["ares_temple", "mars_temple", "mercury_temple", "neptune_temple",
+                                           "venus_temple",
+                                           "military_academy"]:
                 self.update_level("stat_inc")
             self.functional = True
             return True
@@ -88,10 +94,10 @@ class Building(element.Element):
             if self.structure_level == 0:
                 self.risk_increasing_speed = 0 if self.dic['version'] == 'dwell' else 0.8
             else:
-                self.risk_increasing_speed = 1/self.structure_level if self.dic['version'] == 'dwell' else 0.8/self.structure_level
+                self.risk_increasing_speed = 1 / self.structure_level if self.dic[
+                                                                             'version'] == 'dwell' else 0.8 / self.structure_level
 
-
-    def update_risk(self,risk):
+    def update_risk(self, risk):
         if risk == "fire" and self.isBurning:
             if self.BurningTime <= max_burning_time:
                 self.BurningTime += 1
@@ -123,9 +129,13 @@ class Building(element.Element):
                     self.isDestroyed = True
                     self.isBurning = False
 
+    def automatic_destruction(self):
+        self.risk_dico['collapse'] = 100
+        # self.update_risk('collapse')
+
     def reset_fire_risk(self):
         if not self.isBurning and not self.isDestroyed:
-            self.risk_dico["fire"]  = 0
+            self.risk_dico["fire"] = 0
             self.risk_level_dico["fire"] = 0
 
     def reset_damage_risk(self):
@@ -136,7 +146,7 @@ class Building(element.Element):
     def updateLikeability(self):
         pass
 
-    def update_functional_building_animation(self) ->bool:
+    def update_functional_building_animation(self) -> bool:
         """
         This function will change the structure_level in a circular way so that the visual animation of the building
         can be obtained
@@ -152,10 +162,10 @@ class Building(element.Element):
                         delta_timer = DELTA_TIME
                         init_level = 1
                     else:
-                        delta_timer = 3*DELTA_TIME
+                        delta_timer = 3 * DELTA_TIME
                         init_level = 0
 
-                    if time.time()- self.previous_time > delta_timer:
+                    if time.time() - self.previous_time > delta_timer:
                         self.previous_time = time.time()
                         self.structure_level += 1
                         if self.structure_level == self.max_level:
@@ -165,7 +175,6 @@ class Building(element.Element):
 
                     return False
         return False
-
 
     def update_level(self, update_type: "stat_inc" or 'change_content' or 'stat_dec' or 'reset'):
         if update_type == "change_content":
@@ -183,6 +192,7 @@ class Building(element.Element):
         elif update_type == "reset":
             self.structure_level = 0
 
+
 class Dwelling(Building):
     def __init__(self, buildings_layer, _type):
         super().__init__(buildings_layer, _type, "dwell")
@@ -199,11 +209,11 @@ class Dwelling(Building):
         The general progression of housing is as follows:
 
         * Tents: Basic housing, very prone to fires. Large tents need a water supply.
-        
+
         * Shacks: Shacks require food provided from a market.
-        
+
         * Hovels: Hovels require basic temple access.
-        
+
         * Casas: Small casas are 'bread and butter' housing, requiring only food, basic education, fountain access 
         and basic entertainment. Large casas require pottery and bathhouse access.
 
@@ -217,7 +227,7 @@ class Dwelling(Building):
         Small palaces will require a second source of wine (imported if the city's primary source of wine is local, 
         or vice-versa.) Large palaces will expand to 4x4 plots. Steadily increasing entertainment values are the main 
         requirement for patrician housing to develop, and those for a Luxury Palace are near-perfect.
-        
+
         """
         # attributes will be added following our progression in the code
         self.water_access = False
@@ -231,21 +241,21 @@ class Dwelling(Building):
 
         self.all_requirements_for_level = None
 
-
     def update_requirements(self):
         self.all_requirements_for_level = gdata.get_housing_requirements(self.structure_level)
 
     def has_access(self, supply: 'water' or 'food' or 'temple' or 'education' or 'fountain' or
-                                          'basic_entertainment' or 'pottery' or 'bathhouse'):
+                                 'basic_entertainment' or 'pottery' or 'bathhouse'):
         tmp = supply + '_access'
         return getattr(self, tmp)
+
     def set_access(self, supply: 'water' or 'food' or 'temple' or 'education' or 'fountain' or
-                                          'basic_entertainment' or 'pottery' or 'bathhouse', value:bool):
+                                 'basic_entertainment' or 'pottery' or 'bathhouse', value: bool):
         tmp = supply + '_access'
         setattr(self, tmp, value)
 
     def update_with_supply(self, supply: 'water' or 'food' or 'temple' or 'education' or 'fountain' or
-                                         'basic_entertainment' or 'pottery' or 'bathhouse', evolvable=True) ->bool:
+                                         'basic_entertainment' or 'pottery' or 'bathhouse', evolvable=True) -> bool:
         """
         This functions receives a supply type and check the requirements of the dwell
         When all requirements needed for its level are satisfied then the dwell is updated with stat_inc
@@ -262,7 +272,7 @@ class Dwelling(Building):
         # a building is downgraded when one of its needs of previous level is satisfied no more
         # So we check if it just loose access to a supply in which case we downgrade it
         if not evolvable:
-            previous_requirements = gdata.get_housing_requirements(self.structure_level-1)
+            previous_requirements = gdata.get_housing_requirements(self.structure_level - 1)
             for previous_requirement in previous_requirements:
                 if not self.has_access(previous_requirement):
                     self.update_level('stat_dec')
@@ -276,7 +286,6 @@ class Dwelling(Building):
             return True
         return False
 
-
     def is_occupied(self):
         return self.structure_level > 0
 
@@ -288,7 +297,7 @@ class Farm(Building):
         self.stop_production = False
         self.reset_animation = False
 
-    def update_functional_building_animation(self) ->bool:
+    def update_functional_building_animation(self) -> bool:
         """
         This function will change the structure_level in a circular way so that the visual animation of the building
         can be obtained
@@ -298,15 +307,16 @@ class Farm(Building):
             if not self.previous_time:
                 self.previous_time = time.time()
             else:
-                delta_timer = 3*DELTA_TIME
+                delta_timer = 3 * DELTA_TIME
                 init_level = 0
 
-                if time.time()- self.previous_time > delta_timer:
+                if time.time() - self.previous_time > delta_timer:
                     self.previous_time = time.time()
                     self.structure_level += 1
                     self.quantity += gdata.PRODUCTION_PER_PART
                     if self.structure_level == self.max_level:
                         self.structure_level = init_level
+                        self.quantity = 0
                     assert (self.structure_level <= self.max_level - 1)
                     return True
 
@@ -315,28 +325,32 @@ class Farm(Building):
 
     def in_state_0(self):
         return not self.functional
+
     def in_state_1(self):
         return self.current_number_of_employees < self.max_number_of_employees and not self.isDestroyed and not \
             self.isBurning and not self.stop_production
+
     def in_state_2(self, pusher):
         return self.current_number_of_employees != 0 and not self.isDestroyed and not \
             self.isBurning and not self.stop_production and pusher.wait and not self.is_haverstable()
+
     def in_state_3(self, pusher):
         return self.current_number_of_employees != 0 and self.is_haverstable() and \
-               not self.isDestroyed and not self.isBurning and not self.stop_production and pusher.wait and not self.reset_animation
+            not self.isDestroyed and not self.isBurning and pusher.wait and not self.reset_animation
 
     def in_state_4(self, pusher):
         return self.current_number_of_employees != 0 and self.is_haverstable() and \
-               not self.isDestroyed and not self.isBurning and not self.stop_production  and not pusher.wait and self.reset_animation
+            not self.isDestroyed and not self.isBurning and not self.stop_production and not pusher.wait and self.reset_animation
 
-    def in_state_5(self, pusher, neighboors_pos):
+    def in_state_5(self, pusher):
         return self.current_number_of_employees != 0 and not self.isDestroyed and not self.isBurning and not \
-            self.stop_production and not pusher.wait and not self.reset_animation and pusher.init_pos in neighboors_pos
+            self.stop_production and not pusher.wait and not self.reset_animation and pusher.current_path_to_follow == []
 
     def is_haverstable(self):
         if self.is_functional():
             return self.quantity >= gdata.MAX_PRODUCTION
         return False
+
 
 class WaterStructure(Building):
     def __init__(self, buildings_layer, _type, version="well"):
@@ -346,12 +360,32 @@ class WaterStructure(Building):
             # a well is always functional and don't need employees
             self.functional = True
 
+
 class Granary(Building):
     def __init__(self, buildings_layer, _type):
         super().__init__(buildings_layer, _type, "granary")
         self.storage = 0
-    def is_full(self):
-        return self.storage >= 5*gdata.MAX_PRODUCTION
 
-    def inc_storage(self):
-        self.storage += int(gdata.MAX_PRODUCTION//4)
+    def is_full(self):
+        return self.storage >= 5 * gdata.MAX_PRODUCTION
+
+    def is_not_empty(self):
+        return self.storage >= 1 * int(gdata.MAX_PRODUCTION // 8)
+
+    def inc_storage(self, really=True):
+        if really: self.storage += 1 * int(gdata.MAX_PRODUCTION // 4)
+        return 1 * int(gdata.MAX_PRODUCTION // 4)
+
+    def dec_storage(self, really=True):
+        if really: self.storage -= 1 * int(gdata.MAX_PRODUCTION // 8)
+        return 1 * int(gdata.MAX_PRODUCTION // 8)
+
+
+class Temple(Building):
+    def __init__(self, buildings_layer, _type, version):
+        super().__init__(buildings_layer, _type, version)
+
+
+class MilitaryAc(Building):
+    def __init__(self, buildings_layer, _type):
+        super().__init__(buildings_layer, _type, "military_academy")

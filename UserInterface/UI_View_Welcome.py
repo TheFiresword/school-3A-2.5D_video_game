@@ -15,7 +15,7 @@ class WelcomeScreen(arcade.View):
         self.buttons_manager = arcade.gui.UIManager()
         self.newgame_button = but.NewGameButton(x=constantes.MIDDLE[0]-100,y=constantes.MIDDLE[1]+40+15+7.5,texture= but.texture_panel11,my_text="New Game", width=200, height=40,color="black")
         self.load_button = but.LoadGameButton(x=constantes.MIDDLE[0]-100,y=constantes.MIDDLE[1]+7.5,texture= but.texture_panel11, my_text="Load Game", width=200, height=40,color="black")
-        self.login_button = but.LoginButton(x=constantes.MIDDLE[0]-100,y=constantes.MIDDLE[1]-40-7.5,texture= but.texture_panel11, my_text="Login", width=200, height=40,color="black")
+        self.login_button = but.LoginButton(x=constantes.MIDDLE[0]-100,y=constantes.MIDDLE[1]-40-7.5,texture= but.texture_panel11, my_text="Online", width=200, height=40,color="black")
         self.quit_button = but.QuitButton(x=constantes.MIDDLE[0]-100,y=constantes.MIDDLE[1]-80-15-7.5,texture= but.texture_panel11, my_text="Leave Game", width=200, height=40,color="black")
         self.newgame_button.on_click = self.replace_on_click
 
