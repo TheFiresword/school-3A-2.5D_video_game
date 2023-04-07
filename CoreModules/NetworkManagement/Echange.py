@@ -5,7 +5,6 @@ from typing import Any, Callable, Dict, Tuple, Union
 
 import sysv_ipc
 
-
 from CoreModules.GameManagement.Update import LogicUpdate
 
 """
@@ -58,6 +57,7 @@ class Packet:
             enumerate(address.split(".")[::-1]),
             0,
         )
+
     @classmethod
     def unpack(cls, data: Union[bytearray, bytes]):
         (
@@ -73,9 +73,7 @@ class Packet:
             port,
             cls.addressFromIntAddress(intSourceAddress),
             cls.addressFromIntAddress(intDestinationAddress),
-
             *cls.parseType(packetType),
-
         )
 
     def generalPack(self, *data):
@@ -92,8 +90,16 @@ class Packet:
         return self.generalPack(self.body)
 
 
-
 def encode_update_packets(update: LogicUpdate):
+    def flatten(t):
+        out = []
+        if type(t) in [list, tuple]:
+            for el in t:
+                out += flatten(el)
+        else:
+            out += [t]
+        return out
+
     MESSAGE_BODY_LIMIT = 501
     packets = []
     update_elements = [
@@ -113,9 +119,8 @@ def encode_update_packets(update: LogicUpdate):
                 updateIndex += 1
                 continue
 
-            packetBody += [update_elements[updateIndex][1]] + update_elements[
-                updateIndex
-            ][0].pop()
+            update_data = flatten(update_elements[updateIndex][0].pop())
+            packetBody += [update_elements[updateIndex][1]] + update_data
 
             if (
                 updateIndex >= len(update_elements)
@@ -134,8 +139,34 @@ def encode_update_packets(update: LogicUpdate):
         packets[-1].final = True
     return packets
 
+
 def decode_update_packets(packet: Packet):
-    pass
+
+    update_dict = {
+        1: [lambda x, y: (x, y), 2],
+        2: [lambda x, y, z: ((x, y), z), 3],
+        3: [lambda x, y: (x, y), 2],
+    }
+
+    updates = [None, [], [], []]
+
+    body = [int(hexa) for hexa in packet.body]
+
+    cursor = 0
+
+    while body[cursor] in update_dict.keys():
+        update_id = body[cursor]
+        update_factory, update_len = update_dict[update_id]
+        cursor += 1
+
+        updates[update_id].append(update_factory(*body[cursor : cursor + update_len]))
+        cursor += update_len
+
+    return {
+        "catchedfire": updates[1],
+        "has_evolved": updates[2],
+        "collapsed": updates[3],
+    }
 
 
 class Echange:
@@ -157,12 +188,12 @@ class Echange:
     def receive(self, type: int = 0, block: bool = False):
         data, type = self.mq_rcv.receive(type=type, block=block)
         return Packet.unpack(data)
-    
-    
+
     def getter_current_messages(self):
         return (self.mq_rcv.current_messages, self.mq_snd.current_messages)
 
-echanger = Echange(12345,54321, clear=True)
+
+echanger = Echange(12345, 54321, clear=True)
 
 if __name__ == "__main__":
     p = Packet(b"test", 9200, "127.0.0.1", "127.0.0.1", PacketTypes.Default, True)
