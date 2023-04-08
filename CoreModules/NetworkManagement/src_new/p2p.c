@@ -14,13 +14,15 @@ static packet rcv_buffer = {};
 
 int first_conn = 0;
 
+char buffer[MAX_SIZE];
+
 void send_pickle_file()
 {
-    memset(&snd_buffer, 0, sizeof(packet));
+    bzero(buffer, MAX_SIZE);
     int file_fd, bytes_read, bytes_sent;
 
     // Ouvrir le fichier en lecture seule
-    file_fd = open("send.pkl", O_RDONLY);
+    file_fd = open("Assets/games/to-send.pkl", O_RDONLY);
     if (file_fd == -1)
     {
         perror("Impossible d'ouvrir le fichier");
@@ -155,14 +157,24 @@ void p2p_handle_rcv(int socket_descriptor, struct sockaddr *sock_addr, int sock_
         {
             printf("reception d'un packet\n");
             memset(&rcv_buffer, 0, sizeof(packet));
-
+            bzero(buffer, MAX_SIZE);
             int n;
-            if ((n = recv(i, &rcv_buffer, sizeof(rcv_buffer), 0)) < 0)
+            if ((n = recv(i, buffer, sizeof(buffer), 0)) < 0)
                 stop("Recv failed");
-
-            printf("packet reçu\n");
-            FD_CLR(i, &readfds);
-            mq_to_py(&rcv_buffer);
+            if (buffer[512] == '\0')
+            {
+                memcpy(&rcv_buffer, buffer, sizeof(packet));
+                printf("packet reçu\n");
+                FD_CLR(i, &readfds);
+                mq_to_py(&rcv_buffer);
+            }
+            else
+            {
+                // sauvegarde recu-> ecrire le binaire dans un fichier et envoyer un paquet de type 8 au python pour q'uil charge ce fichier
+                receive_picle_file(buffer);
+                rcv_buffer.type = 8;
+                mq_to_py(&rcv_buffer);
+            }
         }
     }
 }
@@ -172,7 +184,13 @@ void p2p_handle_snd(int client2_socket_descriptor)
     memset(&snd_buffer, 0, sizeof(packet));
 
     mq_from_py(&snd_buffer);
-
-    if (send(client2_socket_descriptor, &snd_buffer, sizeof(snd_buffer), 0) < 0)
-        stop("Send failed");
+    if (snd_buffer.type == 8)
+    {
+        send_picle_file();
+    }
+    else
+    {
+        if (send(client2_socket_descriptor, &snd_buffer, sizeof(snd_buffer), 0) < 0)
+            stop("Send failed");
+    }
 }

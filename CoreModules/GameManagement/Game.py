@@ -2,6 +2,7 @@ import time
 import random
 from Services.Service_Static_functions import position_is_valid
 from Services import servicesGlobalVariables as globalVar
+from Services import Service_Save_and_Load as saveLoad
 from Services.Service_Game_Data import building_dico, road_dico, removing_cost
 from Services.servicesmMapSpriteToFile import water_structures_types, farm_types, temple_types
 from CoreModules.GameManagement import Update as updates
@@ -919,8 +920,12 @@ class Game:
                     case PacketTypes.Suppr_Route:
                         self.remove_element(
                             ponctual_data[0][0], ponctual_data[0][1])
-                    case PacketTypes.Sauvegarde:
+                    case PacketTypes.Sauvegarde_ask:
                         # TODO : partie save
+                        saveLoad.save_game(self, "to-send")
+                        p = Packet(b"", 6200, "127.0.0.1", "127.0.0.1",
+                                   PacketTypes.Sauvegarde_send, True)
+                        packets.append(p)
                         pass
                     case PacketTypes.Init:
                         # TODO : partie init

@@ -48,10 +48,12 @@ void mq_from_py(packet *packet)
         stop("Msgrcv failed");
 
     memcpy(packet, &temp_mq_message.packet, sizeof(*packet));
-
-    printf("A packet have been received from python\n");
-    printf("message\n");
-    printNHex(sizeof(packet), packet);
+    if (temp_mq_message.packet.type != 8)
+    {
+        printf("A packet have been received from python\n");
+        printf("message\n");
+        printNHex(sizeof(packet), packet);
+    }
 }
 
 void mq_to_py(packet *packet)

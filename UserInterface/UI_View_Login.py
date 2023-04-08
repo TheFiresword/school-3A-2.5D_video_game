@@ -2,6 +2,7 @@ import arcade
 from UserInterface import UI_buttons as but
 from UserInterface import UI_View_Game as rgv
 from Services import servicesGlobalVariables as constantes
+from Services import Service_Save_and_Load as saveload
 import arcade.gui
 from CoreModules.NetworkManagement.Echange import echanger, dict_demon, encode_update_packets, decode_update_packets, decode_ponctual_packets, find_key, Packet, PacketTypes
 
@@ -105,15 +106,22 @@ class ReseauLoginScreen(arcade.View):
             # load that game
             # change the owner
             game = None
-            game.owner = (port, ip)
-            game.players.add_player((game.owner, (random.randint(
-                0, 255), random.randint(0, 255), random.randint(0, 255))))
-
-            window.gamescreen = rgv.GameView(_game=game)
-            window.show_view(window.gamescreen)
-
             p = Packet(b"", port, "127.0.0.1", ip,
                        PacketTypes.Sauvegarde_ask, True)
+
+            incoming_packets = [echanger.receive() for _ in range(
+                echanger.getter_current_messages()[0])]
+            # print(incoming_packets)
+            import time
+            time.sleep(5)
+            if incoming_packets[0].type == PacketTypes.Sauvegarde_send:
+                game = saveload.load_game("to-send")
+                game.owner = (port, ip)
+                game.players.add_player((game.owner, (random.randint(
+                    0, 255), random.randint(0, 255), random.randint(0, 255))))
+
+                window.gamescreen = rgv.GameView(_game=game)
+                window.show_view(window.gamescreen)
 
     def setup(self):
         pass
