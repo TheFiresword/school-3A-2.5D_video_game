@@ -1,16 +1,17 @@
+import copy
+from CoreModules.NetworkManagement.Echange import echanger, dict_demon, encode_update_packets, decode_update_packets, decode_ponctual_packets, find_key, Packet, PacketTypes
+from CoreModules.WalkersManagement import walkersManagementWalker as walkers
+from CoreModules.BuildingsManagement import buildingsManagementBuilding as buildings
+from CoreModules.GameManagement import Update as updates
+from Services.servicesmMapSpriteToFile import water_structures_types, farm_types, temple_types
+from Services.Service_Game_Data import building_dico, road_dico, removing_cost
+from Services import Service_Save_and_Load as save_and_load
+from Services import Service_Save_and_Load as saveLoad
 import time
 import random
 from Services.Service_Static_functions import position_is_valid
 from Services import servicesGlobalVariables as globalVar
-from Services import Service_Save_and_Load as saveLoad
-from Services.Service_Game_Data import building_dico, road_dico, removing_cost
-from Services.servicesmMapSpriteToFile import water_structures_types, farm_types, temple_types
-from CoreModules.GameManagement import Update as updates
-from CoreModules.BuildingsManagement import buildingsManagementBuilding as buildings
-from CoreModules.WalkersManagement import walkersManagementWalker as walkers
-from CoreModules.NetworkManagement.Echange import echanger, dict_demon, encode_update_packets, decode_update_packets, decode_ponctual_packets, find_key, Packet, PacketTypes
 
-import copy
 
 INIT_MONEY = 100000000
 TIME_BEFORE_REMOVING_DWELL = 1.5  # seconds
