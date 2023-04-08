@@ -39,6 +39,7 @@ class GameView(arcade.View):
 
     def __init__(self, _game, name="save_1"):
         super().__init__()
+        self.tmp_statistics_sect = None
         self.last_click_time = None
         self.food_qty_text = None
         self.name = name
@@ -185,7 +186,7 @@ class GameView(arcade.View):
                                                          "allowed fires to start. Even now, flames are\n"
                                                          "sweeping through parts of the city.",
                                              top_left_corner=(
-                                             0, constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]),
+                                                 0, constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]),
                                              order=["title_zone", "image_zone", "carved_text_zone", "button_zone"])
         self.collapse_show = 0
         # Collapse PoP_Up
@@ -199,7 +200,7 @@ class GameView(arcade.View):
                                                              "the building has become unstable and \n"
                                                              "has collapsed under its own weight.",
                                                  top_left_corner=(
-                                                 0, constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]),
+                                                     0, constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]),
 
                                                  order=["title_zone", "image_zone", "carved_text_zone", "button_zone"])
         # City debt PoP_Up
@@ -213,7 +214,7 @@ class GameView(arcade.View):
                                                               "but he will not be so generous next time.\n"
                                                               "Develop export to raise funds",
                                                   top_left_corner=(
-                                                  0, constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]),
+                                                      0, constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]),
                                                   order=["title_zone", "image_zone", "carved_text_zone", "button_zone"])
         self.automatic_pop_up = self.fire_Pop_up
         self.actual_pop_up = self.fire_Pop_up
@@ -221,11 +222,11 @@ class GameView(arcade.View):
         self.fps_text = None
         buttons_render = UI_buttons.buttons
         self.buttons = [arcade.gui.UITextureButton(x=b0, y=(
-                    3 * constantes.DEFAULT_SCREEN_HEIGHT / 4 - self.bar.image.size[1] / 2 + b1), texture=b2,
+                3 * constantes.DEFAULT_SCREEN_HEIGHT / 4 - self.bar.image.size[1] / 2 + b1), texture=b2,
                                                    texture_hovered=b3, texture_pressed=b4,
                                                    width=b2.image.size[0] * constantes.SPRITE_SCALING, height=(
-                                                                                                                          b2.image.size[
-                                                                                                                              1] * constantes.DEFAULT_SCREEN_HEIGHT / 2) / 900)
+                                                                                                                      b2.image.size[
+                                                                                                                          1] * constantes.DEFAULT_SCREEN_HEIGHT / 2) / 900)
                         for (b0, b1, b2, b3, b4) in buttons_render]
         self.buttons[5].on_click = self.button_click_house
         self.buttons[6].on_click = self.button_click_shovel
@@ -244,9 +245,9 @@ class GameView(arcade.View):
                                                              my_text="Load Game", color="black")
         self.load_button.on_click = self.button_load_on_click
         self.layer_button = UI_buttons.Text_Button_background(x=constantes.DEFAULT_SCREEN_WIDTH - 162 + 3, y=(
-                                                                                                                         3 * constantes.DEFAULT_SCREEN_HEIGHT / 4 -
-                                                                                                                         self.bar.image.size[
-                                                                                                                             1] / 2) + constantes.DEFAULT_SCREEN_HEIGHT / 2 * 0.4444444444,
+                                                                                                                     3 * constantes.DEFAULT_SCREEN_HEIGHT / 4 -
+                                                                                                                     self.bar.image.size[
+                                                                                                                         1] / 2) + constantes.DEFAULT_SCREEN_HEIGHT / 2 * 0.4444444444,
                                                               width=120, height=25, texture=UI_buttons.texture_panel11,
                                                               my_text="Overlays", color="black")
         self.layer_button.on_click = self.button_layer_on_click
@@ -279,6 +280,7 @@ class GameView(arcade.View):
                                                                        width=120, height=25,
                                                                        texture=UI_buttons.texture_panel11,
                                                                        my_text="owner", color="black")
+
         self.owner_layer_button.on_click = self.button_owner_layer_on_click
         self.layer_manager.add(self.owner_layer_button)
         self.collapse_layer_button.on_click = self.button_collapse_layer_on_click
@@ -319,20 +321,24 @@ class GameView(arcade.View):
 
     def setup(self):
         if not self.game:
+            # Set up the owner id
+            ip = fct.get_ip()
+            port = fct.get_free_port(ip)
             self.game = game.Game(map.MapLogic((constantes.TILE_COUNT // 2, 0), (0, constantes.TILE_COUNT // 2),
-                                               constantes.TILE_COUNT - 7), name=self.name, game_view=self)
+                                               constantes.TILE_COUNT - 7), name=self.name, owner_id=(ip, port))
         else:
             self.name = self.game.name
         self.money_text = text.Sprite_sentence("Dn: " + str(self.game.money), "white",
                                                (205, constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] / 4))
         self.fps_text = text.Sprite_sentence(str(self.speed_ratio) + "%", "black", (
-        constantes.DEFAULT_SCREEN_WIDTH - 162 + 85,
-        constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT / 2 + 10))
+            constantes.DEFAULT_SCREEN_WIDTH - 162 + 85,
+            constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT / 2 + 10))
         self.population_text = text.Sprite_sentence("Pop :" + str(constantes.WALKER_UNIT * len(self.game.walkersAll)),
                                                     "white", (
-                                                    505, constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] / 4))
+                                                        505,
+                                                        constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] / 4))
         self.fps_text2 = text.Sprite_sentence("Pop :" + str(self.game.framerate), "white", (
-        605 - (len(self.population_text.sentence)), constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] / 4))
+            605 - (len(self.population_text.sentence)), constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] / 4))
 
         self.food_qty_text = text.Sprite_sentence(f"Your town has {self.game.update_food_qty()} lots of food", "black",
                                                   (constantes.DEFAULT_SCREEN_WIDTH - len(self.fps_text2.sentence),
@@ -363,9 +369,9 @@ class GameView(arcade.View):
         map_width = constantes.MAP_WIDTH * self.visualmap.map_scaling
         map_height = constantes.MAP_HEIGHT * self.visualmap.map_scaling
         proj = self.minimap_camera.position[0] - (15 * map_width / 100), self.minimap_camera.position[0] + (
-                    85 * map_width / 100), \
+                85 * map_width / 100), \
                self.minimap_camera.position[1] - (15 * map_height / 100), self.minimap_camera.position[1] + (
-                           85 * map_height / 100)
+                       85 * map_height / 100)
 
         with self.minimap_sprite_list.atlas.render_into(self.minimap_texture, projection=proj) as fbo:
             fbo.clear(MINIMAP_BACKGROUND_COLOR)
@@ -504,6 +510,10 @@ class GameView(arcade.View):
         # Draw the minimap
         self.minimap_sprite_list.draw()
 
+        # Statistics
+        if self.tmp_statistics_sect:
+            self.tmp_statistics_sect.on_draw()
+
     def on_update(self, delta_time: float):
         if self.is_paused:
             arcade.get_window().set_update_rate(0)
@@ -524,17 +534,18 @@ class GameView(arcade.View):
             self.move_map_camera_with_keys()
             self.visualmap.update_walker_list(self.game.walkersOut)
             self.money_text = text.Sprite_sentence("Dn: " + str(self.game.money), "white", (
-            320 - (len(self.money_text.sentence) + 5) * constantes.FONT_WIDTH / 4,
-            constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] / 4))
+                320 - (len(self.money_text.sentence) + 5) * constantes.FONT_WIDTH / 4,
+                constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] / 4))
             self.fps_text = text.Sprite_sentence(str(self.speed_ratio) + "%", "black", (
-            constantes.DEFAULT_SCREEN_WIDTH - 162 + 85,
-            constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT / 2 + 10))
+                constantes.DEFAULT_SCREEN_WIDTH - 162 + 85,
+                constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT / 2 + 10))
             self.population_text = text.Sprite_sentence(
                 "Pop :" + str(constantes.WALKER_UNIT * len(self.game.walkersAll)), "white", (
-                505 - (len(self.population_text.sentence)),
-                constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] / 4))
+                    505 - (len(self.population_text.sentence)),
+                    constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] / 4))
             self.fps_text2 = text.Sprite_sentence("Fps:" + str(1 / delta_time), "white", (
-            605 - (len(self.population_text.sentence)), constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] / 4))
+                605 - (len(self.population_text.sentence)),
+                constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] / 4))
             self.food_qty_text = text.Sprite_sentence(f"Your town has {self.game.update_food_qty()} lots of food",
                                                       "black",
                                                       (800,
@@ -731,6 +742,24 @@ class GameView(arcade.View):
                 self.is_paused = False
             self.count_pauses += 1
 
+        elif symbol == arcade.key.TAB:
+            # Print statistics of players
+            rows = []
+            p = self.game.players
+            _i = 0
+            for i in range(len(p)):
+                _i = i
+                rows.append(arcade.Text(text=f'{p[i][0][0]} ====> {self.game.update_food_qty()}', start_x=10,
+                                        start_y=30 * i, color=p[i][1], font_size=15))
+            rows.append(arcade.Text(text=f'| ====Players==== | ====Statistics==== |', start_x=10,
+                                    start_y=30 * (_i+1), color=(255, 255, 255), font_size=20))
+
+            self.tmp_statistics_sect = arcade.Section(left=0, bottom=constantes.DEFAULT_SCREEN_HEIGHT / 2,
+                                                      width=300, height=300, name="Statistics",
+                                                      accept_keyboard_events=False)
+
+            self.tmp_statistics_sect.on_draw = lambda: [row.draw() for row in rows]
+
     def on_key_release(self, _symbol: int, _modifiers: int):
         if _symbol == arcade.key.UP:
             self.up_pressed = False
@@ -740,6 +769,9 @@ class GameView(arcade.View):
             self.left_pressed = False
         elif _symbol == arcade.key.RIGHT:
             self.right_pressed = False
+        elif _symbol == arcade.key.TAB:
+            # destroy the view statistics
+            self.tmp_statistics_sect = None
 
     # =======================================
     #  Camera Related Fuctions
@@ -1081,6 +1113,3 @@ class GameView(arcade.View):
         for briskcollapse in update.collapse_level_change:
             self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer, position=briskcollapse[0],
                                              update_type="risk_update", special_value=("collapse", briskcollapse[1]))
-
-
-

@@ -6,22 +6,24 @@ from Services.servicesmMapSpriteToFile import water_structures_types, farm_types
 from CoreModules.GameManagement import Update as updates
 from CoreModules.BuildingsManagement import buildingsManagementBuilding as buildings
 from CoreModules.WalkersManagement import walkersManagementWalker as walkers
-from CoreModules.NetworkManagement.Echange import echanger , encode_update_packets ,decode_update_packets, Packet
+from CoreModules.NetworkManagement.Echange import echanger, dict_demon , encode_update_packets ,decode_update_packets,decode_ponctual_packets,find_key, Packet , PacketTypes
 
 import copy
 
 INIT_MONEY = 100000000
 TIME_BEFORE_REMOVING_DWELL = 1.5  # seconds
-sanitation_str = ["luxurious_bath", "normal_bath", "fountain", "fountain2","fountain3", "fountain4"]
+sanitation_str = ["luxurious_bath", "normal_bath", "fountain", "fountain2", "fountain3", "fountain4"]
 import time
 
 
 class Game:
-    def __init__(self, _map, name="save", game_view=None):
+    def __init__(self, _map, name="save", owner_id=None):
         self.name = name
         self.map = _map
         self.startGame()
         self.scaling = 0
+        self.owner = owner_id
+        print(self.owner)
 
         self.money = INIT_MONEY
         self.food = 0
@@ -40,6 +42,8 @@ class Game:
         self.updated = []
         self.players = [["moi", (0,0,255)]]
 
+        self.players = [(self.owner, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))),
+                        (('127.0.0.1', 1000), (255, 0, 0))]
         # some lists of specific buildings
         self.dwelling_list = []
 
@@ -68,7 +72,6 @@ class Game:
         self.last_bathhouse_structure_removed = None
         self.last_reservoir_removed = None
 
-
         # Timer
         self.init_time = time.time()
         self.timer_for_immigrant_arrival = {}
@@ -82,6 +85,11 @@ class Game:
         self.total_food = 0
 
         self.queue_exit = []
+
+    def add_player(self, id_player, color):
+        if (id_player, color) not in self.players:
+            self.players.append((id_player, color))
+
     def update_food_qty(self):
         self.total_food = sum(gran.storage for gran in self.granary_list)
         return self.total_food
@@ -143,7 +151,8 @@ class Game:
             print(b.dic['version'])
 
     def update_supply_requirements_with_structure_range(self, of_what: 'water' or 'food' or 'temple' or 'education'
-        or 'fountain' or 'basic_entertainment' or 'pottery' or 'bathhouse', spec_building):
+                                                                       or 'fountain' or 'basic_entertainment' or 'pottery' or 'bathhouse',
+                                                        spec_building):
         """
         This functions searches for supply structures on the map and for each one look for dwell within the range of
         the structure. If the dwell required a structure of this type, then its position will be added to the list of
@@ -152,7 +161,7 @@ class Game:
         """
         tmp = of_what + '_structures_list'
         structures_list = getattr(self, tmp)
-        if spec_building  in structures_list:
+        if spec_building in structures_list:
             self.intermediate_update_supply_function(of_what, spec_building, evolvable=True)
         """
         for structure in structures_list:
@@ -162,7 +171,8 @@ class Game:
         """
 
     def intermediate_update_supply_function(self, of_what: 'water' or 'food' or 'temple' or 'education' or 'fountain' or
-    'basic_entertainment' or 'pottery' or 'bathhouse', structure,evolvable=True):
+                                                           'basic_entertainment' or 'pottery' or 'bathhouse', structure,
+                                            evolvable=True):
         if structure:  # None
             if structure.is_functional():
                 _range = structure.range
@@ -186,8 +196,8 @@ class Game:
                             -_range + _position[1] <= column < _range + 1 + _position[1]:
                         fountain_bath.set_functional(evolvable)
 
-    def downgrade_supply_requirement_with_structure_range(self,of_what: 'water' or 'food' or 'temple' or
-        'education' or 'fountain' or 'basic_entertainment' or 'pottery' or 'bathhouse'):
+    def downgrade_supply_requirement_with_structure_range(self, of_what: 'water' or 'food' or 'temple' or
+                                                                         'education' or 'fountain' or 'basic_entertainment' or 'pottery' or 'bathhouse'):
         tmp = 'last_' + of_what + '_structure_removed'
         structure = getattr(self, tmp)
         if structure:
@@ -218,7 +228,7 @@ class Game:
         # if k.dic['version']=="granary": print(f"Has road={has_road} -- Number of employees={k.current_number_of_employees} ")
         if worker_job and has_road and k.current_number_of_employees < k.max_number_of_employees \
                 and not k.isDestroyed and not k.isBurning:
-            #if k.dic['version']=="military_academy":print(f"{k.current_number_of_employees} vs {k.max_number_of_employees}")
+            # if k.dic['version']=="military_academy":print(f"{k.current_number_of_employees} vs {k.max_number_of_employees}")
 
             if self.unemployedCitizens:
                 citizen = random.choice(self.unemployedCitizens)
@@ -309,7 +319,7 @@ class Game:
                 # ======================================================
                 #  Creation of prefects, engineers, priests and traders, and soldiers
                 # ======================================================
-                if k.dic['version'] in ["engineer's_post", "prefecture", "granary","military_academy"] + temple_types:
+                if k.dic['version'] in ["engineer's_post", "prefecture", "granary", "military_academy"] + temple_types:
                     self.workers_create(k, possible_roads, has_road)
 
 
@@ -565,10 +575,11 @@ class Game:
 
         self.actions_on_buildings(building_list1, update)
         self.actions_on_buildings(building_list2, update)
-
-        sending_update_packets = encode_update_packets(update)
-        self.send_update_packets(sending_update_packets)
+        #print(update.catchedfire,update.collapsed,update.has_evolved)
+        #sending_update_packets = encode_update_packets(update)
+        #self.send_update_packets(sending_update_packets)
         incoming_packets = [ echanger.receive() for _ in range(echanger.getter_current_messages()[0]) ]
+        #print(incoming_packets)
         self.include_incoming_packets(incoming_packets,update)
         return update            
 
@@ -606,9 +617,9 @@ class Game:
             for ctz_id in building.get_all_employees():
                 ctz = self.get_citizen_by_id(ctz_id)
                 if isinstance(ctz, walkers.Soldier): self.going_back_mlt = False
-                if building.dic['version']=="military_academy":
+                if building.dic['version'] == "military_academy":
                     print("BATARD DEGAGE")
-                ctz.wait=False
+                ctz.wait = False
                 # Return in its house
                 ctz.move_to_another_dwell(ctz.house.position, walk_through=True)
                 self.walkersAll.remove(ctz)
@@ -773,7 +784,7 @@ class Game:
             building = buildings.MilitaryAc(self.map.buildings_layer, globalVar.LAYER5)
         else:
             building = buildings.Building(self.map.buildings_layer, globalVar.LAYER5, version)
-        building.owner = "moi"
+        building.owner = self.owner
 
         # we should check that there is no water on the future positions
         cells_number = building.dic['cells_number']
@@ -820,8 +831,8 @@ class Game:
             if type(building) == buildings.MilitaryAc:
                 self.military_structures_list.append(building)
             
-            body = str(building.position[0]) +',' + str(building.position[1]) + ',' + str(1)
-            packet = Packet(bytearray(body), 8000, "127.0.0.1", "127.0.0.1", final=True)
+            body = [building.position[0],building.position[1],find_key(building.dic["version"],dict_demon)]
+            packet = Packet(bytearray(body), 9200, "192.168.241.176", "192.168.241.154", final=True, packetType=PacketTypes.Ajouter)
             echanger.send(packet)
             
 
@@ -850,12 +861,31 @@ class Game:
                 prefets.append(walker)
         return prefets
     
-    def include_incoming_packets(self, packets : list(Packet)):
+    def include_incoming_packets(self, packets,update):
         for packet in packets:
-            pass
+            if packet.type == PacketTypes.Update:
+                update_dict = decode_update_packets(packet)
+                # TODO : update the update
+            else:
+                ponctual_data = decode_ponctual_packets(packet)
+                match packet.type:
+                    case PacketTypes.Ajouter:
+                        self.add_building(ponctual_data[0][0],ponctual_data[0][1],dict_demon[ponctual_data[1]])
+                    case PacketTypes.Supprimer:
+                        self.remove_element(ponctual_data[0][0],ponctual_data[0][1])
+                    case PacketTypes.Ajout_Route:
+                        self.add_road(ponctual_data[0][0],ponctual_data[0][1],ponctual_data[1])
+                    case PacketTypes.Suppr_Route:
+                        self.remove_element(ponctual_data[0][0],ponctual_data[0][1])
+                    case PacketTypes.Sauvegarde:
+                        # TODO : partie save
+                        pass
+                    case PacketTypes.Init:
+                        # TODO : partie init
+                        pass
+        pass
         
 
     def send_update_packets(self, packets):
         for packet in packets:
             echanger.send(packet,True)
-
