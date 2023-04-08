@@ -1,6 +1,7 @@
 import random
 from Services.Service_Static_functions import position_is_valid
 from Services import servicesGlobalVariables as globalVar
+from Services import Service_Save_and_Load as save_and_load
 from Services.Service_Game_Data import building_dico, road_dico, removing_cost
 from Services.servicesmMapSpriteToFile import water_structures_types, farm_types, temple_types
 from CoreModules.GameManagement import Update as updates
@@ -879,6 +880,10 @@ class Game:
                         self.remove_element(ponctual_data[0][0],ponctual_data[0][1])
                     case PacketTypes.Sauvegarde:
                         # TODO : partie save
+                        save_and_load.save_game(self, "tosend")
+                        path = "Assets/games/tosend.pkl"
+                        
+                        
                         pass
                     case PacketTypes.Init:
                         # TODO : partie init

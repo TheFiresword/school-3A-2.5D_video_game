@@ -89,9 +89,8 @@ class ReseauLoginScreen(arcade.View):
         port = self.port_field.text
         ip = self.ip_field.text
         window = arcade.get_window()
-        if port == '':
-            window.show_view(window.gamescreen)
-        else:
+       
+        if port != '':
             # connection to the dest
             # receive the game online
             # load that game
@@ -100,9 +99,7 @@ class ReseauLoginScreen(arcade.View):
             game.owner = (port, ip)
             game.players.add_player((game.owner, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))))
 
-            window.gamescreen = rgv.GameView(_game=game)
-            window.show_view(window.gamescreen)
-            pass
+        window.show_view(window.gamescreen)
 
 
     def setup(self):
