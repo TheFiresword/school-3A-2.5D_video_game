@@ -45,7 +45,7 @@ class Packet:
 
     @staticmethod
     def addressFromIntAddress(intAddress: int) -> str:
-        return f"{intAddress >> 24 & 0xFF}.{intAddress >> 16 & 0xFF}.{intAddress >> 8 & 0xFF}.{intAddress & 0xFF}"
+        return f"{intAddress >> 0 & 0xFF}.{intAddress >> 8 & 0xFF}.{intAddress >> 16 & 0xFF}.{intAddress >> 24 & 0xFF}"
 
     @staticmethod
     def parseType(type: int) -> Tuple[PacketTypes, bool]:
@@ -55,7 +55,7 @@ class Packet:
     def intAddressFromAdress(address: str) -> int:
         return reduce(
             lambda a, b: a | int(b[1]) << (8 * b[0]),
-            enumerate(address.split(".")[::-1]),
+            enumerate(address.split(".")),
             0,
         )
 
