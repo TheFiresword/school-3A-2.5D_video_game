@@ -37,25 +37,23 @@ class Packet:
         sourceAddress: str,
         destinationAddress: str,
         packetType: Union[int, PacketTypes] = PacketTypes.Default,
-        final=False,
     ) -> None:
         self.body = body
         self.port = port
         self.sourceAddress = sourceAddress
         self.destinationAddress = destinationAddress
         self.type: PacketTypes = PacketTypes(packetType)
-        self.final = final
 
     def __str__(self) -> str:
-        return f"{self.__class__}\n\ttype : {self.type} {'(final)' if self.final else ''}\n\tport : {self.port}\n\tfrom : {self.sourceAddress}\n\tto  : {self.destinationAddress}"
+        return f"{self.__class__}\n\ttype : {self.type}\n\tport : {self.port}\n\tfrom : {self.sourceAddress}\n\tto  : {self.destinationAddress}"
 
     @staticmethod
     def addressFromIntAddress(intAddress: int) -> str:
         return f"{intAddress >> 24 & 0xFF}.{intAddress >> 16 & 0xFF}.{intAddress >> 8 & 0xFF}.{intAddress & 0xFF}"
 
-    @staticmethod
-    def parseType(type: int) -> Tuple[PacketTypes, bool]:
-        return bool(type & 1), type >> 1
+    # @staticmethod
+    # def parseType(type: int) -> Tuple[PacketTypes, bool]:
+    #     return bool(type & 1), type >> 1
 
     @staticmethod
     def intAddressFromAdress(address: str) -> int:
@@ -80,13 +78,13 @@ class Packet:
             port,
             cls.addressFromIntAddress(intSourceAddress),
             cls.addressFromIntAddress(intDestinationAddress),
-            *cls.parseType(packetType),
+            packetType,
         )
 
     def generalPack(self, *data):
         return struct.pack(
             self.binPattern,
-            self.type.value << 1 | int(self.final),
+            self.type,
             self.port,
             self.intAddressFromAdress(self.sourceAddress),
             self.intAddressFromAdress(self.destinationAddress),
@@ -139,8 +137,6 @@ def encode_update_packets(update: LogicUpdate):
         packets.append(
             Packet(bytearray(packetBody), 9200, "192.168.241.176", "192.168.241.154", final=False, packetType=PacketTypes.Update)
         )
-    if len(packets) > 0:
-        packets[-1].final = True
     return packets
 
 
@@ -175,15 +171,21 @@ def decode_ponctual_packets(packet: Packet):
     
     ponctual_dict = {
         1: [lambda x, y, z: ((x, y), z), 3],
-        2: [lambda x, y, z: ((x, y), z), 3],
-        3: [lambda x, y, z: ((x, y), z), 3],
+        2: [lambda x, y, z: ((x, y)), 2],
+        3: [lambda x, y, z: ((x, y)), 2],
         4: [lambda x, y, z: ((x, y), z), 3],
         5: [lambda _: None, 0],
-        7: [lambda x, y: (x, y) , 2],
+        7: [lambda x, y: (x, y), 2],
     }
-
-    body = [int(hexa) for hexa in packet.body]
-    assert len(body) == ponctual_dict[packet.type][1], f"Packet {packet.type} has a wrong body length"
+    body = []
+    for hexa in range(len(packet.body)-2):
+        if int(packet.body[hexa]) == 0 and int(packet.body[hexa+1]) == 0:
+            break
+        else:
+            body.append(int(packet.body[hexa]))
+    #print(len(body), body)
+    assert len(
+        body) == ponctual_dict[packet.type][1], f"Packet {packet.type} has a wrong body length"
     return ponctual_dict[packet.type][0](*body)
     
 class Echange:

@@ -33,7 +33,7 @@ void mq_setup(int mq_key_from_py, int mq_key_to_py)
     printf("\033[1;32m[Message queues ok]\033[1;0m\n");
 }
 
-void mq_from_py(packet *packet)
+void mq_from_py(packet *from_packet)
 {
 
     if (mq_id_to_py < 0)
@@ -44,17 +44,17 @@ void mq_from_py(packet *packet)
 
     mq_message temp_mq_message = {};
 
-    if (msgrcv(mq_id_from_py, &temp_mq_message, sizeof(*packet), 0, 0) == -1)
+    if (msgrcv(mq_id_from_py, &temp_mq_message, sizeof(packet), 0, 0) == -1)
         stop("Msgrcv failed");
 
-    memcpy(packet, &temp_mq_message.packet, sizeof(*packet));
+    memcpy(from_packet, &temp_mq_message.packet, sizeof(packet));
 
     printf("A packet have been received from python\n");
     printf("message\n");
-    printNHex(sizeof(packet), packet);
+    printNHex(sizeof(packet), from_packet);
 }
 
-void mq_to_py(packet *packet)
+void mq_to_py(packet *to_packet)
 {
     if (mq_id_to_py < 0)
     {
@@ -62,14 +62,14 @@ void mq_to_py(packet *packet)
         exit(1);
     }
 
-    mq_message temp_mq_message = {.m_type = packet->type};
+    mq_message temp_mq_message = {.m_type = to_packet->type};
 
-    memcpy(&temp_mq_message.packet, packet, sizeof(*packet));
+    memcpy(&temp_mq_message.packet, to_packet, sizeof(packet));
 
-    if (msgsnd(mq_id_to_py, &temp_mq_message, sizeof(*packet), 0))
+    if (msgsnd(mq_id_to_py, &temp_mq_message, sizeof(packet), 0))
         stop("Msgsnd failed");
 
     printf("A packet have been sent to python\n");
     printf("message\n");
-    printNHex(sizeof(packet), packet);
+    printNHex(sizeof(packet), to_packet);
 }
