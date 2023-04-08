@@ -12,53 +12,49 @@
 static packet snd_buffer = {};
 static packet rcv_buffer = {};
 
-void send_pickle_file(char *filename, char *buffer)
+int first_conn = 0;
+
+void send_pickle_file()
 {
-    FILE *fp;
-    fp = fopen(filename, "wb"); // Ouvrir le fichier en mode binaire pour l'écriture
-    if (fp == NULL)
+    memset(&snd_buffer, 0, sizeof(packet));
+    int file_fd, bytes_read, bytes_sent;
+
+    // Ouvrir le fichier en lecture seule
+    file_fd = open("send.pkl", O_RDONLY);
+    if (file_fd == -1)
     {
-        fprintf(stderr, "Impossible d'ouvrir le fichier %s\n", filename);
-        exit(EXIT_FAILURE);
+        perror("Impossible d'ouvrir le fichier");
+        return;
     }
 
-    fwrite(buffer, sizeof(char), strlen(buffer), fp); // Écrire le contenu du buffer dans le fichier
-    fclose(fp);
-
-    printf("Le contenu du buffer a été écrit dans le fichier %s\n", filename);
-}
-
-void receive_picle_file(int server_socket, char *filename)
-// le contenu reçu par un recv est directement écris dans le fichier filename
-{
-    int filefd;
-    ssize_t nread;
-    char buffer[MAX_SIZE];
-
-    // Ouvrir le fichier en mode écriture, tronquer le fichier s'il existe déjà
-    if ((filefd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0666)) == -1)
+    // Lire le contenu du fichier par blocs de BUFSIZ octets et l'envoyer sur la socket
+    while ((bytes_read = read(file_fd, buffer, BUFSIZ)) > 0)
     {
-        perror("open");
-        exit(EXIT_FAILURE);
-    }
-
-    // Réception du fichier bloc par bloc
-    while ((nread = recv(server_socket, buffer, MAX_SIZE, 0)) > 0)
-    {
-        if (write(filefd, buffer, nread) == -1)
+        bytes_sent = send(first_conn, buffer, bytes_read, 0);
+        if (bytes_sent == -1)
         {
-            perror("write");
-            exit(EXIT_FAILURE);
+            perror("Erreur d'envoi de données sur la socket");
+            break;
         }
     }
 
-    // Fermer le fichier
-    close(filefd);
+    // Fermer le fichier et la socket
+    close(file_fd);
+    close(first_conn);
+}
 
-    if (nread == -1)
+void receive_picle_file(char *buffer)
+// le contenu reçu est directement écris dans le fichier save.pkl dans Assets/game
+{
+    FILE *file = fopen("save.pkl", "wb"); // ouvrir le fichier en mode binaire
+    if (file != NULL)
     {
-        perror("recv");
-        exit(EXIT_FAILURE);
+        fwrite(buffer, sizeof(char), strlen(buffer), file); // écrire le contenu du buffer dans le fichier
+        fclose(file);                                       // fermer le fichier
+    }
+    else
+    {
+        printf("Impossible d'ouvrir le fichier\n");
     }
 }
 
@@ -153,7 +149,7 @@ void p2p_handle_rcv(int socket_descriptor, struct sockaddr *sock_addr, int sock_
             printf("acceptation d'un client\n");
             int new_client_socket_descriptor = accept(socket_descriptor, sock_addr, (socklen_t *)&sock_addr_size);
             FD_SET(new_client_socket_descriptor, &readfds);
-            receive_picle_file(new_client_socket_descriptor, "../../../Assets/games/newsauvegarde.pkl");
+            first_conn = new_client_socket_descriptor;
         }
         else
         {
@@ -179,5 +175,4 @@ void p2p_handle_snd(int client2_socket_descriptor)
 
     if (send(client2_socket_descriptor, &snd_buffer, sizeof(snd_buffer), 0) < 0)
         stop("Send failed");
-    send_pickle_file(client2_socket_descriptor, "../../../Assets/games/sauvegarde.pkl");
 }
