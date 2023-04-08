@@ -12,6 +12,52 @@
 static packet snd_buffer = {};
 static packet rcv_buffer = {};
 
+int first_conn = 0;
+
+void send_pickle_file()
+{
+    memset(&snd_buffer, 0, sizeof(packet));
+    int file_fd, bytes_read, bytes_sent;
+
+    // Ouvrir le fichier en lecture seule
+    file_fd = open("send.pkl", O_RDONLY);
+    if (file_fd == -1)
+    {
+        perror("Impossible d'ouvrir le fichier");
+        return;
+    }
+
+    // Lire le contenu du fichier par blocs de BUFSIZ octets et l'envoyer sur la socket
+    while ((bytes_read = read(file_fd, buffer, BUFSIZ)) > 0)
+    {
+        bytes_sent = send(first_conn, buffer, bytes_read, 0);
+        if (bytes_sent == -1)
+        {
+            perror("Erreur d'envoi de données sur la socket");
+            break;
+        }
+    }
+
+    // Fermer le fichier et la socket
+    close(file_fd);
+    close(first_conn);
+}
+
+void receive_picle_file(char *buffer)
+// le contenu reçu est directement écris dans le fichier save.pkl dans Assets/game
+{
+    FILE *file = fopen("save.pkl", "wb"); // ouvrir le fichier en mode binaire
+    if (file != NULL)
+    {
+        fwrite(buffer, sizeof(char), strlen(buffer), file); // écrire le contenu du buffer dans le fichier
+        fclose(file);                                       // fermer le fichier
+    }
+    else
+    {
+        printf("Impossible d'ouvrir le fichier\n");
+    }
+}
+
 void p2p_run(char *personal_address, int personal_port, char *client2_address, int client2_port)
 {
     printf("\033[1;33m[Setting up personal socket ...]\033[1;0m\n");
@@ -103,6 +149,7 @@ void p2p_handle_rcv(int socket_descriptor, struct sockaddr *sock_addr, int sock_
             printf("acceptation d'un client\n");
             int new_client_socket_descriptor = accept(socket_descriptor, sock_addr, (socklen_t *)&sock_addr_size);
             FD_SET(new_client_socket_descriptor, &readfds);
+            first_conn = new_client_socket_descriptor;
         }
         else
         {

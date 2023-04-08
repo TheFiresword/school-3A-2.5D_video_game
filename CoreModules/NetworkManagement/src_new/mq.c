@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "main.c"
 
 #include "./headers/p2p.h"
 #include "./headers/utils.h"
@@ -27,7 +28,6 @@ void mq_setup(int mq_key_from_py, int mq_key_to_py)
     mq_id_to_py = msgget(mq_key_to_py, 0666 | IPC_CREAT);
     if (mq_id_to_py < 0)
         stop("Msgget failed");
-
     printf("\tTo python message queue id : %d\n", mq_id_to_py);
 
     printf("\033[1;32m[Message queues ok]\033[1;0m\n");
@@ -63,9 +63,7 @@ void mq_to_py(packet *packet)
     }
 
     mq_message temp_mq_message = {.m_type = packet->type};
-
     memcpy(&temp_mq_message.packet, packet, sizeof(*packet));
-
     if (msgsnd(mq_id_to_py, &temp_mq_message, sizeof(*packet), 0))
         stop("Msgsnd failed");
 
