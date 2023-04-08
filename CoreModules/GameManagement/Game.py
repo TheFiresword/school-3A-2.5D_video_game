@@ -707,7 +707,7 @@ class Game:
                     del _element
                     if not from_packet:
                         body = [line ,column]
-                        packet = Packet(bytearray(body), 9200, "192.168.241.176", "192.168.241.154", packetType=PacketTypes.Supprimer)
+                        packet = Packet(bytearray(body), 8200, "192.168.1.146", "192.168.1.158", packetType=PacketTypes.Supprimer)
                         echanger.send(packet)
         return element_type
 
@@ -752,7 +752,7 @@ class Game:
             self.money -= road_dico['cost']
             if not from_packet:
                 body = [line ,column]
-                packet = Packet(bytearray(body), 9200, "192.168.241.176", "192.168.241.154", packetType=PacketTypes.Ajout_Route)
+                packet = Packet(bytearray(body), 8200, "192.168.1.146", "192.168.1.158", packetType=PacketTypes.Ajout_Route)
                 echanger.send(packet)
         return status
 
@@ -841,7 +841,8 @@ class Game:
             
             if not from_packet:
                 body = [building.position[0],building.position[1],find_key(building.dic["version"],dict_demon)]
-                packet = Packet(bytearray(body), 9200, "192.168.241.176", "192.168.241.154", packetType=PacketTypes.Ajouter)
+                print(body)
+                packet = Packet(bytearray(body), 8200, "192.168.1.146", "192.168.1.158", packetType=PacketTypes.Ajouter)
                 echanger.send(packet)
             
 
@@ -871,30 +872,31 @@ class Game:
         return prefets
     
     def include_incoming_packets(self, packets,update):
-        layer_to_be_updated = {}
+        layer_to_be_updated = set()
         for packet in packets:
             if packet.type == PacketTypes.Update:
                 update_dict = decode_update_packets(packet)
                 # TODO : update the update
             else:
                 ponctual_data = decode_ponctual_packets(packet)
+                print(ponctual_data)
                 match packet.type:
                     case PacketTypes.Ajouter:
                         self.add_building(
                             ponctual_data[0][0], ponctual_data[0][1], dict_demon[ponctual_data[1]],from_packet=True)
                         layer_to_be_updated.add("buildings")
                     case PacketTypes.Supprimer:
-                        self.remove_element(
-                            ponctual_data[0][0], ponctual_data[0][1])
+                        self.remove_element((
+                            ponctual_data[0], ponctual_data[1]))
                         layer_to_be_updated.add("buildings")
                         layer_to_be_updated.add("roads")
                     case PacketTypes.Ajout_Route:
                         self.add_road(
-                            ponctual_data[0][0], ponctual_data[0][1], ponctual_data[1])
+                            ponctual_data[0], ponctual_data[1],from_packet=True)
                         layer_to_be_updated.add("roads")
                     case PacketTypes.Suppr_Route:
                         self.remove_element(
-                            ponctual_data[0][0], ponctual_data[0][1])
+                            ponctual_data[0], ponctual_data[1])
                     case PacketTypes.Sauvegarde:
                         # TODO : partie save
                         pass

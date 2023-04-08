@@ -50,8 +50,8 @@ void mq_from_py(packet *from_packet)
     memcpy(from_packet, &temp_mq_message.packet, sizeof(packet));
 
     printf("A packet have been received from python\n");
-    printf("message\n");
-    printNHex(sizeof(packet), from_packet);
+    //printf("message\n");
+    //printNHex(sizeof(packet), from_packet);
 }
 
 void mq_to_py(packet *to_packet)
@@ -70,6 +70,6 @@ void mq_to_py(packet *to_packet)
         stop("Msgsnd failed");
 
     printf("A packet have been sent to python\n");
-    printf("message\n");
-    printNHex(sizeof(packet), to_packet);
+    //printf("message\n");
+    //printNHex(sizeof(packet), to_packet);
 }

@@ -135,7 +135,7 @@ def encode_update_packets(update: LogicUpdate):
 
         # TODO : generaliser l'adresse et le port
         packets.append(
-            Packet(bytearray(packetBody), 9200, "192.168.241.176", "192.168.241.154", final=False, packetType=PacketTypes.Update)
+            Packet(bytearray(packetBody), 8200, "192.168.1.146", "192.168.1.158", final=False, packetType=PacketTypes.Update)
         )
     return packets
 
@@ -171,8 +171,8 @@ def decode_ponctual_packets(packet: Packet):
     
     ponctual_dict = {
         1: [lambda x, y, z: ((x, y), z), 3],
-        2: [lambda x, y, z: ((x, y)), 2],
-        3: [lambda x, y, z: ((x, y)), 2],
+        2: [lambda x, y: (x, y), 2],
+        3: [lambda x, y: (x, y), 2],
         4: [lambda x, y, z: ((x, y), z), 3],
         5: [lambda _: None, 0],
         7: [lambda x, y: (x, y), 2],
@@ -203,6 +203,7 @@ class Echange:
 
     def send(self, packet: Packet, block: bool = False):
         self.mq_snd.send(packet.pack(), type=packet.type, block=block)
+        print("send")
 
     def receive(self, type: int = 0, block: bool = False):
         data, type = self.mq_rcv.receive(type=type, block=block)
@@ -215,7 +216,7 @@ class Echange:
 echanger = Echange(12345, 54321, clear=True)
 
 if __name__ == "__main__":
-    p = Packet(b"test", 9200, "127.0.0.1", "127.0.0.1", PacketTypes.Default, True)
+    p = Packet(b"test", 8200, "127.0.0.1", "127.0.0.1", PacketTypes.Default, True)
     print(p)
     print(p.pack())
     print(Packet.unpack(p.pack()))
@@ -287,7 +288,8 @@ dict_demon={1: 'academy',
             65: 'vintner', 
             66: 'wall',
             67: 'wine_press',
-            68: 'workshop'
+            68: 'workshop',
+            69: 'senate'
 }
 
 def find_key(value, dict):
