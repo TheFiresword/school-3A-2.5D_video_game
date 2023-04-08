@@ -98,9 +98,8 @@ class ReseauLoginScreen(arcade.View):
         port = self.port_field.text
         ip = self.ip_field.text
         window = arcade.get_window()
-        if port == '':
-            window.show_view(window.gamescreen)
-        else:
+       
+        if port != '':
             # connection to the dest
             # receive the game online
             # load that game

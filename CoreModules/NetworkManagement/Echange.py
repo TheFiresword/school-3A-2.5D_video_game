@@ -67,7 +67,12 @@ class Packet:
         )
 
     @classmethod
-    def unpack(cls, data: Union[bytearray, bytes]):
+    def unpack(cls, data: Union[bytearray, bytes]):#-> Paquet
+        """
+        Unpack data into a Packet object.
+        : data is the binary data to unpack.
+        
+        """
         (
             packetType,
             port,
@@ -84,7 +89,7 @@ class Packet:
             *cls.parseType(packetType),
         )
 
-    def generalPack(self, *data):
+    def generalPack(self, *data):#-> Binary data
         return struct.pack(
             self.binPattern,
             self.type.value << 1 | int(self.final),
@@ -94,11 +99,15 @@ class Packet:
             *data,
         )
 
-    def pack(self):
+    def pack(self):#-> Binary data
         return self.generalPack(self.body)
 
 
-def encode_update_packets(update: LogicUpdate):
+def encode_update_packets(update: LogicUpdate): #-> List[Packet]
+    """
+    Return a list of Packets to send to the other players.
+    A packet contains 512 data bytes, and can contains many single update informations.
+    """
     def flatten(t):
         out = []
         if type(t) in [list, tuple]:
@@ -110,9 +119,9 @@ def encode_update_packets(update: LogicUpdate):
 
     packets = []
     update_elements = [
-        [update.catchedfire, 1],
-        [update.has_evolved, 2],
-        [update.collapsed, 3],
+        [update.catchedfire.copy(), 1],
+        [update.has_evolved.copy(), 2],
+        [update.collapsed.copy(), 3],
     ]
 
     updateIndex = 0
