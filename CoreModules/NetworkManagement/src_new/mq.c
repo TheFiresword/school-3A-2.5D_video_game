@@ -2,7 +2,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "main.c"
 
 #include "./headers/p2p.h"
 #include "./headers/utils.h"

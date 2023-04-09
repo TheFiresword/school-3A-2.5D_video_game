@@ -1,9 +1,11 @@
-#include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include "./headers/p2p.h"
 #include "./headers/utils.h"
@@ -65,7 +67,11 @@ void p2p_run(char *personal_address, int personal_port, char *client2_address, i
     printf("\033[1;33m[Setting up personal socket ...]\033[1;0m\n");
     // Creation du socket de reception
     printf("Personal socket : \n");
+    struct linger lingeropt;
+    lingeropt.l_onoff = 1;
+    lingeropt.l_linger = 0;
     int personal_socket_descriptor = socket(AF_INET, SOCK_STREAM, 0);
+    setsockopt(personal_socket_descriptor, SOL_SOCKET, SO_LINGER, &lingeropt, sizeof(lingeropt));
 
     if (personal_socket_descriptor <= 0)
         stop("Socket failed");
@@ -107,6 +113,8 @@ void p2p_run(char *personal_address, int personal_port, char *client2_address, i
 
     printf("\033[1;33m[Setting up client2 socket ...]\033[1;0m\n");
     int client2_socket_descriptor = socket(AF_INET, SOCK_STREAM, 0);
+    setsockopt(client2_socket_descriptor, SOL_SOCKET, SO_LINGER, &lingeropt, sizeof(lingeropt));
+
     if (client2_socket_descriptor < 0)
         stop("Socket Failed");
 
@@ -186,7 +194,7 @@ void p2p_handle_snd(int client2_socket_descriptor)
     mq_from_py(&snd_buffer);
     if (snd_buffer.type == 8)
     {
-        send_picle_file();
+        send_pickle_file();
     }
     else
     {
