@@ -198,6 +198,9 @@ def decode_ponctual_packets(packet: Packet):
         else:
             body.append(int(packet.body[hexa]))
     #print(len(body), body)
+    assert len(
+        body) == ponctual_dict[packet.type][1], f"Packet {packet.type} has a wrong body length"
+    return ponctual_dict[packet.type][0](*body)
 
 class Echange:
     def __init__(self, mq_key_rcv: int, mq_key_snd: int, clear=False) -> None:
