@@ -9,6 +9,8 @@ from CoreModules.GameManagement.Update import LogicUpdate
 
 BODY_SIZE = 512 - 12
 
+MQ_KEY_FROM_PY = 12345
+MQ_KEY_TO_PY = 54321
 """
 Implementation du protocole definit dans : https://docs.google.com/spreadsheets/d/19Q2D6Y_1bfit8nrRQ_JPPvHSeOotOISHyBvppbNOFP4/edit?usp=sharing
 """
@@ -162,7 +164,7 @@ def decode_update_packets(packet: Packet):
         3: [lambda x, y: (x, y), 2],
     }
 
-    updates = [None, [], [], []]
+    updates = [[], [], []]
 
     body = [int(hexa) for hexa in packet.body]
 
@@ -170,17 +172,17 @@ def decode_update_packets(packet: Packet):
 
     while body[cursor] in update_dict.keys():
         update_id = body[cursor]
+        assert 3>= update_id >= 0
         update_factory, update_len = update_dict[update_id]
         cursor += 1
 
-        updates[update_id].append(update_factory(
-            *body[cursor: cursor + update_len]))
+        updates[update_id-1].append(update_factory(*body[cursor: cursor + update_len]))
         cursor += update_len
 
     return {
-        "catchedfire": updates[1],
-        "has_evolved": updates[2],
-        "collapsed": updates[3],
+        "catchedfire": updates[0],
+        "has_evolved": updates[1],
+        "collapsed": updates[2],
     }
 
 
@@ -196,8 +198,7 @@ def decode_ponctual_packets(packet: Packet):
     }
 
     body = [int(hexa) for hexa in packet.body]
-    assert len(
-        body) == ponctual_dict[packet.type][1], f"Packet {packet.type} has a wrong body length"
+    assert len(body) == ponctual_dict[packet.type][1], f"Packet {packet.type} has a wrong body length"
     return ponctual_dict[packet.type][0](*body)
 
 
@@ -215,17 +216,24 @@ class Echange:
             mq.receive()
 
     def send(self, packet: Packet, block: bool = False):
-        self.mq_snd.send(packet.pack(), type=packet.type, block=block)
+        try:
+            self.mq_snd.send(packet.pack(), type=packet.type, block=block)
+        except sysv_ipc.BusyError:
+            print("The message queue is full")
 
     def receive(self, type: int = 0, block: bool = False):
-        data, type = self.mq_rcv.receive(type=type, block=block)
-        return Packet.unpack(data)
+        try:
+            data, type = self.mq_rcv.receive(type=type, block=block)
+            return Packet.unpack(data)
+        except sysv_ipc.BusyError:
+            print("The message queue is full")
+            return None
 
     def getter_current_messages(self):
         return (self.mq_rcv.current_messages, self.mq_snd.current_messages)
 
 
-echanger = Echange(12345, 54321, clear=True)
+echanger = Echange(MQ_KEY_FROM_PY, MQ_KEY_TO_PY, clear=True)
 
 if __name__ == "__main__":
     p = Packet(b"test", 9200, "127.0.0.1",

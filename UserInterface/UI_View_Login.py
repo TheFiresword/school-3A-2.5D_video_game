@@ -2,7 +2,7 @@ import arcade
 from UserInterface import UI_buttons as but
 from UserInterface import UI_View_Game as rgv
 from Services import servicesGlobalVariables as constantes
-from Services import Service_Save_and_Load as saveload
+from Services import Service_Save_and_Load as saveload , Service_Static_functions as fct
 import arcade.gui
 from CoreModules.NetworkManagement.Echange import echanger, dict_demon, encode_update_packets, decode_update_packets, decode_ponctual_packets, find_key, Packet, PacketTypes
 
@@ -94,9 +94,22 @@ class ReseauLoginScreen(arcade.View):
 
     def on_create_click(self, event):
         import random
+        import subprocess
         # IPC
         port = self.port_field.text
         ip = self.ip_field.text
+
+        # Launch the c program instance here
+        import subprocess
+        my_ip = fct.get_ip()
+        my_port = fct.get_free_port(ip)
+        
+        if port != '':
+            c_process = subprocess.Popen(['CoreModules/NetworkManagement/bin/myprogram', str(my_ip), str(my_port), str(ip), str(port)])
+        else:
+            c_process = subprocess.Popen(['CoreModules/NetworkManagement/bin/myprogram', str(my_ip), str(my_port)])
+        #stdout, stderr = c_process.communicate()
+
         window = arcade.get_window()
        
         if port != '':
@@ -120,7 +133,8 @@ class ReseauLoginScreen(arcade.View):
                     0, 255), random.randint(0, 255), random.randint(0, 255))))
 
                 window.gamescreen = rgv.GameView(_game=game)
-                window.show_view(window.gamescreen)
+        
+        window.show_view(window.gamescreen)
 
     def setup(self):
         pass
