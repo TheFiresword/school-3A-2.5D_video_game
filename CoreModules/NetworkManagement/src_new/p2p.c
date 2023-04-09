@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -61,6 +62,99 @@ void receive_picle_file(char *buffer)
         printf("Impossible d'ouvrir le fichier\n");
     }
 }
+
+void p2p_run_junior(char *personal_address, int personal_port, char *client2_address, int client2_port){
+    printf("\033[1;33m[Setting up personal socket ...]\033[1;0m\n");
+    // Creation du socket de reception
+    printf("Personal socket : \n");
+    struct linger lingeropt;
+    lingeropt.l_onoff = 1;
+    lingeropt.l_linger = 0;
+    int personal_socket_descriptor = socket(AF_INET, SOCK_STREAM, 0);
+    setsockopt(personal_socket_descriptor, SOL_SOCKET, SO_LINGER, &lingeropt, sizeof(lingeropt));
+
+    if (personal_socket_descriptor <= 0)
+        stop("Socket failed");
+
+    printf("\tSocket descriptor : %d\n", personal_socket_descriptor);
+
+    struct sockaddr_in personal_sock_addr =
+        {
+            .sin_family = AF_INET,
+            .sin_port = htons(personal_port),
+            .sin_addr.s_addr = inet_addr(personal_address),
+        };
+
+    printf("Binding with :\n");
+    printf("\taddress : %s\n", inet_ntoa(personal_sock_addr.sin_addr));
+    printf("\tport:%d\n", ntohs(personal_sock_addr.sin_port));
+
+    int sock_addr_size = sizeof(personal_sock_addr);
+
+    if (bind(personal_socket_descriptor, (struct sockaddr *)&personal_sock_addr, sock_addr_size) < 0)
+        stop("Bind failed");
+
+    if (listen(personal_socket_descriptor, 3) < 0)
+        stop("Listen failed");
+
+    printf("\033[1;32m[Personal socket ok]\033[1;0m\n");
+
+    // Creation du socket d'envoie
+    // ==================================================
+    // | Dans le futur il faudra                        |
+    // |    - Déplacer cette étape vers l'acceptation   |
+    // |      de nouveaux clients                       |
+    // |    - Placer le socket_descriptor dans une      |
+    // |      liste chainé                              |
+    // |    - Gérer le routage des packet               |
+    // ==================================================
+    printf("Press ENTER key to Continue\n");
+    getchar();
+    
+
+    int first_player = TRUE;
+    
+    // MJOIN A GAME
+    if (client2_address != NULL && client2_port!= 0){
+        first_player = FALSE;
+        printf("\033[1;33m[Setting up client2 socket ...]\033[1;0m\n");
+        int client2_socket_descriptor = socket(AF_INET, SOCK_STREAM, 0);
+        setsockopt(client2_socket_descriptor, SOL_SOCKET, SO_LINGER, &lingeropt, sizeof(lingeropt));
+
+        if (client2_socket_descriptor < 0)
+            stop("Socket Failed");
+
+        struct sockaddr_in client2_sock_addr =
+            {
+                .sin_family = AF_INET,
+                .sin_port = htons(client2_port),
+                .sin_addr.s_addr = inet_addr(client2_address),
+            };
+
+        if (connect(client2_socket_descriptor, (struct sockaddr *)&client2_sock_addr, sizeof(client2_sock_addr)) < 0)
+            stop("Connect failed");
+
+        printf("\033[1;32m[client2 socket ok]\033[1;0m\n");
+    }
+
+    // Création de 2 processus pour l'envoie et la reception des packets
+    int process_id = fork();
+    if (process_id == 0){
+        int client_socket_descriptor = -1;
+        while (1)
+            p2p_handle_rcv(personal_socket_descriptor, (struct sockaddr *)&personal_sock_addr, sock_addr_size, &client_socket_descriptor);
+    }
+    else{
+        // Waiting for multiclient connection managment
+        while (1){
+            //p2p_handle_snd(client2_socket_descriptor);
+            printf("Pas géré pour le moment \n");
+        }
+            
+    }
+
+}
+
 
 void p2p_run(char *personal_address, int personal_port, char *client2_address, int client2_port)
 {
