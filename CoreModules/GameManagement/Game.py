@@ -499,7 +499,7 @@ class Game:
                     new_status = walker.settle_in()
                     if new_status:
                         self.walkersAll.remove(walker)
-                        self.walkersAll.append(new_status)
+                        self.walkersAll.append(new_status), final=False
                         # we add a citizen as an unemployed
                         self.unemployedCitizens.append(new_status)
 
@@ -601,14 +601,14 @@ class Game:
 
         self.actions_on_buildings(building_list1, update)
         self.actions_on_buildings(building_list2, update)
-        # print(update.catchedfire,update.collapsed,update.has_evolved)
-        # sending_update_packets = encode_update_packets(update)
-        # self.send_update_packets(sending_update_packets)
-        incoming_packets = [echanger.receive() for _ in range(
-            echanger.getter_current_messages()[0])]
-        # print(incoming_packets)
-        self.include_incoming_packets(incoming_packets, update)
-        return update
+
+        #print(update.catchedfire,update.collapsed,update.has_evolved)
+        #sending_update_packets = encode_update_packets(update)
+        #self.send_update_packets(sending_update_packets)
+        incoming_packets = [ echanger.receive() for _ in range(echanger.getter_current_messages()[0]) ]
+        #print(incoming_packets)
+        layers_to_update_from_packets= self.include_incoming_packets(incoming_packets,update)
+        return update, layers_to_update_from_packets
 
     def attack(self, building_pos):
         if (len(self.military_structures_list) != 0):
@@ -696,7 +696,7 @@ class Game:
     def walkersOutUpdates(self, exit=False):  # fps = self.framerate
         pass
 
-    def remove_element(self, pos) -> str | None:
+    def remove_element(self, pos, from_packet = False) -> str | None:
         """
         Cette fonction permet d'enlever un element de la map à une position donnée
         On ne peut pas retirer de l'herbe ou une montagne
@@ -736,6 +736,10 @@ class Game:
                     if type(_element) == buildings.MilitaryAc:
                         self.military_structures_list.remove(_element)
                     del _element
+                    if not from_packet:
+                        body = [line ,column]
+                        packet = Packet(bytearray(body), 8200, "192.168.1.146", "192.168.1.158", packetType=PacketTypes.Supprimer)
+                        echanger.send(packet)
         return element_type
 
     def remove_elements_serie(self, start_pos, end_pos) -> set:
@@ -769,7 +773,7 @@ class Game:
                     _set.add(result)
         return _set
 
-    def add_road(self, line, column) -> bool:
+    def add_road(self, line, column,from_packet = False) -> bool:
         # Precondition: we must have enough money for adding a road
         if self.money < road_dico['cost']:
             print("Not enough money")
@@ -778,6 +782,10 @@ class Game:
             self.map.collisions_layers, line, column)
         if status:
             self.money -= road_dico['cost']
+            if not from_packet:
+                body = [line ,column]
+                packet = Packet(bytearray(body), 8200, "192.168.1.146", "192.168.1.158", packetType=PacketTypes.Ajout_Route)
+                echanger.send(packet)
         return status
 
     def add_roads_serie(self, start_pos, end_pos, dynamically=False) -> bool:
@@ -796,8 +804,8 @@ class Game:
             self.money -= road_dico['cost'] * count
         return status
 
-    def add_building(self, line, column, version) -> bool:
-        txt = " ".join(version.split("_"))
+    def add_building(self, line, column, version, from_packet = False) -> bool:
+        txt= " ".join(version.split("_"))
         if self.money < building_dico[txt].cost:
             print("Not enough money")
             return False
@@ -869,12 +877,14 @@ class Game:
 
             if type(building) == buildings.MilitaryAc:
                 self.military_structures_list.append(building)
+           
+            if not from_packet:
+                body = [building.position[0],building.position[1],find_key(building.dic["version"],dict_demon)]
+                print(body)
+                packet = Packet(bytearray(body), 8200, "192.168.1.146", "192.168.1.158", packetType=PacketTypes.Ajouter)
+                echanger.send(packet)
+            
 
-            body = [building.position[0], building.position[1],
-                    find_key(building.dic["version"], dict_demon)]
-            packet = Packet(bytearray(body), 9200, "192.168.241.176",
-                            "192.168.241.154", final=True, packetType=PacketTypes.Ajouter)
-            echanger.send(packet)
 
         return status
 
@@ -900,38 +910,44 @@ class Game:
             if isinstance(walker, walkers.Prefect):
                 prefets.append(walker)
         return prefets
-
-    def include_incoming_packets(self, packets, update):
+ 
+    def include_incoming_packets(self, packets,update):
+        layer_to_be_updated = set()
         for packet in packets:
             if packet.type == PacketTypes.Update:
                 update_dict = decode_update_packets(packet)
                 # TODO : update the update
             else:
                 ponctual_data = decode_ponctual_packets(packet)
+                print(ponctual_data)
                 match packet.type:
                     case PacketTypes.Ajouter:
                         self.add_building(
-                            ponctual_data[0][0], ponctual_data[0][1], dict_demon[ponctual_data[1]])
+                            ponctual_data[0][0], ponctual_data[0][1], dict_demon[ponctual_data[1]],from_packet=True)
+                        layer_to_be_updated.add("buildings")
                     case PacketTypes.Supprimer:
-                        self.remove_element(
-                            ponctual_data[0][0], ponctual_data[0][1])
+                        self.remove_element((
+                            ponctual_data[0], ponctual_data[1]))
+                        layer_to_be_updated.add("buildings")
+                        layer_to_be_updated.add("roads")
                     case PacketTypes.Ajout_Route:
                         self.add_road(
-                            ponctual_data[0][0], ponctual_data[0][1], ponctual_data[1])
+                            ponctual_data[0], ponctual_data[1],from_packet=True)
+                        layer_to_be_updated.add("roads")
                     case PacketTypes.Suppr_Route:
                         self.remove_element(
-                            ponctual_data[0][0], ponctual_data[0][1])
+                            ponctual_data[0], ponctual_data[1])
                     case PacketTypes.Sauvegarde_ask:
                         # TODO : partie save
                         saveLoad.save_game(self, "to-send")
                         p = Packet(b"", 6200, "127.0.0.1", "127.0.0.1",
                                    PacketTypes.Sauvegarde_send, True)
-                        packets.append(p)
+                        echanger.send(p,True)
                         pass
                     case PacketTypes.Init:
                         # TODO : partie init
                         pass
-        pass
+        return layer_to_be_updated
 
     def send_update_packets(self, packets):
         for packet in packets:

@@ -521,7 +521,12 @@ class GameView(arcade.View):
             arcade.get_window().set_update_rate(1 / self.game.framerate)
             self.p_key_pressed = False
 
-            update = self.game.updategame(self.visualmap.map_scaling)
+            update,layer_to_update_from_packet = self.game.updategame(self.visualmap.map_scaling)
+            for layer in layer_to_update_from_packet:
+                if layer == "buildings":
+                    self.visualmap.update_layers(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
+                elif layer == "roads":
+                    self.visualmap.update_layers(self.visualmap.roads_layer, self.game.map.roads_layer.array)
             if len(update.catchedfire) > 0:
                 self.fire_show += 1
             if len(update.collapsed) > 0:

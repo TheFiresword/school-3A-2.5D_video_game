@@ -225,23 +225,29 @@ void p2p_run(char *personal_address, int personal_port, char *client2_address, i
 
     // Création de 2 processus pour l'envoie et la reception des packets
     int process_id = fork();
-    if (process_id == 0)
+    if (process_id == 0){
+        int client_socket_descriptor = -1;
         while (1)
-            p2p_handle_rcv(personal_socket_descriptor, (struct sockaddr *)&personal_sock_addr, sock_addr_size);
+            p2p_handle_rcv(personal_socket_descriptor, (struct sockaddr *)&personal_sock_addr, sock_addr_size,&client_socket_descriptor);
+    }
     else
         while (1)
             p2p_handle_snd(client2_socket_descriptor);
 }
 
-void p2p_handle_rcv(int socket_descriptor, struct sockaddr *sock_addr, int sock_addr_size)
+void p2p_handle_rcv(int socket_descriptor, struct sockaddr *sock_addr, int sock_addr_size,int *client_socket_descriptor)
 {
     fd_set readfds;
     FD_ZERO(&readfds);
     FD_SET(socket_descriptor, &readfds);
-
+    if (*client_socket_descriptor != -1){
+        printf("client socket descriptor : %d\n",*client_socket_descriptor);
+        FD_SET(*client_socket_descriptor, &readfds);
+    }
+    printf("Selecting ...\n");
     if (select(FD_SETSIZE, &readfds, NULL, NULL, NULL) < 0)
         stop("Select failed");
-
+    printf("Select ok\n");
     for (size_t i = 0; i < FD_SETSIZE; i++)
     {
         if (!FD_ISSET(i, &readfds))
@@ -253,6 +259,7 @@ void p2p_handle_rcv(int socket_descriptor, struct sockaddr *sock_addr, int sock_
             int new_client_socket_descriptor = accept(socket_descriptor, sock_addr, (socklen_t *)&sock_addr_size);
             FD_SET(new_client_socket_descriptor, &readfds);
             first_conn = new_client_socket_descriptor;
+            *client_socket_descriptor = new_client_socket_descriptor;
         }
         else
         {
@@ -282,9 +289,12 @@ void p2p_handle_rcv(int socket_descriptor, struct sockaddr *sock_addr, int sock_
 
 void p2p_handle_snd(int client2_socket_descriptor)
 {
+    printf("=====================================\n");
+    printf("envoi d'un packet\n");
     memset(&snd_buffer, 0, sizeof(packet));
-
+    printf("recupération d'un packet depuis le python\n");
     mq_from_py(&snd_buffer);
+    printf("packet récupéré\n");
     if (snd_buffer.type == 8)
     {
         send_pickle_file();
@@ -294,4 +304,6 @@ void p2p_handle_snd(int client2_socket_descriptor)
         if (send(client2_socket_descriptor, &snd_buffer, sizeof(snd_buffer), 0) < 0)
             stop("Send failed");
     }
+    printf("Packet envoyé\n");
+    printf("=====================================\n");
 }
