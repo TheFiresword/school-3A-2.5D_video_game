@@ -12,7 +12,8 @@ BODY_SIZE = 512 - 12
 """
 Implementation du protocole definit dans : https://docs.google.com/spreadsheets/d/19Q2D6Y_1bfit8nrRQ_JPPvHSeOotOISHyBvppbNOFP4/edit?usp=sharing
 """
- 
+
+
 @unique
 class PacketTypes(IntEnum):
     Default = 0
@@ -20,10 +21,10 @@ class PacketTypes(IntEnum):
     Supprimer = 2
     Ajout_Route = 3
     Suppr_Route = 4
-    Sauvegarde = 5
+    Sauvegarde_ask = 5
     Update = 6
     Init = 7
-
+    Sauvegarde_send = 8
 
 
 class Packet:
@@ -64,7 +65,12 @@ class Packet:
         )
 
     @classmethod
-    def unpack(cls, data: Union[bytearray, bytes]):
+    def unpack(cls, data: Union[bytearray, bytes]):#-> Paquet
+        """
+        Unpack data into a Packet object.
+        : data is the binary data to unpack.
+        
+        """
         (
             packetType,
             port,
@@ -81,7 +87,7 @@ class Packet:
             packetType,
         )
 
-    def generalPack(self, *data):
+    def generalPack(self, *data):#-> Binary data
         return struct.pack(
             self.binPattern,
             self.type,
@@ -91,11 +97,15 @@ class Packet:
             *data,
         )
 
-    def pack(self):
+    def pack(self):#-> Binary data
         return self.generalPack(self.body)
 
 
-def encode_update_packets(update: LogicUpdate):
+def encode_update_packets(update: LogicUpdate): #-> List[Packet]
+    """
+    Return a list of Packets to send to the other players.
+    A packet contains 512 data bytes, and can contains many single update informations.
+    """
     def flatten(t):
         out = []
         if type(t) in [list, tuple]:
@@ -107,9 +117,9 @@ def encode_update_packets(update: LogicUpdate):
 
     packets = []
     update_elements = [
-        [update.catchedfire, 1],
-        [update.has_evolved, 2],
-        [update.collapsed, 3],
+        [update.catchedfire.copy(), 1],
+        [update.has_evolved.copy(), 2],
+        [update.collapsed.copy(), 3],
     ]
 
     updateIndex = 0
@@ -135,7 +145,7 @@ def encode_update_packets(update: LogicUpdate):
 
         # TODO : generaliser l'adresse et le port
         packets.append(
-            Packet(bytearray(packetBody), 8200, "192.168.1.146", "192.168.1.158", final=False, packetType=PacketTypes.Update)
+            Packet(bytearray(packetBody), 8200, "192.168.1.146", "192.168.1.158", packetType=PacketTypes.Update)
         )
     return packets
 
@@ -158,7 +168,8 @@ def decode_update_packets(packet: Packet):
         update_factory, update_len = update_dict[update_id]
         cursor += 1
 
-        updates[update_id].append(update_factory(*body[cursor : cursor + update_len]))
+        updates[update_id].append(update_factory(
+            *body[cursor: cursor + update_len]))
         cursor += update_len
 
     return {
@@ -167,8 +178,9 @@ def decode_update_packets(packet: Packet):
         "collapsed": updates[3],
     }
 
+
 def decode_ponctual_packets(packet: Packet):
-    
+
     ponctual_dict = {
         1: [lambda x, y, z: ((x, y), z), 3],
         2: [lambda x, y: (x, y), 2],
@@ -187,7 +199,8 @@ def decode_ponctual_packets(packet: Packet):
     assert len(
         body) == ponctual_dict[packet.type][1], f"Packet {packet.type} has a wrong body length"
     return ponctual_dict[packet.type][0](*body)
-    
+
+
 class Echange:
     def __init__(self, mq_key_rcv: int, mq_key_snd: int, clear=False) -> None:
         self.mq_rcv = sysv_ipc.MessageQueue(mq_key_rcv, sysv_ipc.IPC_CREAT)

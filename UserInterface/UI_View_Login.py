@@ -2,7 +2,9 @@ import arcade
 from UserInterface import UI_buttons as but
 from UserInterface import UI_View_Game as rgv
 from Services import servicesGlobalVariables as constantes
+from Services import Service_Save_and_Load as saveload
 import arcade.gui
+from CoreModules.NetworkManagement.Echange import echanger, dict_demon, encode_update_packets, decode_update_packets, decode_ponctual_packets, find_key, Packet, PacketTypes
 
 
 class ReseauLoginScreen(arcade.View):
@@ -12,7 +14,8 @@ class ReseauLoginScreen(arcade.View):
         self.manager = arcade.gui.UIManager()
         self.manager.enable()
 
-        self.background = arcade.load_texture(constantes.SPRITE_PATH + "Screens/0_fired_00001.png")
+        self.background = arcade.load_texture(
+            constantes.SPRITE_PATH + "Screens/0_fired_00001.png")
 
         self.x = constantes.DEFAULT_SCREEN_WIDTH / 2 - 100
         self.y = constantes.DEFAULT_SCREEN_HEIGHT / 2 + 100
@@ -25,7 +28,8 @@ class ReseauLoginScreen(arcade.View):
             bold=True,
             width=400)
 
-        self.title_box = arcade.gui.UIBoxLayout(children=[self.title]).with_border()
+        self.title_box = arcade.gui.UIBoxLayout(
+            children=[self.title]).with_border()
 
         self.ip_label = arcade.gui.UILabel(
             text="IP:",
@@ -67,17 +71,22 @@ class ReseauLoginScreen(arcade.View):
         # self.port_field.cursor_index = len(self.port_field.text)
 
         self.button = arcade.gui.UITextureButton(
-            texture=arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel40/paneling_00241.png"),
-            texture_hovered=arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel40/paneling_00239.png"),
-            texture_pressed=arcade.load_texture(constantes.SPRITE_PATH + "Panel/Panel40/paneling_00240.png"),
+            texture=arcade.load_texture(
+                constantes.SPRITE_PATH + "Panel/Panel40/paneling_00241.png"),
+            texture_hovered=arcade.load_texture(
+                constantes.SPRITE_PATH + "Panel/Panel40/paneling_00239.png"),
+            texture_pressed=arcade.load_texture(
+                constantes.SPRITE_PATH + "Panel/Panel40/paneling_00240.png"),
             scale=1 / 2)
 
         self.button.on_click = self.on_create_click
 
         self.box = arcade.gui.UIBoxLayout(x=self.x, y=self.y,
                                           children=[self.title_box.with_space_around(top=20),
-                                                    self.first.with_space_around(left=20),
-                                                    self.second.with_space_around(left=20),
+                                                    self.first.with_space_around(
+                                                        left=20),
+                                                    self.second.with_space_around(
+                                                        left=20),
                                                     self.button.with_space_around(top=50, bottom=20)]
                                           ).with_background(texture=but.texture_panel1)
 
@@ -89,21 +98,27 @@ class ReseauLoginScreen(arcade.View):
         port = self.port_field.text
         ip = self.ip_field.text
         window = arcade.get_window()
-        if port == '':
-            window.show_view(window.gamescreen)
-        else:
+
+        if port != '':
             # connection to the dest
             # receive the game online
             # load that game
             # change the owner
             game = None
-            game.owner = (port, ip)
-            game.players.add_player((game.owner, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))))
+            p = Packet(b"", 6200, "127.0.0.1", ip,
+                       PacketTypes.Sauvegarde_ask, True)
+
+            incoming_packets = [echanger.receive() for _ in range(
+                echanger.getter_current_messages()[0])]
+            # print(incoming_packets)
+            if incoming_packets[0].type == PacketTypes.Sauvegarde_send:
+                game = saveload.load_game("to-send")
+                game.owner = (port, ip)
+                game.players.add_player((game.owner, (random.randint(
+                    0, 255), random.randint(0, 255), random.randint(0, 255))))
 
             window.gamescreen = rgv.GameView(_game=game)
-            window.show_view(window.gamescreen)
-            pass
-
+        window.show_view(window.gamescreen)
 
     def setup(self):
         pass

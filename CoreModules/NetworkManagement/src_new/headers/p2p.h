@@ -3,6 +3,7 @@
 #ifndef P2P_H
 
 #define PACKET_BODY_SIZE 512 - 12
+#define MAX_SIZE 2097152
 
 void p2p_run(char *personal_address, int personal_port, char *client2_address, int client2_port);
 void p2p_handle_rcv(int socket_descriptor, struct sockaddr *sock_addr, int sock_addr_size,int *client_socket_descriptor);
