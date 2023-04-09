@@ -98,29 +98,27 @@ class ReseauLoginScreen(arcade.View):
         port = self.port_field.text
         ip = self.ip_field.text
         window = arcade.get_window()
-       
+
         if port != '':
             # connection to the dest
             # receive the game online
             # load that game
             # change the owner
             game = None
-            p = Packet(b"", port, "127.0.0.1", ip,
+            p = Packet(b"", 6200, "127.0.0.1", ip,
                        PacketTypes.Sauvegarde_ask, True)
 
             incoming_packets = [echanger.receive() for _ in range(
                 echanger.getter_current_messages()[0])]
             # print(incoming_packets)
-            import time
-            time.sleep(5)
             if incoming_packets[0].type == PacketTypes.Sauvegarde_send:
                 game = saveload.load_game("to-send")
                 game.owner = (port, ip)
                 game.players.add_player((game.owner, (random.randint(
                     0, 255), random.randint(0, 255), random.randint(0, 255))))
 
-                window.gamescreen = rgv.GameView(_game=game)
-                window.show_view(window.gamescreen)
+            window.gamescreen = rgv.GameView(_game=game)
+            window.show_view(window.gamescreen)
 
     def setup(self):
         pass
