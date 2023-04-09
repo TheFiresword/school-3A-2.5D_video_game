@@ -118,7 +118,7 @@ class ReseauLoginScreen(arcade.View):
                     0, 255), random.randint(0, 255), random.randint(0, 255))))
 
             window.gamescreen = rgv.GameView(_game=game)
-            window.show_view(window.gamescreen)
+        window.show_view(window.gamescreen)
 
     def setup(self):
         pass
