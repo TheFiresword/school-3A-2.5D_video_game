@@ -140,8 +140,9 @@ void p2p_run_junior(char *personal_address, int personal_port, char *client2_add
     // Création de 2 processus pour l'envoie et la reception des packets
     int process_id = fork();
     if (process_id == 0){
+        int client_socket_descriptor = -1;
         while (1)
-            p2p_handle_rcv(personal_socket_descriptor, (struct sockaddr *)&personal_sock_addr, sock_addr_size);
+            p2p_handle_rcv(personal_socket_descriptor, (struct sockaddr *)&personal_sock_addr, sock_addr_size, &client_socket_descriptor);
     }
     else{
         // Waiting for multiclient connection managment

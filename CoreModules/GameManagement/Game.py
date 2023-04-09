@@ -499,7 +499,7 @@ class Game:
                     new_status = walker.settle_in()
                     if new_status:
                         self.walkersAll.remove(walker)
-                        self.walkersAll.append(new_status), final=False
+                        self.walkersAll.append(new_status)
                         # we add a citizen as an unemployed
                         self.unemployedCitizens.append(new_status)
 
