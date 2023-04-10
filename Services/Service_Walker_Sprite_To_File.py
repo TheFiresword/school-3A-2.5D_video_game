@@ -20,13 +20,13 @@ def walkers_to_sprite(type_walker):
                      k in range(0, 12)]
         case "Prefect":
             sprite_number = 615
-            up = [const.SPRITE_PATH + "Citizen2/Type6/Citizen02_{:05d}".format(sprite_number + 2 + k * 8) + ".png" for
+            up = [const.SPRITE_PATH + "Citizen2/Type6/citizen02_{:05d}".format(sprite_number + 2 + k * 8) + ".png" for
                   k in range(0, 12)]
-            left = [const.SPRITE_PATH + "Citizen2/Type6/Citizen02_{:05d}".format(sprite_number + 6 + k * 8) + ".png"
+            left = [const.SPRITE_PATH + "Citizen2/Type6/citizen02_{:05d}".format(sprite_number + 6 + k * 8) + ".png"
                     for k in range(0, 12)]
-            down = [const.SPRITE_PATH + "Citizen2/Type6/Citizen02_{:05d}".format(sprite_number + 4 + k * 8) + ".png"
+            down = [const.SPRITE_PATH + "Citizen2/Type6/citizen02_{:05d}".format(sprite_number + 4 + k * 8) + ".png"
                     for k in range(0, 12)]
-            right = [const.SPRITE_PATH + "Citizen2/Type6/Citizen02_{:05d}".format(sprite_number + k * 8) + ".png" for
+            right = [const.SPRITE_PATH + "Citizen2/Type6/citizen02_{:05d}".format(sprite_number + k * 8) + ".png" for
                      k in range(0, 12)]
         case "Immigrant":
             sprite_number = 1033
