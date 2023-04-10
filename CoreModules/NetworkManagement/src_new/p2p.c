@@ -213,7 +213,7 @@ void p2p_run(char *personal_address, int personal_port, char *client2_address, i
     printf("\033[1;33m[Setting up client2 socket ...]\033[1;0m\n");
     int client2_socket_descriptor = socket(AF_INET, SOCK_STREAM, 0);
     setsockopt(client2_socket_descriptor, SOL_SOCKET, SO_LINGER, &lingeropt, sizeof(lingeropt));
-
+    
     if (client2_socket_descriptor < 0)
         stop("Socket Failed");
 
@@ -224,6 +224,7 @@ void p2p_run(char *personal_address, int personal_port, char *client2_address, i
             .sin_addr.s_addr = inet_addr(client2_address),
         };
 
+    if 
     if (connect(client2_socket_descriptor, (struct sockaddr *)&client2_sock_addr, sizeof(client2_sock_addr)) < 0)
         stop("Connect failed");
 
