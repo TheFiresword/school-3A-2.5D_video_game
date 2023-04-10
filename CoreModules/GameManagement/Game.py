@@ -940,8 +940,8 @@ class Game:
                     case PacketTypes.Sauvegarde_ask:
                         # TODO : partie save
                         saveLoad.save_game(self, "to-send")
-                        p = Packet(b"", 6200, "127.0.0.1", "127.0.0.1",
-                                   PacketTypes.Sauvegarde_send, True)
+                        p = Packet(b"", 8200, "192.168.1.146", "192.168.1.158",
+                                   PacketTypes.Sauvegarde_send)
                         echanger.send(p,True)
                         pass
                     case PacketTypes.Init:

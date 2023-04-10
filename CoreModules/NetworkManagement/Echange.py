@@ -188,8 +188,9 @@ def decode_ponctual_packets(packet: Packet):
         2: [lambda x, y: (x, y), 2],
         3: [lambda x, y: (x, y), 2],
         4: [lambda x, y, z: ((x, y), z), 3],
-        5: [lambda _: None, 0],
+        5: [lambda : None, 0],
         7: [lambda x, y: (x, y), 2],
+        8: [lambda : None, 0]
     }
     body = []
     for hexa in range(len(packet.body)-2):
