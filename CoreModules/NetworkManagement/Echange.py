@@ -155,7 +155,7 @@ def encode_update_packets(update: LogicUpdate): #-> List[Packet]
 def decode_update_packets(packet: Packet):
     update_dict = {
         1: [lambda x, y: (x, y), 2],
-        2: [lambda x, y, z: ((x, y), z), 3],
+        #2: [lambda x, y, z: ((x, y), z), 3],
         3: [lambda x, y: (x, y), 2],
     }
 

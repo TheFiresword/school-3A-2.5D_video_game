@@ -2,7 +2,7 @@ import arcade
 from UserInterface import UI_buttons as but
 from UserInterface import UI_View_Game as rgv
 from Services import servicesGlobalVariables as constantes
-from Services import Service_Save_and_Load as saveload , Service_Static_functions as fct
+from Services import Service_Save_and_Load as saveload
 import arcade.gui
 from CoreModules.NetworkManagement.Echange import echanger, dict_demon, encode_update_packets, decode_update_packets, decode_ponctual_packets, find_key, Packet, PacketTypes
 
@@ -44,7 +44,7 @@ class ReseauLoginScreen(arcade.View):
             font_size=22,
             width=300,
             font_name="Arial",
-            text='192.168.1.158',
+            text='127.0.0.1',
         )
 
         self.first = arcade.gui.UIBoxLayout(vertical=False,
@@ -62,7 +62,7 @@ class ReseauLoginScreen(arcade.View):
             font_size=22,
             width=300,
             font_name="Arial",
-            text='8200',
+            text='',
         )
 
         self.second = arcade.gui.UIBoxLayout(vertical=False,
@@ -94,22 +94,9 @@ class ReseauLoginScreen(arcade.View):
 
     def on_create_click(self, event):
         import random
-        import subprocess
         # IPC
         port = self.port_field.text
         ip = self.ip_field.text
-
-        # Launch the c program instance here
-        import subprocess
-        my_ip = fct.get_ip()
-        my_port = fct.get_free_port(ip)
-        
-        if port != '':
-            c_process = subprocess.Popen(['CoreModules/NetworkManagement/bin/myprogram', str(my_ip), str(my_port), str(ip), str(port)])
-        else:
-            c_process = subprocess.Popen(['CoreModules/NetworkManagement/bin/myprogram', str(my_ip), str(my_port)])
-        #stdout, stderr = c_process.communicate()
-
         window = arcade.get_window()
 
         if port != '':
@@ -118,19 +105,19 @@ class ReseauLoginScreen(arcade.View):
             # load that game
             # change the owner
             game = None
-            p = Packet(b"", int(port), "192.168.1.146", ip,
-                       PacketTypes.Sauvegarde_ask)
-            echanger.send(p,True)
-            incoming_packets = echanger.receive(type= 8, block=True)
+            p = Packet(b"", 6200, "127.0.0.1", ip,
+                       PacketTypes.Sauvegarde_ask, True)
+
+            incoming_packets = [echanger.receive() for _ in range(
+                echanger.getter_current_messages()[0])]
             # print(incoming_packets)
-            if incoming_packets:
+            if incoming_packets[0].type == PacketTypes.Sauvegarde_send:
                 game = saveload.load_game("to-send")
                 game.owner = (port, ip)
-                #game.players.add_player((game.owner, (random.randint(
-                #    0, 255), random.randint(0, 255), random.randint(0, 255))))
+                game.players.add_player((game.owner, (random.randint(
+                    0, 255), random.randint(0, 255), random.randint(0, 255))))
 
-                window.gamescreen = rgv.GameView(_game=game)
-        
+            window.gamescreen = rgv.GameView(_game=game)
         window.show_view(window.gamescreen)
 
     def setup(self):

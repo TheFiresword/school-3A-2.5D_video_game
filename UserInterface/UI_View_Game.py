@@ -485,20 +485,20 @@ class GameView(arcade.View):
             self.layer_manager.draw()
             for but in self.layer_manager.children[0]:
                 but.draw_()
-        if self.fire_show == 1 and not self.fire_Pop_up.already_closed_once:
-            self.fire_Pop_up.draw_()
-            self.is_paused = True
-            self.count_pauses += 1
-        if self.collapse_show == 1 and not self.collapse_Pop_up.already_closed_once:
-            self.collapse_Pop_up.draw_()
-            self.is_paused = True
-            self.count_pauses += 1
-        if self.game.money <= 10 and not self.city_debt_Pop_up.already_closed_once:
-            self.city_debt_Pop_up.draw_()
-            self.is_paused = True
-            self.count_pauses += 1
-        if self.actual_pop_up and self.actual_pop_up.visible:
-            self.actual_pop_up.draw_()
+        # if self.fire_show == 1 and not self.fire_Pop_up.already_closed_once:
+        #     self.fire_Pop_up.draw_()
+        #     self.is_paused = True
+        #     self.count_pauses += 1
+        # if self.collapse_show == 1 and not self.collapse_Pop_up.already_closed_once:
+        #     self.collapse_Pop_up.draw_()
+        #     self.is_paused = True
+        #     self.count_pauses += 1
+        # if self.game.money <= 10 and not self.city_debt_Pop_up.already_closed_once:
+        #     self.city_debt_Pop_up.draw_()
+        #     self.is_paused = True
+        #     self.count_pauses += 1
+        # if self.actual_pop_up and self.actual_pop_up.visible:
+        #     self.actual_pop_up.draw_()
 
         # Testing something cool -- error message when building farm on non yellow grass
         self.draw_message_for_farm_building()
@@ -592,13 +592,13 @@ class GameView(arcade.View):
                         bat = self.game.map.buildings_layer.get_cell(i, j)
                         print(bat.dic["version"])
                         k, p = 0, 0
-                        self.actual_pop_up = pop.info_building_pop_up(bat.dic["version"],
-                                                                      bat.current_number_of_employees,
-                                                                      bat.max_number_of_employees)
-                        if self.actual_pop_up:
-                            self.actual_pop_up.visible = True
-                            self.is_paused = True
-                            self.count_pauses += 1
+                        #self.actual_pop_up = pop.info_building_pop_up(bat.dic["version"],
+                        #                                              bat.current_number_of_employees,
+                        #                                              bat.max_number_of_employees)
+                        #if self.actual_pop_up:
+                        #    self.actual_pop_up.visible = True
+                        #    self.is_paused = True
+                        #   self.count_pauses += 1
                     # self.visualmap.red_sprite.texture = nearest_sprite.texture
                 else:
                     (nearest_sprite, d) = arcade.get_closest_sprite(self.visualmap.red_sprite,

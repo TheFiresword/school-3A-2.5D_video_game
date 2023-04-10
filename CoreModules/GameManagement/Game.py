@@ -603,8 +603,8 @@ class Game:
         self.actions_on_buildings(building_list2, update)
 
         #print(update.catchedfire,update.collapsed,update.has_evolved)
-        #sending_update_packets = encode_update_packets(update)
-        #self.send_update_packets(sending_update_packets)
+        sending_update_packets = encode_update_packets(update)
+        self.send_update_packets(sending_update_packets)
         incoming_packets = [ echanger.receive() for _ in range(echanger.getter_current_messages()[0]) ]
         #print(incoming_packets)
         layers_to_update_from_packets= self.include_incoming_packets(incoming_packets,update)
@@ -916,7 +916,18 @@ class Game:
         for packet in packets:
             if packet.type == PacketTypes.Update:
                 update_dict = decode_update_packets(packet)
-                # TODO : update the update
+                new_fire = update_dict["catchedfire"]
+                new_collapse = update_dict["collapse"]
+                for new_f in new_fire:
+                    building =self.map.buildings_layer.get_cell(new_f[0], new_f[1])
+                    if building and isinstance(building, buildings.Building):
+                        if not (building.isBurning or building.isDestroyed):
+                            building.isBurning = True
+                for new_coll in new_collapse:
+                    building =self.map.buildings_layer.get_cell(new_coll[0], new_coll[1])
+                    if building and isinstance(building, buildings.Building):
+                        if not (building.isBurning or building.isDestroyed):
+                            building.isDestroyed = True
             else:
                 ponctual_data = decode_ponctual_packets(packet)
                 print(ponctual_data)
