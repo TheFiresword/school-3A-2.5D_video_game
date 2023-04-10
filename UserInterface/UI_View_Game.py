@@ -752,12 +752,13 @@ class GameView(arcade.View):
             rows = []
             p = self.game.players
             _i = 0
+            offset = 50
             for i in range(len(p)):
                 _i = i
                 rows.append(arcade.Text(text=f'{p[i][0][0]} ====> {self.game.update_food_qty()}', start_x=10,
-                                        start_y=30 * i, color=p[i][1], font_size=15))
+                                        start_y=30 * i + offset, color=p[i][1], font_size=15))
             rows.append(arcade.Text(text=f'| ====Players==== | ====Statistics==== |', start_x=10,
-                                    start_y=30 * (_i+1), color=(255, 255, 255), font_size=20))
+                                    start_y=30 * (_i+1) + offset, color=(255, 255, 255), font_size=20))
 
             self.tmp_statistics_sect = arcade.Section(left=0, bottom=constantes.DEFAULT_SCREEN_HEIGHT / 2,
                                                       width=300, height=300, name="Statistics",
