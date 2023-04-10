@@ -44,7 +44,7 @@ class ReseauLoginScreen(arcade.View):
             font_size=22,
             width=300,
             font_name="Arial",
-            text='127.0.0.1',
+            text='192.168.1.158',
         )
 
         self.first = arcade.gui.UIBoxLayout(vertical=False,
@@ -62,7 +62,7 @@ class ReseauLoginScreen(arcade.View):
             font_size=22,
             width=300,
             font_name="Arial",
-            text='',
+            text='8200',
         )
 
         self.second = arcade.gui.UIBoxLayout(vertical=False,
@@ -105,17 +105,16 @@ class ReseauLoginScreen(arcade.View):
             # load that game
             # change the owner
             game = None
-            p = Packet(b"", 6200, "127.0.0.1", ip,
-                       PacketTypes.Sauvegarde_ask, True)
-
-            incoming_packets = [echanger.receive() for _ in range(
-                echanger.getter_current_messages()[0])]
+            p = Packet(b"", int(port), "192.168.1.146", ip,
+                       PacketTypes.Sauvegarde_ask)
+            echanger.send(p,True)
+            incoming_packets = echanger.receive(type= 8, block=True)
             # print(incoming_packets)
-            if incoming_packets[0].type == PacketTypes.Sauvegarde_send:
+            if incoming_packets:
                 game = saveload.load_game("to-send")
                 game.owner = (port, ip)
-                game.players.add_player((game.owner, (random.randint(
-                    0, 255), random.randint(0, 255), random.randint(0, 255))))
+                #game.players.add_player((game.owner, (random.randint(
+                #    0, 255), random.randint(0, 255), random.randint(0, 255))))
 
             window.gamescreen = rgv.GameView(_game=game)
         window.show_view(window.gamescreen)

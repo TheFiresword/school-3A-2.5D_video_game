@@ -7,7 +7,7 @@
 
 void p2p_run(char *personal_address, int personal_port, char *client2_address, int client2_port);
 void p2p_handle_rcv(int socket_descriptor, struct sockaddr *sock_addr, int sock_addr_size,int *client_socket_descriptor);
-void p2p_handle_snd();
+void p2p_handle_snd(int client2_socket_descriptor, int *client_socket_descriptor);
 typedef struct packet
 {
     unsigned short type;
