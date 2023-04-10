@@ -10,10 +10,41 @@ from pathfinding.core.grid import Grid
 from pathfinding.finder import *
 from pathfinding.finder import msp
 
+
+shared_walker_mvt_updates = []
+def clear_shared_object():
+    shared_walker_mvt_updates.clear()
+
 right = "right"
 left = "left"
 up = "up"
 down = "down"
+
+def convert_job_into_value(walker_job):
+    match walker_job:
+        case 'Cart_Pusher_Wheat': 
+            return 0
+        case 'Market_Trader': 
+            return 1
+        case 'Prefect': 
+            return 2
+        case 'Soldier': 
+            return 3
+        case _:
+            return None
+
+def reverse_convert_value_into_activity_field(value):
+    match value:
+        case 0:
+            return 'farm'
+        case 1:
+            return 'granary'
+        case 2:
+            return 'prefecture'
+        case 3:
+            return 'military'
+        case _:
+            return None
 
 """
     A walker is an entity,with a actual position, a destination (other tile to move to), to walk to the destination tile it has to do 
@@ -263,7 +294,7 @@ class Walker:
                      self.direction, self.current_path_to_follow, self.dest_compteur)
         return new
 
-    def move_to_another_dwell(self, target_pos, walk_through=False):
+    def move_to_another_dwell(self, target_pos, walk_through=False, from_packet=False):
         # Normally init_pos is the dwell position
         (a, b) = self.map_associated.walk_to_a_building(init_pos=self.init_pos, dest_pos=self.dest_pos,
                                                         building_target_pos=target_pos,
@@ -272,6 +303,11 @@ class Walker:
         # print(str(target_pos) + " towards" + str(b))
         if a not in [False, None]:
             self.current_path_to_follow = b
+            w_type = convert_job_into_value(str(type(self)))
+            if w_type and not from_packet:
+                normalized_dest_pos = self.dest_pos
+                if not normalized_dest_pos: normalized_dest_pos = self.init_pos
+                shared_walker_mvt_updates.append((w_type, self.init_pos, normalized_dest_pos, target_pos))
             return True
         return False
 
@@ -478,3 +514,5 @@ class Soldier(Citizen):
             self.going_back_mlt = False
             self.wait = False
             self.work_target = building
+
+

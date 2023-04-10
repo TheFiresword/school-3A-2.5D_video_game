@@ -27,6 +27,7 @@ class PacketTypes(IntEnum):
     Update = 6
     Init = 7
     Sauvegarde_send = 8
+    Walker_mov = 9
 
 
 class Packet:
@@ -103,25 +104,28 @@ class Packet:
         return self.generalPack(self.body)
 
 
+def flatten(t):
+    out = []
+    if type(t) in [list, tuple]:
+        for el in t:
+            out += flatten(el)
+    else:
+        out += [t]
+    return out
+
 def encode_update_packets(update: LogicUpdate): #-> List[Packet]
     """
     Return a list of Packets to send to the other players.
     A packet contains 512 data bytes, and can contains many single update informations.
     """
-    def flatten(t):
-        out = []
-        if type(t) in [list, tuple]:
-            for el in t:
-                out += flatten(el)
-        else:
-            out += [t]
-        return out
+    
 
     packets = []
     update_elements = [
         [update.catchedfire.copy(), 1],
         [update.has_evolved.copy(), 2],
         [update.collapsed.copy(), 3],
+        [update.removed.copy(), 4]
     ]
 
     updateIndex = 0
@@ -152,14 +156,34 @@ def encode_update_packets(update: LogicUpdate): #-> List[Packet]
     return packets
 
 
+def encode_walkers_movments_packets(movments_update: list):
+    packets = []
+    while(len(movments_update) > 0):
+        one_packet_body = []
+        flattened_updates = [(flatten(one_mov)) for one_mov in movments_update]
+        while len(one_packet_body) + len(flattened_updates) < BODY_SIZE:
+            if len(movments_update) == 0:
+                break
+            one_packet_body.extend(flattened_updates.pop())
+
+        one_packet_body += [0] * (BODY_SIZE - len(one_packet_body))
+        # TODO : generaliser l'adresse et le port
+        packets.append(
+            Packet(bytearray(one_packet_body), 8200, "192.168.1.146", "192.168.1.158", packetType=PacketTypes.Walker_mov)
+        )
+    return packets
+
+
+
 def decode_update_packets(packet: Packet):
     update_dict = {
         1: [lambda x, y: (x, y), 2],
         2: [lambda x, y, z: ((x, y), z), 3],
         3: [lambda x, y: (x, y), 2],
+        4: [lambda x, y: (x, y), 2]
     }
 
-    updates = [[], [], []]
+    updates = [[], [], [], []]
 
     body = [int(hexa) for hexa in packet.body]
 
@@ -167,7 +191,7 @@ def decode_update_packets(packet: Packet):
 
     while body[cursor] in update_dict.keys():
         update_id = body[cursor]
-        assert 3>= update_id >= 0
+        assert 4>= update_id >= 0
         update_factory, update_len = update_dict[update_id]
         cursor += 1
 
@@ -178,7 +202,20 @@ def decode_update_packets(packet: Packet):
         "catchedfire": updates[0],
         "has_evolved": updates[1],
         "collapsed": updates[2],
+        "removed": updates[3]
     }
+
+def decode_walkers_movments_packets(packet: Packet):
+    decode_function = lambda a, b, c, d, e, f, g: (a, (b, c), (d, e), (f, g))
+    UPDATE_LEN = 7
+    walker_updates = []
+    body = [int(hexa) for hexa in packet.body]
+
+    cursor = 0
+    while cursor < len(body):
+        walker_updates.append(decode_function(*body[cursor: cursor + UPDATE_LEN]))
+        cursor += UPDATE_LEN
+    return walker_updates, packet.sourceAddress
 
 
 def decode_ponctual_packets(packet: Packet):
@@ -200,7 +237,7 @@ def decode_ponctual_packets(packet: Packet):
     #print(len(body), body)
     assert len(
         body) == ponctual_dict[packet.type][1], f"Packet {packet.type} has a wrong body length"
-    return ponctual_dict[packet.type][0](*body)
+    return ponctual_dict[packet.type][0](*body), packet.sourceAddress
 
 class Echange:
     def __init__(self, mq_key_rcv: int, mq_key_snd: int, clear=False) -> None:
