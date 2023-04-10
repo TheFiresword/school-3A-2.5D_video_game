@@ -5,7 +5,7 @@ from typing import Tuple, Union
 
 import sysv_ipc
 
-from CoreModules.GameManagement.Update import LogicUpdate
+#from CoreModules.GameManagement.Update import LogicUpdate
 
 BODY_SIZE = 512 - 12
 
@@ -113,7 +113,7 @@ def flatten(t):
         out += [t]
     return out
 
-def encode_update_packets(update: LogicUpdate): #-> List[Packet]
+def encode_update_packets(update): #-> List[Packet]
     """
     Return a list of Packets to send to the other players.
     A packet contains 512 data bytes, and can contains many single update informations.
@@ -162,9 +162,10 @@ def encode_walkers_movments_packets(movments_update: list):
         one_packet_body = []
         flattened_updates = [(flatten(one_mov)) for one_mov in movments_update]
         while len(one_packet_body) + len(flattened_updates) < BODY_SIZE:
-            if len(movments_update) == 0:
+            if len(flattened_updates) == 0:
                 break
             one_packet_body.extend(flattened_updates.pop())
+            movments_update.pop()
 
         one_packet_body += [0] * (BODY_SIZE - len(one_packet_body))
         # TODO : generaliser l'adresse et le port
@@ -213,8 +214,14 @@ def decode_walkers_movments_packets(packet: Packet):
 
     cursor = 0
     while cursor < len(body):
-        walker_updates.append(decode_function(*body[cursor: cursor + UPDATE_LEN]))
-        cursor += UPDATE_LEN
+        tmp = body[cursor: cursor + UPDATE_LEN]
+        # I assume that (0,(0,0),(0,0),(0,0)) is never sent
+        # that would mean static walker
+        if len(tmp) == 7 and sum(i for i in tmp) != 0:
+            walker_updates.append(decode_function(*tmp))
+            cursor += UPDATE_LEN
+        else:
+            break
     return walker_updates, packet.sourceAddress
 
 
@@ -271,12 +278,6 @@ class Echange:
 
 
 echanger = Echange(MQ_KEY_FROM_PY, MQ_KEY_TO_PY, clear=True)
-
-if __name__ == "__main__":
-    p = Packet(b"test", 8200, "127.0.0.1", "127.0.0.1", PacketTypes.Default, True)
-    print(p)
-    print(p.pack())
-    print(Packet.unpack(p.pack()))
 
 dict_demon={1: 'academy',
             2: 'actor_colony',
@@ -353,3 +354,34 @@ def find_key(value, dict):
     for keys, values in dict.items():
         if values == value:
             return keys
+
+
+
+
+if __name__ == "__main__":
+    p = Packet(b"test", 8200, "127.0.0.1", "127.0.0.1", PacketTypes.Default)
+    #print(p)
+    #print(p.pack())
+    #print(Packet.unpack(p.pack()))
+
+    #=========================
+    # Test walker update encoding-decoding
+    #=========================
+    import random
+    w_updates = []
+    for _ in range(5):
+        w_updates.append(
+        (
+            1,
+            (random.randint(0, 10), random.randint(0, 10)),
+            (random.randint(0, 10),random.randint(0, 10)),
+            (random.randint(0, 10),random.randint(0, 10))
+            )
+        )
+
+    print(w_updates)
+    a = encode_walkers_movments_packets(w_updates)[0]
+    print(f"Encodage = {a.body} \n Taille du paquet = {len(a.body)}")
+    b = decode_walkers_movments_packets(a)[0]
+    b.reverse()
+    print(f"Decodage:: {b}")
