@@ -224,7 +224,7 @@ void p2p_run(char *personal_address, int personal_port, char *client2_address, i
             .sin_addr.s_addr = inet_addr(client2_address),
         };
 
-    if 
+    
     if (connect(client2_socket_descriptor, (struct sockaddr *)&client2_sock_addr, sizeof(client2_sock_addr)) < 0)
         stop("Connect failed");
 
