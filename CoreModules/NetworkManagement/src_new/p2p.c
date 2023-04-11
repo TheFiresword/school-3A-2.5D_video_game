@@ -196,7 +196,7 @@ void p2p_handle_rcv(int socket_descriptor, struct sockaddr *sock_addr, int sock_
             if (recv(i, buffer, MAX_SIZE, 0) < 0)
                 stop("Recv failed");
             memcpy(&rcv_buffer, buffer, sizeof(packet));
-            printf("packet reçu\n");
+            printf("packet reçu: %d\n", rcv_buffer.type);
 
             if (rcv_buffer.type != 8)
             {
@@ -228,7 +228,7 @@ void p2p_handle_snd()
     memset(&snd_buffer, 0, sizeof(packet));
     printf("recupération d'un packet depuis le python\n");
     mq_from_py(&snd_buffer);
-    printf("packet récupéré\n");
+    printf("packet récupéré: %d\n",snd_buffer.type);
     if (snd_buffer.type == 8)
     {   
         char *minibuf = (char *)malloc(10);

@@ -927,23 +927,19 @@ class Game:
                     if building and isinstance(building, buildings.Building):
                         if not (building.isBurning or building.isDestroyed):
                             building.isDestroyed = True
-            else:
-                ponctual_data = decode_ponctual_packets(packet)
-                print(ponctual_data)
+            elif packet.type in [PacketTypes.Init,PacketTypes.Broacast_new_player,PacketTypes.Send_IP,PacketTypes.Ask_Broadcast,PacketTypes.Sauvegarde_ask]:
+                Adress,port = decode_login_packets(packet)
                 match packet.type:
                     case PacketTypes.Init:
-                        Adress,port = decode_login_packets(packet)
                         self.players.append(((Adress,port),(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))))
                         echanger.send(Packet(packet.body,port,self.owner[0],Adress,packetType=PacketTypes.Send_IP))
                     case PacketTypes.Broacast_new_player:
-                        Adress,port = decode_login_packets(packet)
                         ipList = [player[0] for player in self.players]
                         if (Adress,port) in ipList:
                             continue
                         self.players.append(((Adress,port),(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))))
                         echanger.send(Packet(struct.pack("IH", *self.owner),port,self.owner[0],Adress,packetType=PacketTypes.Send_IP))
                     case PacketTypes.Send_IP:
-                        Adress,port = decode_login_packets(packet)
                         ipList = [player[0] for player in self.players]
                         if (Adress,port) in ipList:
                             continue
@@ -951,6 +947,13 @@ class Game:
                         echanger.send(Packet(struct.pack("IH", *self.owner),port,self.owner[0],Adress,packetType=PacketTypes.Send_IP))
                     case PacketTypes.Ask_Broadcast:
                         echanger.send(Packet(packet.body,0,self.owner[0],"255.255.255.255",packetType=PacketTypes.Broacast_new_player))
+                    case PacketTypes.Sauvegarde_ask:
+                        saveLoad.save_game(self, "to-send")
+                        p = Packet(b"", port, self.owner[0], Adress,PacketTypes.Sauvegarde_send)
+                        echanger.send(p,True)
+            elif packet.type in [PacketTypes.Ajouter,PacketTypes.Supprimer,PacketTypes.Ajout_Route,PacketTypes.Suppr_Route]:
+                ponctual_data = decode_ponctual_packets(packet)
+                match packet.type:
                     case PacketTypes.Ajouter:
                         self.add_building(
                             ponctual_data[0][0], ponctual_data[0][1], dict_demon[ponctual_data[1]],from_packet=True)
@@ -967,11 +970,6 @@ class Game:
                     case PacketTypes.Suppr_Route:
                         self.remove_element(
                             ponctual_data[0], ponctual_data[1])
-                    case PacketTypes.Sauvegarde_ask:
-                        Adress,port = decode_login_packets(packet)
-                        saveLoad.save_game(self, "to-send")
-                        p = Packet(b"", port, self.owner[0], Adress,PacketTypes.Sauvegarde_send)
-                        echanger.send(p,True)
         return layer_to_be_updated
 
     def send_update_packets(self, packets):

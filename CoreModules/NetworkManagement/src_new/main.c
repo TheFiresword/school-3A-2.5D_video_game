@@ -14,7 +14,7 @@ int main(int argc, char const *argv[])
     {
         printf("Le ou les arguments ne sont pas valide(s) ou incomplet(s)\n");
         printf("USAGE :\n");
-        printf("%s [personal_address] [personal_port] [mq_key_from_py] [mq_key_to_py] [client2_address] [client2_port]\n", argv[0]);
+        printf("%s [personal_address] [personal_port] [mq_key_from_py] [mq_key_to_py]\n", argv[0]);
         printf("EXEMPLE :\n");
         printf("%s 127.0.0.1 7000 1234 4321\n", argv[0]);
         exit(EXIT_FAILURE);
