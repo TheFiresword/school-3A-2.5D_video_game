@@ -325,7 +325,7 @@ class GameView(arcade.View):
             ip = fct.get_ip()
             port = fct.get_free_port(ip)
             self.game = game.Game(map.MapLogic((constantes.TILE_COUNT // 2, 0), (0, constantes.TILE_COUNT // 2),
-                                               constantes.TILE_COUNT - 7), name=self.name, owner_id=(ip, port))
+                                               constantes.TILE_COUNT - 7), name=self.name, owner_id=(ip, port), is_online=False)
         else:
             self.name = self.game.name
         self.money_text = text.Sprite_sentence("Dn: " + str(self.game.money), "white",
@@ -521,7 +521,13 @@ class GameView(arcade.View):
             arcade.get_window().set_update_rate(1 / self.game.framerate)
             self.p_key_pressed = False
 
-            update,layer_to_update_from_packet = self.game.updategame(self.visualmap.map_scaling)
+            tmp = self.game.updategame(self.visualmap.map_scaling)
+            layer_to_update_from_packet = []
+            if  isinstance(tmp, tuple):
+                update,layer_to_update_from_packet = tmp
+            else:
+                update = tmp
+
             for layer in layer_to_update_from_packet:
                 if layer == "buildings":
                     self.visualmap.update_layers(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)

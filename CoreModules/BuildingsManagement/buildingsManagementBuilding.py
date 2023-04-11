@@ -23,6 +23,7 @@ class Building(element.Element):
 
         # A list of walkers id
         self.employees_id = set()
+        self.employees = set()
 
         # A factor that will be used to control risk increasing speed -- It must takes account the structure level
         # ie a building at level 4 will have a risk speed lower than a another at level 1
@@ -51,21 +52,25 @@ class Building(element.Element):
 
         super().__init__(buildings_layer, _type, version)
 
-    def add_employee(self, id: int, update_number=False):
+    def add_employee(self, id: int, update_number=False, e_object = None):
         self.employees_id.add(id)
+        if e_object:self.employees.add(e_object)
         if update_number:
             self.current_number_of_employees += constantes.WALKER_UNIT
 
     def flush_employee(self):
-        self.employees_id = set()
+        self.employees_id.clear()
+        self.employees.clear()
         self.current_number_of_employees = 0
 
-    def rem_employee(self, id: int):
-        self.employees_id.remove(id)
+    def rem_employee(self, id: int, e_object=None):
+        if id in self.employees_id: self.employees_id.remove(id)
+        if e_object and e_object in self.employees:self.employees.remove(e_object)
         self.current_number_of_employees -= constantes.WALKER_UNIT
 
-    def get_all_employees(self):
-        return self.employees_id
+    def get_all_employees(self, real_object=False):
+        if not real_object: return self.employees_id
+        return self.employees
 
     def is_functional(self):
         return self.functional
