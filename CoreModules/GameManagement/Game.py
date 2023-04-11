@@ -4,7 +4,7 @@ decode_update_packets, decode_ponctual_packets, encode_walkers_movments_packets,
 find_key, Packet, PacketTypes
 from CoreModules.WalkersManagement import walkersManagementWalker as walkers
 from CoreModules.BuildingsManagement import buildingsManagementBuilding as buildings
-from CoreModules.GameManagement import Update as walker_updates
+from CoreModules.GameManagement import Update as updates
 from Services.servicesmMapSpriteToFile import water_structures_types, farm_types, temple_types, sanitation_types
 from Services.Service_Game_Data import building_dico, road_dico, removing_cost
 from Services import Service_Save_and_Load as save_and_load
@@ -487,7 +487,7 @@ class Game:
         self.update_food_qty()
         
         # The important object that will contain the updates
-        update = walker_updates.LogicUpdate()
+        update = updates.LogicUpdate()
         # =======================================
         #  Updates of the walker
         # =======================================
@@ -608,7 +608,7 @@ class Game:
         # Reduced update object to send when online
         # On purpose, it contains has_evolved type updates, only for dwells
         # It does not neither contain risk changes of buildings
-        update_to_send = walker_updates.LogicUpdate()
+        update_to_send = updates.LogicUpdate()
         
         self.actions_on_buildings(building_list1, update, update_to_send=update_to_send)
         self.actions_on_buildings(building_list2, update, update_to_send=update_to_send)

@@ -14,7 +14,7 @@ from UserInterface import UI_PoP_Up as pop
 
 import CoreModules.GameManagement.Game as game
 import CoreModules.MapManagement.mapManagementMap as map
-from CoreModules.GameManagement import Update as walker_updates
+from CoreModules.GameManagement import Update as updates
 
 from Services import servicesGlobalVariables as constantes
 from Services import Service_Game_Data as gdata
@@ -1099,7 +1099,7 @@ class GameView(arcade.View):
             # do whatever u want with that
             print(_game)
 
-    def update_treatment(self, update: walker_updates.LogicUpdate):
+    def update_treatment(self, update: updates.LogicUpdate):
         """
         This is the function that will really update graphically the sprites of the buildings
         """
