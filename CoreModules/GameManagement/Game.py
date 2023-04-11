@@ -1,5 +1,5 @@
 import copy
-from CoreModules.NetworkManagement.Echange import echanger, dict_demon, encode_update_packets, decode_update_packets, decode_ponctual_packets, find_key, Packet, PacketTypes
+from CoreModules.NetworkManagement.Echange import echanger, dict_demon, encode_update_packets, decode_update_packets, decode_ponctual_packets, find_key,decode_login_packets, Packet, PacketTypes
 from CoreModules.WalkersManagement import walkersManagementWalker as walkers
 from CoreModules.BuildingsManagement import buildingsManagementBuilding as buildings
 from CoreModules.GameManagement import Update as updates
@@ -11,6 +11,7 @@ import time
 import random
 from Services.Service_Static_functions import position_is_valid
 from Services import servicesGlobalVariables as globalVar
+import struct
 
 
 INIT_MONEY = 100000000
@@ -43,8 +44,6 @@ class Game:
 
         self.framerate = globalVar.DEFAULT_FPS
         self.updated = []
-        self.players = [["moi", (0, 0, 255)]]
-
         self.players = [(self.owner, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))),
                         (('127.0.0.1', 1000), (255, 0, 0))]
         # some lists of specific buildings
@@ -603,8 +602,8 @@ class Game:
         self.actions_on_buildings(building_list2, update)
 
         #print(update.catchedfire,update.collapsed,update.has_evolved)
-        sending_update_packets = encode_update_packets(update)
-        self.send_update_packets(sending_update_packets)
+        #sending_update_packets = encode_update_packets(update)
+        #self.send_update_packets(sending_update_packets)
         incoming_packets = [ echanger.receive() for _ in range(echanger.getter_current_messages()[0]) ]
         #print(incoming_packets)
         layers_to_update_from_packets= self.include_incoming_packets(incoming_packets,update)
@@ -738,7 +737,7 @@ class Game:
                     del _element
                     if not from_packet:
                         body = [line ,column]
-                        packet = Packet(bytearray(body), 8200, "192.168.1.146", "192.168.1.158", packetType=PacketTypes.Supprimer)
+                        packet = Packet(bytearray(body), 0, self.owner[0], "255.255.255.255", packetType=PacketTypes.Supprimer)
                         echanger.send(packet)
         return element_type
 
@@ -784,7 +783,7 @@ class Game:
             self.money -= road_dico['cost']
             if not from_packet:
                 body = [line ,column]
-                packet = Packet(bytearray(body), 8200, "192.168.1.146", "192.168.1.158", packetType=PacketTypes.Ajout_Route)
+                packet = Packet(bytearray(body), 0, self.owner[0], "255.255.255.255", packetType=PacketTypes.Ajout_Route)
                 echanger.send(packet)
         return status
 
@@ -881,7 +880,7 @@ class Game:
             if not from_packet:
                 body = [building.position[0],building.position[1],find_key(building.dic["version"],dict_demon)]
                 print(body)
-                packet = Packet(bytearray(body), 8200, "192.168.1.146", "192.168.1.158", packetType=PacketTypes.Ajouter)
+                packet = Packet(bytearray(body), 0, self.owner[0], "255.255.255.255", packetType=PacketTypes.Ajouter)
                 echanger.send(packet)
             
 
@@ -928,9 +927,32 @@ class Game:
                     if building and isinstance(building, buildings.Building):
                         if not (building.isBurning or building.isDestroyed):
                             building.isDestroyed = True
-            else:
+            elif packet.type in [PacketTypes.Init,PacketTypes.Broacast_new_player,PacketTypes.Send_IP,PacketTypes.Ask_Broadcast,PacketTypes.Sauvegarde_ask]:
+                Adress,port = decode_login_packets(packet)
+                match packet.type:
+                    case PacketTypes.Init:
+                        self.players.append(((Adress,port),(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))))
+                        echanger.send(Packet(packet.body,port,self.owner[0],Adress,packetType=PacketTypes.Send_IP))
+                    case PacketTypes.Broacast_new_player:
+                        ipList = [player[0] for player in self.players]
+                        if (Adress,port) in ipList:
+                            continue
+                        self.players.append(((Adress,port),(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))))
+                        echanger.send(Packet(struct.pack("IH", Packet.intAddressFromAdress(self.owner[0]),self.owner[1]),port,self.owner[0],Adress,packetType=PacketTypes.Send_IP))
+                    case PacketTypes.Send_IP:
+                        ipList = [player[0] for player in self.players]
+                        if (Adress,port) in ipList:
+                            continue
+                        self.players.append(((Adress,port),(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))))
+                        echanger.send(Packet(struct.pack("IH", Packet.intAddressFromAdress(self.owner[0]),self.owner[1]),port,self.owner[0],Adress,packetType=PacketTypes.Send_IP))
+                    case PacketTypes.Ask_Broadcast:
+                        echanger.send(Packet(packet.body,0,self.owner[0],"255.255.255.255",packetType=PacketTypes.Broacast_new_player))
+                    case PacketTypes.Sauvegarde_ask:
+                        saveLoad.save_game(self, "to-send")
+                        p = Packet(b"", port, self.owner[0], Adress,PacketTypes.Sauvegarde_send)
+                        echanger.send(p,True)
+            elif packet.type in [PacketTypes.Ajouter,PacketTypes.Supprimer,PacketTypes.Ajout_Route,PacketTypes.Suppr_Route]:
                 ponctual_data = decode_ponctual_packets(packet)
-                print(ponctual_data)
                 match packet.type:
                     case PacketTypes.Ajouter:
                         self.add_building(
@@ -948,16 +970,6 @@ class Game:
                     case PacketTypes.Suppr_Route:
                         self.remove_element(
                             ponctual_data[0], ponctual_data[1])
-                    case PacketTypes.Sauvegarde_ask:
-                        # TODO : partie save
-                        saveLoad.save_game(self, "to-send")
-                        p = Packet(b"", 8200, "192.168.1.146", "192.168.1.158",
-                                   PacketTypes.Sauvegarde_send)
-                        echanger.send(p,True)
-                        pass
-                    case PacketTypes.Init:
-                        # TODO : partie init
-                        pass
         return layer_to_be_updated
 
     def send_update_packets(self, packets):

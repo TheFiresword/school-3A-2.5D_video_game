@@ -3,6 +3,8 @@ from UserInterface import UI_buttons as but
 from UserInterface import UI_View_Game as rgv
 from Services import servicesGlobalVariables as constantes
 from Services import Service_Save_and_Load as saveload
+from Services import Service_Static_functions as static
+import struct
 import arcade.gui
 from CoreModules.NetworkManagement.Echange import echanger, dict_demon, encode_update_packets, decode_update_packets, decode_ponctual_packets, find_key, Packet, PacketTypes
 
@@ -44,7 +46,7 @@ class ReseauLoginScreen(arcade.View):
             font_size=22,
             width=300,
             font_name="Arial",
-            text='127.0.0.1',
+            text='192.168.1.158',
         )
 
         self.first = arcade.gui.UIBoxLayout(vertical=False,
@@ -98,25 +100,37 @@ class ReseauLoginScreen(arcade.View):
         port = self.port_field.text
         ip = self.ip_field.text
         window = arcade.get_window()
+        owner = window.gamescreen.game.owner
+        
 
         if port != '':
+            port = int(port)
             # connection to the dest
             # receive the game online
             # load that game
             # change the owner
+            ip_port_body = struct.pack("IH", Packet.intAddressFromAdress(owner[0]),owner[1])
+            print(ip_port_body)
             game = None
-            p = Packet(b"", 6200, "127.0.0.1", ip,
-                       PacketTypes.Sauvegarde_ask, True)
+            echanger.send(Packet(ip_port_body,port, owner[0], ip, PacketTypes.Init))
+            print("packet init envoyé")
+            echanger.receive(type= PacketTypes.Send_IP,block=True)
+            print("packet send_ip reçu")
 
-            incoming_packets = [echanger.receive() for _ in range(
-                echanger.getter_current_messages()[0])]
-            # print(incoming_packets)
-            if incoming_packets[0].type == PacketTypes.Sauvegarde_send:
-                game = saveload.load_game("to-send")
-                game.owner = (port, ip)
-                game.players.add_player((game.owner, (random.randint(
-                    0, 255), random.randint(0, 255), random.randint(0, 255))))
-
+            echanger.send(Packet(ip_port_body, port, owner[0],ip,PacketTypes.Sauvegarde_ask))
+            print("packet sauvegarde_ask envoyé")
+            echanger.receive(type=PacketTypes.Sauvegarde_send,block=True)
+            print("packet sauvegarde_send reçu")
+            game = saveload.load_game("to-send")
+            game.players = []
+            game.players.append((game.owner,(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))))
+            game.owner = owner
+            game.players.append((game.owner,(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))))
+            print("game chargé, owner changé, players ajoutés")
+            echanger.send(Packet(ip_port_body, port, owner[0],ip,PacketTypes.Ask_Broadcast))
+            print("packet ask_broadcast envoyé")
+            echanger.receive(type=PacketTypes.Broacast_new_player,block=True)
+            print("packet send_broadcast reçu")
             window.gamescreen = rgv.GameView(_game=game)
         window.show_view(window.gamescreen)
 

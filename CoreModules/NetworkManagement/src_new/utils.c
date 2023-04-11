@@ -22,3 +22,8 @@ void printNHex(int n, void *content)
     }
     printf("\n");
 }
+
+void formatIPAddress(char address[15], unsigned int intAddress)
+{
+    sprintf(address, "%d.%d.%d.%d", intAddress >> 0 & 0xFF, intAddress >> 8 & 0xFF, intAddress >> 16 & 0xFF, intAddress >> 24 & 0xFF);
+}
