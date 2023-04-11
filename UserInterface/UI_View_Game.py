@@ -640,18 +640,29 @@ class GameView(arcade.View):
                     # If the remove_mode is not set the normal cursor is drawn
                     fct.draw_normal_cursor()
                 if self.builder_mode:
+                    """
                     if self.mouse_left_maintained:
                         if self.builder_content == "dwell":
                             self.add_multiple_one_sized_building()
                             self.dragged_sprite.clear()
                         elif self.builder_content == "road":
                             tmp_end_pos = Vec2(x, y) + self.map_camera.position
-                            self.add_roads_serie(self.init_mouse_pos, tmp_end_pos)
+                            #self.add_roads_serie(self.init_mouse_pos, tmp_end_pos)
                     else:
                         if self.builder_content == "road":
                             self.add_road(self.mouse_pos)
                         else:
                             self.add_one_sized_building(self.mouse_pos)
+                    """
+                    if self.builder_content == "road":
+                        self.add_road(self.mouse_pos)
+                    elif self.builder_content == "dwell":
+                        if self.mouse_left_maintained:
+                            self.add_multiple_one_sized_building()
+                            self.dragged_sprite.clear()
+                        else:
+                            self.add_one_sized_building(self.mouse_pos)
+
                 self.mouse_left_pressed = False
                 self.mouse_left_maintained = False
 
@@ -669,10 +680,7 @@ class GameView(arcade.View):
         tmp_end_pos = Vec2(x, y) + self.map_camera.position
         if self.mouse_left_pressed:
             if self.builder_mode:
-                if self.builder_content == "road":
-                    if self.mouse_left_maintained:
-                        self.add_roads_serie(self.init_mouse_pos, tmp_end_pos, True)
-                else:
+                if self.builder_content == "dwell":
                     self.get_surface_dragged(self.init_mouse_pos, tmp_end_pos)
                     self.dragged_sprite.clear()
                     self.visualmap.fill_temporary_build(self.surface_drag, self.dragged_sprite, self.builder_content,
