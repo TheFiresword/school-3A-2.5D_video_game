@@ -631,7 +631,7 @@ class Game:
             sending_update_packets = encode_update_packets(update_to_send)
             walkers_packets = encode_walkers_movments_packets(walkers.shared_walker_mvt_updates)
             #self.send_update_packets(sending_update_packets + walkers_packets)
-            self.send_update_packets(sending_update_packets)
+            #self.send_update_packets(sending_update_packets)
 
             # ---------------------------------------------------------
             # Receiving updates from other players
