@@ -33,9 +33,13 @@ grass_types = ["0000"+str(i) for i in range(2, 10)] + ["000"+str(i) for i in ran
 yellow_grass_types = [ "yellow"] + ["000" + str(i)for i in range(18, 30)]
 
 
-water_structures_types = ["well", "fountain", "fountain1", "fountain2", "fountain3", "fountain4", "reservoir"]
+water_structures_types = ["well", "fountain", "fountain1", "fountain2", "fountain3", "fountain4", "reservoir", "luxurious_bath", "normal_bath"]
 farm_types = ["fruit_farm", "olive_farm", "vegetable_farm", "vine_farm", "wheat_farm", "pig_farm"]
 temple_types = ["ares_temple", "mars_temple", "neptune_temple", "venus_temple", "oracle"]
+
+sanitation_types = ["luxurious_bath", "normal_bath",
+                  "fountain", "fountain2", "fountain3", "fountain4"]
+
 def mapping_function(element_type, type_version) -> [str, int]:
     """
     Fonction de mapping version d'un élément -> chemin de fichier
