@@ -3,14 +3,17 @@ from enum import IntEnum, unique
 from functools import reduce
 from typing import Tuple, Union
 
+
 import sysv_ipc
 
-#from CoreModules.GameManagement.Update import LogicUpdate
+
+from CoreModules.GameManagement.Update import LogicUpdate
+from Services import Service_Static_functions as static
 
 BODY_SIZE = 512 - 12
 
-MQ_KEY_FROM_PY = 12345
-MQ_KEY_TO_PY = 54321
+MQ_KEY_FROM_PY = 12346
+MQ_KEY_TO_PY = 64321
 """
 Implementation du protocole definit dans : https://docs.google.com/spreadsheets/d/19Q2D6Y_1bfit8nrRQ_JPPvHSeOotOISHyBvppbNOFP4/edit?usp=sharing
 """
@@ -27,7 +30,12 @@ class PacketTypes(IntEnum):
     Update = 6
     Init = 7
     Sauvegarde_send = 8
-    Walker_mov = 9
+    Broacast_new_player = 9
+    Send_IP = 10
+    Ok_Connection = 11
+    Ask_Broadcast = 12
+    Walker_mov = 13
+
 
 
 class Packet:
@@ -79,11 +87,11 @@ class Packet:
             port,
             intSourceAddress,
             intDestinationAddress,
-            *body,
+            body,
         ) = struct.unpack(cls.binPattern, data)
 
         return cls(
-            *body,
+            body,
             port,
             cls.addressFromIntAddress(intSourceAddress),
             cls.addressFromIntAddress(intDestinationAddress),
@@ -119,7 +127,6 @@ def encode_update_packets(update): #-> List[Packet]
     A packet contains 512 data bytes, and can contains many single update informations.
     """
     
-
     packets = []
     update_elements = [
         [update.catchedfire.copy(), 1],
@@ -151,7 +158,7 @@ def encode_update_packets(update): #-> List[Packet]
 
         # TODO : generaliser l'adresse et le port
         packets.append(
-            Packet(bytearray(packetBody), 8200, "192.168.1.146", "192.168.1.158", packetType=PacketTypes.Update)
+            Packet(bytearray(packetBody), 0, static.get_ip() , "255.255.255.255", packetType=PacketTypes.Update)
         )
     return packets
 
@@ -179,7 +186,7 @@ def encode_walkers_movments_packets(movments_update: list):
 def decode_update_packets(packet: Packet):
     update_dict = {
         1: [lambda x, y: (x, y), 2],
-        2: [lambda x, y, z: ((x, y), z), 3],
+        #2: [lambda x, y, z: ((x, y), z), 3],
         3: [lambda x, y: (x, y), 2],
         4: [lambda x, y: (x, y), 2]
     }
@@ -205,7 +212,7 @@ def decode_update_packets(packet: Packet):
         "collapsed": updates[2],
         "removed": updates[3]
     }
-
+    
 def decode_walkers_movments_packets(packet: Packet):
     decode_function = lambda a, b, c, d, e, f, g: (a, (b, c), (d, e), (f, g))
     UPDATE_LEN = 7
@@ -224,6 +231,10 @@ def decode_walkers_movments_packets(packet: Packet):
             break
     return walker_updates, packet.sourceAddress
 
+def decode_login_packets(packet: Packet):
+    intAddress, port, *_ = struct.unpack("IH494x", packet.body)
+    return Packet.addressFromIntAddress(intAddress), port
+
 
 def decode_ponctual_packets(packet: Packet):
 
@@ -232,8 +243,8 @@ def decode_ponctual_packets(packet: Packet):
         2: [lambda x, y: (x, y), 2],
         3: [lambda x, y: (x, y), 2],
         4: [lambda x, y, z: ((x, y), z), 3],
-        5: [lambda _: None, 0],
-        7: [lambda x, y: (x, y), 2],
+        5: [lambda : None, 0],
+        8: [lambda : None, 0],
     }
     body = []
     for hexa in range(len(packet.body)-2):
@@ -259,13 +270,13 @@ class Echange:
         while mq.current_messages > 0:
             mq.receive()
 
-    def send(self, packet: Packet, block: bool = False):
+    def send(self, packet: Packet, block: bool = True):
         try:
             self.mq_snd.send(packet.pack(), type=packet.type, block=block)
         except sysv_ipc.BusyError:
             print("The message queue is full")
 
-    def receive(self, type: int = 0, block: bool = False):
+    def receive(self, type: Union[int,PacketTypes] = 0, block: bool = False):
         try:
             data, type = self.mq_rcv.receive(type=type, block=block)
             return Packet.unpack(data)

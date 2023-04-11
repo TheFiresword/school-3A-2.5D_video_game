@@ -1,7 +1,9 @@
 import copy
+
 from CoreModules.NetworkManagement.Echange import echanger, dict_demon, encode_update_packets, \
 decode_update_packets, decode_ponctual_packets, encode_walkers_movments_packets, decode_walkers_movments_packets, \
 find_key, Packet, PacketTypes
+
 from CoreModules.WalkersManagement import walkersManagementWalker as walkers
 from CoreModules.BuildingsManagement import buildingsManagementBuilding as buildings
 from CoreModules.GameManagement import Update as updates
@@ -13,6 +15,7 @@ import time
 import random
 from Services.Service_Static_functions import position_is_valid
 from Services import servicesGlobalVariables as globalVar
+import struct
 
 
 INIT_MONEY = 100000000
@@ -788,6 +791,7 @@ class Game:
                             body = [line ,column]
                             packet = Packet(bytearray(body), 8200, self.owner[0], "192.168.1.158", packetType=PacketTypes.Supprimer)
                             echanger.send(packet)
+
         return element_type
 
     def remove_elements_serie(self, start_pos, end_pos) -> set:
@@ -836,6 +840,7 @@ class Game:
                     # The packet should be sent to everyone
                     packet = Packet(bytearray(body), 8200, "192.168.1.146", "192.168.1.158", packetType=PacketTypes.Ajout_Route)
                     echanger.send(packet)
+
         return status
 
     def add_roads_serie(self, start_pos, end_pos, dynamically=False) -> bool:
@@ -944,8 +949,6 @@ class Game:
                     packet = Packet(bytearray(body), 8200, "192.168.1.146", "192.168.1.158", packetType=PacketTypes.Ajouter)
                     echanger.send(packet)
             
-
-
         return status
 
     def get_buildings_in_neighboorhood(self, pos):
@@ -984,8 +987,7 @@ class Game:
         layer_to_be_updated = set()
         for packet in packets:
             if packet.type == PacketTypes.Update:
-                update_dict = decode_update_packets(packet)
-                
+                update_dict = decode_update_packets(packet)                
                 for building_pos_to_remove in update_dict['removed']:
                     self.remove_element(building_pos_to_remove, from_packet=True)
                 
@@ -1049,11 +1051,33 @@ class Game:
                             the_ultimate_walker.wait = False
                             the_ultimate_walker.current_path_to_follow = []
                             the_ultimate_walker.move_to_another_dwell(target_pos, walk_through=True)
-
-
-            else:
+          
+            elif packet.type in [PacketTypes.Init,PacketTypes.Broacast_new_player,PacketTypes.Send_IP,PacketTypes.Ask_Broadcast,PacketTypes.Sauvegarde_ask]:
+                Adress,port = decode_login_packets(packet)
+                match packet.type:
+                    case PacketTypes.Init:
+                        self.players.append(((Adress,port),(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))))
+                        echanger.send(Packet(packet.body,port,self.owner[0],Adress,packetType=PacketTypes.Send_IP))
+                    case PacketTypes.Broacast_new_player:
+                        ipList = [player[0] for player in self.players]
+                        if (Adress,port) in ipList:
+                            continue
+                        self.players.append(((Adress,port),(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))))
+                        echanger.send(Packet(struct.pack("IH", Packet.intAddressFromAdress(self.owner[0]),self.owner[1]),port,self.owner[0],Adress,packetType=PacketTypes.Send_IP))
+                    case PacketTypes.Send_IP:
+                        ipList = [player[0] for player in self.players]
+                        if (Adress,port) in ipList:
+                            continue
+                        self.players.append(((Adress,port),(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))))
+                        echanger.send(Packet(struct.pack("IH", Packet.intAddressFromAdress(self.owner[0]),self.owner[1]),port,self.owner[0],Adress,packetType=PacketTypes.Send_IP))
+                    case PacketTypes.Ask_Broadcast:
+                        echanger.send(Packet(packet.body,0,self.owner[0],"255.255.255.255",packetType=PacketTypes.Broacast_new_player))
+                    case PacketTypes.Sauvegarde_ask:
+                        saveLoad.save_game(self, "to-send")
+                        p = Packet(b"", port, self.owner[0], Adress,PacketTypes.Sauvegarde_send)
+                        echanger.send(p,True)
+            elif packet.type in [PacketTypes.Ajouter,PacketTypes.Supprimer,PacketTypes.Ajout_Route,PacketTypes.Suppr_Route]:
                 ponctual_data, ip_source = decode_ponctual_packets(packet)
-                print(ponctual_data)
                 match packet.type:
                     case PacketTypes.Ajouter:
                         self.add_building(
@@ -1070,16 +1094,6 @@ class Game:
                     case PacketTypes.Suppr_Route:
                         self.remove_element(
                             ponctual_data[0], ponctual_data[1])
-                    case PacketTypes.Sauvegarde_ask:
-                        # TODO : partie save
-                        saveLoad.save_game(self, "to-send")
-                        p = Packet(b"", self.owner[1], self.owner[0], ip_source,
-                                   PacketTypes.Sauvegarde_send, True)
-                        echanger.send(p,True)
-                        pass
-                    case PacketTypes.Init:
-                        # TODO : partie init
-                        pass
         return layer_to_be_updated
 
     def send_update_packets(self, packets):
