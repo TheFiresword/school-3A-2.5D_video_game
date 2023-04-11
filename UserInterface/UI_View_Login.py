@@ -123,13 +123,13 @@ class ReseauLoginScreen(arcade.View):
             print("packet sauvegarde_send reçu")
             game = saveload.load_game("to-send")
             game.players = []
-            game.players.append(game.owner,(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
+            game.players.append((game.owner,(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))))
             game.owner = owner
-            game.players.append(game.owner,(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
+            game.players.append((game.owner,(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))))
             print("game chargé, owner changé, players ajoutés")
             echanger.send(Packet(ip_port_body, port, owner[0],ip,PacketTypes.Ask_Broadcast))
             print("packet ask_broadcast envoyé")
-            echanger.receive(type=PacketTypes.Send_Broadcast,block=True)
+            echanger.receive(type=PacketTypes.Broacast_new_player,block=True)
             print("packet send_broadcast reçu")
             window.gamescreen = rgv.GameView(_game=game)
         window.show_view(window.gamescreen)

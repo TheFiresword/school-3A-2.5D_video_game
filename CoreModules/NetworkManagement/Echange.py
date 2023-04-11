@@ -11,8 +11,8 @@ from Services import Service_Static_functions as static
 
 BODY_SIZE = 512 - 12
 
-MQ_KEY_FROM_PY = 12345
-MQ_KEY_TO_PY = 54321
+MQ_KEY_FROM_PY = 12346
+MQ_KEY_TO_PY = 64321
 """
 Implementation du protocole definit dans : https://docs.google.com/spreadsheets/d/19Q2D6Y_1bfit8nrRQ_JPPvHSeOotOISHyBvppbNOFP4/edit?usp=sharing
 """

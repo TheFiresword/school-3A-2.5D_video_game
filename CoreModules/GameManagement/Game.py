@@ -938,13 +938,13 @@ class Game:
                         if (Adress,port) in ipList:
                             continue
                         self.players.append(((Adress,port),(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))))
-                        echanger.send(Packet(struct.pack("IH", *self.owner),port,self.owner[0],Adress,packetType=PacketTypes.Send_IP))
+                        echanger.send(Packet(struct.pack("IH", Packet.intAddressFromAdress(self.owner[0]),self.owner[1]),port,self.owner[0],Adress,packetType=PacketTypes.Send_IP))
                     case PacketTypes.Send_IP:
                         ipList = [player[0] for player in self.players]
                         if (Adress,port) in ipList:
                             continue
                         self.players.append(((Adress,port),(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))))
-                        echanger.send(Packet(struct.pack("IH", *self.owner),port,self.owner[0],Adress,packetType=PacketTypes.Send_IP))
+                        echanger.send(Packet(struct.pack("IH", Packet.intAddressFromAdress(self.owner[0]),self.owner[1]),port,self.owner[0],Adress,packetType=PacketTypes.Send_IP))
                     case PacketTypes.Ask_Broadcast:
                         echanger.send(Packet(packet.body,0,self.owner[0],"255.255.255.255",packetType=PacketTypes.Broacast_new_player))
                     case PacketTypes.Sauvegarde_ask:

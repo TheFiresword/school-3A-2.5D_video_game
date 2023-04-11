@@ -71,6 +71,7 @@ void router_send(packet packet)
 
         current = current->next;
     }
+    printf("not found : %u:%u\n", packet.destination_address, packet.port );
 }
 
 void router_broadcast(packet packet)

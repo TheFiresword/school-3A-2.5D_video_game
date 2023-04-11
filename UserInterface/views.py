@@ -11,7 +11,7 @@ class MainWindow(arcade.Window):
 
     # intialisation de la fenetre et lancement des premières instances d'affichage
     def __init__(self):
-        super().__init__(constantes.DEFAULT_SCREEN_WIDTH, constantes.DEFAULT_SCREEN_HEIGHT, constantes.TITLE, fullscreen=True)
+        super().__init__(constantes.DEFAULT_SCREEN_WIDTH, constantes.DEFAULT_SCREEN_HEIGHT, constantes.TITLE, fullscreen=False)
         self.set_update_rate(constantes.DEFAULT_FPS)
         self.name="save_1"
         # Différents écrans:
