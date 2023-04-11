@@ -17,10 +17,11 @@ static packet snd_buffer = {};
 static packet rcv_buffer = {};
 
 char buffer[MAX_SIZE];
+char *save_path = "../../../Assets/games/to-send.pkl";
 
 int get_save_size(){
     struct stat st;
-    stat("../../../Assets/games/to-send.pkl", &st);
+    stat(save_path, &st);
     return st.st_size;
 }
 
@@ -30,7 +31,7 @@ void send_pickle_file(int first_conn)
     int file_fd, bytes_read, bytes_sent;
     printf("%d\n", first_conn);
     // Ouvrir le fichier en lecture seule
-    file_fd = open("../../../Assets/games/to-send.pkl", O_RDONLY);
+    file_fd = open(save_path, O_RDONLY);
     if (file_fd == -1)
     {
         perror("Impossible d'ouvrir le fichier");
@@ -56,7 +57,7 @@ void receive_picle_file(char *buffer,int n)
 // le contenu reçu est directement écris dans le fichier save.pkl dans Assets/game
 {
     printf("%ld\n",strlen(buffer));
-    FILE *file = fopen("../../../Assets/games/to-send.pkl", "wb"); // ouvrir le fichier en mode binaire
+    FILE *file = fopen(save_path, "wb"); // ouvrir le fichier en mode binaire
     if (file != NULL)
     {
         fwrite(buffer, sizeof(char), n, file); // écrire le contenu du buffer dans le fichier
@@ -193,7 +194,7 @@ void p2p_handle_rcv(int socket_descriptor, struct sockaddr *sock_addr, int sock_
             printf("reception d'un packet\n");
             memset(&rcv_buffer, 0, sizeof(packet));
             bzero(buffer, MAX_SIZE);
-            if (recv(i, buffer, MAX_SIZE, 0) < 0)
+            if (recv(i, buffer, sizeof(packet), 0) < 0)
                 stop("Recv failed");
             memcpy(&rcv_buffer, buffer, sizeof(packet));
             printf("packet reçu: %d\n", rcv_buffer.type);

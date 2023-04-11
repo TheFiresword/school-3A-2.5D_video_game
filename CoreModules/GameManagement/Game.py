@@ -2,7 +2,7 @@ import copy
 
 from CoreModules.NetworkManagement.Echange import echanger, dict_demon, encode_update_packets, \
 decode_update_packets, decode_ponctual_packets, encode_walkers_movments_packets, decode_walkers_movments_packets, \
-find_key, Packet, PacketTypes
+find_key,decode_login_packets, Packet, PacketTypes
 
 from CoreModules.WalkersManagement import walkersManagementWalker as walkers
 from CoreModules.BuildingsManagement import buildingsManagementBuilding as buildings
@@ -630,8 +630,8 @@ class Game:
         if self.is_online:
             sending_update_packets = encode_update_packets(update_to_send)
             walkers_packets = encode_walkers_movments_packets(walkers.shared_walker_mvt_updates)
-            self.send_update_packets(sending_update_packets + walkers_packets)
-
+            #self.send_update_packets(sending_update_packets + walkers_packets)
+            #self.send_update_packets(sending_update_packets)
 
             # ---------------------------------------------------------
             # Receiving updates from other players
@@ -789,7 +789,7 @@ class Game:
                     if self.is_online:
                         if not from_packet:
                             body = [line ,column]
-                            packet = Packet(bytearray(body), 8200, self.owner[0], "192.168.1.158", packetType=PacketTypes.Supprimer)
+                            packet =  Packet(bytearray(body),0,self.owner[0],"255.255.255.255",packetType=PacketTypes.Supprimer)
                             echanger.send(packet)
 
         return element_type
@@ -838,7 +838,7 @@ class Game:
                 if not from_packet:
                     body = [line ,column]
                     # The packet should be sent to everyone
-                    packet = Packet(bytearray(body), 8200, "192.168.1.146", "192.168.1.158", packetType=PacketTypes.Ajout_Route)
+                    packet = Packet(bytearray(body),0,self.owner[0],"255.255.255.255",packetType=PacketTypes.Ajout_Route)
                     echanger.send(packet)
 
         return status
@@ -946,7 +946,7 @@ class Game:
                 if not from_packet:
                     body = [building.position[0],building.position[1],find_key(building.dic["version"],dict_demon)]
                     print(body)
-                    packet = Packet(bytearray(body), 8200, "192.168.1.146", "192.168.1.158", packetType=PacketTypes.Ajouter)
+                    packet = Packet(bytearray(body),0,self.owner[0],"255.255.255.255",packetType=PacketTypes.Ajouter)
                     echanger.send(packet)
             
         return status

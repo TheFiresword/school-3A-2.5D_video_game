@@ -8,6 +8,9 @@ import struct
 import arcade.gui
 from CoreModules.NetworkManagement.Echange import echanger, dict_demon, encode_update_packets, decode_update_packets, decode_ponctual_packets, find_key, Packet, PacketTypes
 
+FROM_PYTHON_MQ = "64321"
+TO_PYTHON_MQ = "12346"
+
 
 class ReseauLoginScreen(arcade.View):
     def __init__(self):
@@ -94,6 +97,8 @@ class ReseauLoginScreen(arcade.View):
 
         self.manager.add(self.box)
 
+
+    
     def on_create_click(self, event):
         import random
         # IPC
@@ -101,8 +106,6 @@ class ReseauLoginScreen(arcade.View):
         ip = self.ip_field.text
         window = arcade.get_window()
         owner = window.gamescreen.game.owner
-        
-
         if port != '':
             port = int(port)
             # connection to the dest
@@ -112,11 +115,11 @@ class ReseauLoginScreen(arcade.View):
             ip_port_body = struct.pack("IH", Packet.intAddressFromAdress(owner[0]),owner[1])
             print(ip_port_body)
             game = None
+
             echanger.send(Packet(ip_port_body,port, owner[0], ip, PacketTypes.Init))
             print("packet init envoyé")
             echanger.receive(type= PacketTypes.Send_IP,block=True)
-            print("packet send_ip reçu")
-
+            print("packet send_ip reçu")            
             echanger.send(Packet(ip_port_body, port, owner[0],ip,PacketTypes.Sauvegarde_ask))
             print("packet sauvegarde_ask envoyé")
             echanger.receive(type=PacketTypes.Sauvegarde_send,block=True)
@@ -127,11 +130,15 @@ class ReseauLoginScreen(arcade.View):
             game.owner = owner
             game.players.append((game.owner,(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))))
             print("game chargé, owner changé, players ajoutés")
+            
+                        
             echanger.send(Packet(ip_port_body, port, owner[0],ip,PacketTypes.Ask_Broadcast))
             print("packet ask_broadcast envoyé")
             echanger.receive(type=PacketTypes.Broacast_new_player,block=True)
             print("packet send_broadcast reçu")
             window.gamescreen = rgv.GameView(_game=game)
+        else:
+            window.gamescreen.game.is_online = True
         window.show_view(window.gamescreen)
 
     def setup(self):
@@ -139,6 +146,14 @@ class ReseauLoginScreen(arcade.View):
 
     def on_show_view(self):
         arcade.set_background_color(arcade.color.BLACK)
+        window = arcade.get_window()
+        owner = window.gamescreen.game.owner
+        print("Login owner", owner)
+        # Launch the c program instance here
+        """
+        import subprocess
+        c_process = subprocess.Popen(['CoreModules/NetworkManagement/bin/myprogram', str(owner[0]), str(owner[1]), FROM_PYTHON_MQ, TO_PYTHON_MQ])
+        """
 
     def on_draw(self):
         self.clear()

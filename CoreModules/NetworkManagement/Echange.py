@@ -177,7 +177,7 @@ def encode_walkers_movments_packets(movments_update: list):
         one_packet_body += [0] * (BODY_SIZE - len(one_packet_body))
         # TODO : generaliser l'adresse et le port
         packets.append(
-            Packet(bytearray(one_packet_body), 8200, "192.168.1.146", "192.168.1.158", packetType=PacketTypes.Walker_mov)
+            Packet(bytearray(one_packet_body), 0, static.get_ip(), "255.255.255.255", packetType=PacketTypes.Walker_mov)
         )
     return packets
 
@@ -358,7 +358,16 @@ dict_demon={1: 'academy',
             66: 'wall',
             67: 'wine_press',
             68: 'workshop',
-            69: 'senate'
+            69: 'senate',
+            70: 'reservoir',
+            71: 'well',
+            72: 'luxurious_bath',
+            73: 'military_academy',
+            74: 'wheat_farm',
+            75: 'vegetable_farm',
+            76: 'vine_farm',
+            77: 'pig_farm',
+            78: 'fruit_farm'
 }
 
 def find_key(value, dict):
