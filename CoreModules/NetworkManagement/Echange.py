@@ -3,9 +3,11 @@ from enum import IntEnum, unique
 from functools import reduce
 from typing import Tuple, Union
 
+
 import sysv_ipc
 
 from CoreModules.GameManagement.Update import LogicUpdate
+from Services import Service_Static_functions as static
 
 BODY_SIZE = 512 - 12
 
@@ -27,6 +29,10 @@ class PacketTypes(IntEnum):
     Update = 6
     Init = 7
     Sauvegarde_send = 8
+    Broacast_new_player = 9
+    Send_IP = 10
+    Ok_Connection = 11
+    Ask_Broadcast = 12
 
 
 class Packet:
@@ -78,11 +84,11 @@ class Packet:
             port,
             intSourceAddress,
             intDestinationAddress,
-            *body,
+            body,
         ) = struct.unpack(cls.binPattern, data)
 
         return cls(
-            *body,
+            body,
             port,
             cls.addressFromIntAddress(intSourceAddress),
             cls.addressFromIntAddress(intDestinationAddress),
@@ -147,7 +153,7 @@ def encode_update_packets(update: LogicUpdate): #-> List[Packet]
 
         # TODO : generaliser l'adresse et le port
         packets.append(
-            Packet(bytearray(packetBody), 8200, "192.168.1.146", "192.168.1.158", packetType=PacketTypes.Update)
+            Packet(bytearray(packetBody), 0, static.get_ip() , "255.255.255.255", packetType=PacketTypes.Update)
         )
     return packets
 
@@ -180,6 +186,11 @@ def decode_update_packets(packet: Packet):
         "collapsed": updates[2],
     }
 
+def decode_login_packets(packet: Packet):
+    intAddress, port, *_ = struct.unpack("IH494x", packet.body)
+    return Packet.addressFromIntAddress(intAddress), port
+
+
 
 def decode_ponctual_packets(packet: Packet):
 
@@ -189,8 +200,7 @@ def decode_ponctual_packets(packet: Packet):
         3: [lambda x, y: (x, y), 2],
         4: [lambda x, y, z: ((x, y), z), 3],
         5: [lambda : None, 0],
-        7: [lambda x, y: (x, y), 2],
-        8: [lambda : None, 0]
+        8: [lambda : None, 0],
     }
     body = []
     for hexa in range(len(packet.body)-2):
@@ -216,13 +226,13 @@ class Echange:
         while mq.current_messages > 0:
             mq.receive()
 
-    def send(self, packet: Packet, block: bool = False):
+    def send(self, packet: Packet, block: bool = True):
         try:
             self.mq_snd.send(packet.pack(), type=packet.type, block=block)
         except sysv_ipc.BusyError:
             print("The message queue is full")
 
-    def receive(self, type: int = 0, block: bool = False):
+    def receive(self, type: Union[int,PacketTypes] = 0, block: bool = False):
         try:
             data, type = self.mq_rcv.receive(type=type, block=block)
             return Packet.unpack(data)

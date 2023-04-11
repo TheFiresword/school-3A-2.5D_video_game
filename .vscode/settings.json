@@ -2,6 +2,7 @@
   "python.analysis.typeCheckingMode": "off",
   "files.associations": {
     "*.embeddedhtml": "html",
-    "unistd.h": "c"
+    "unistd.h": "c",
+    "mq.h": "c"
   }
 }
