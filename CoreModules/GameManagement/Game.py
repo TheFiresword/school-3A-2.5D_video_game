@@ -647,6 +647,7 @@ class Game:
                     building = self.map.buildings_layer.get_cell(
                         building_pos[0], building_pos[1])
                     soldier.s_work(building)
+                    return
 
     def get_citizen_by_id(self, id: int):
         for ctz in self.walkersAll:
