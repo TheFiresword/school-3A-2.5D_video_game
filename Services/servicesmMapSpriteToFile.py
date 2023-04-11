@@ -495,7 +495,7 @@ def get_structures_range(element_type, type_version) -> int:
     else:
         if type_version == "well":
             return 2
-        if type_version in ["fountain", "fountain1", "fountain2", "fountain3", "fountain4"]:
+        if type_version in sanitation_types:
             return 4
         if type_version == "reservoir":
             return 10

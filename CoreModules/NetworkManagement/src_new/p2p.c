@@ -192,8 +192,8 @@ void p2p_handle_rcv(int socket_descriptor, struct sockaddr *sock_addr, int sock_
         {
             printf("reception d'un packet\n");
             memset(&rcv_buffer, 0, sizeof(packet));
-            bzero(buffer, MAX_SIZE);
-            if (recv(i, buffer, MAX_SIZE, 0) < 0)
+            bzero(buffer, 512+1);
+            if (recv(i, buffer, 512+1, 0) < 0)
                 stop("Recv failed");
             memcpy(&rcv_buffer, buffer, sizeof(packet));
             printf("packet reçu: %d\n", rcv_buffer.type);
