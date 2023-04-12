@@ -789,12 +789,12 @@ class Game:
                     if type(_element) == buildings.MilitaryAc:
                         self.military_list.remove(_element)
                     del _element
-                    if self.is_online:
-                        if not from_packet:
-                            body = [line ,column]
-                            packet =  Packet(bytearray(body),0,self.owner[0],"255.255.255.255",packetType=PacketTypes.Supprimer)
-                            echanger.send(packet)
-
+                    
+            if self.is_online:
+                if not from_packet:
+                    body = [line ,column]
+                    packet =  Packet(bytearray(body),0,self.owner[0],"255.255.255.255",packetType=PacketTypes.Supprimer)
+                    echanger.send(packet)
         return element_type
 
     def remove_elements_serie(self, start_pos, end_pos) -> set:
