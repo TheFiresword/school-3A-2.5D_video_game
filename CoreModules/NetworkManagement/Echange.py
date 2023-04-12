@@ -50,6 +50,7 @@ class Packet:
         destinationAddress: str,
         packetType: Union[int, PacketTypes] = PacketTypes.Default,
     ) -> None:
+        print(f"Type paquet{packetType}")
         self.body = body
         self.port = port
         self.sourceAddress = sourceAddress

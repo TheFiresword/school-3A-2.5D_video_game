@@ -1084,21 +1084,24 @@ class Game:
                 ponctual_data, ip_source = decode_ponctual_packets(packet)
                 match packet.type:
                     case PacketTypes.Ajouter:
-                        self.add_building(
-                            ponctual_data[0][0], ponctual_data[0][1], dict_demon[ponctual_data[1]],from_packet=ip_source)
-                        layer_to_be_updated.add("buildings")
+                            if len(ponctual_data)==2:
+                                self.add_building(
+                                    ponctual_data[0][0], ponctual_data[0][1], dict_demon[ponctual_data[1]],from_packet=ip_source)
+                                layer_to_be_updated.add("buildings")
                     case PacketTypes.Supprimer:
-                        self.remove_element((ponctual_data[0], ponctual_data[1]), from_packet=ip_source)
-                        layer_to_be_updated.add("buildings")
-                        layer_to_be_updated.add("roads")
-                        print("OUi je rentre la dedans")
+                        if len(ponctual_data)==2:
+                            self.remove_element((ponctual_data[0], ponctual_data[1]), from_packet=ip_source)
+                            layer_to_be_updated.add("buildings")
+                            layer_to_be_updated.add("roads")
                     case PacketTypes.Ajout_Route:
-                        self.add_road(
-                            ponctual_data[0], ponctual_data[1],from_packet=ip_source)
-                        layer_to_be_updated.add("roads")
+                        if len(ponctual_data)==2:
+                            self.add_road(
+                                ponctual_data[0], ponctual_data[1],from_packet=ip_source)
+                            layer_to_be_updated.add("roads")
                     case PacketTypes.Suppr_Route:
-                        self.remove_element(
-                            ponctual_data[0], ponctual_data[1])
+                        if len(ponctual_data)==2:
+                            self.remove_element(
+                                ponctual_data[0], ponctual_data[1])
         return layer_to_be_updated
 
     def send_update_packets(self, packets):
