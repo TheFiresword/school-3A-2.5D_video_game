@@ -662,6 +662,8 @@ class GameView(arcade.View):
                             self.dragged_sprite.clear()
                         else:
                             self.add_one_sized_building(self.mouse_pos)
+                    else:
+                        self.add_one_sized_building(self.mouse_pos)
 
                 self.mouse_left_pressed = False
                 self.mouse_left_maintained = False
