@@ -1099,3 +1099,25 @@ class Game:
     def send_update_packets(self, packets):
         for packet in packets:
             echanger.send(packet, True)
+
+    def generateStat(self):
+        stats = {}
+        for player in self.players:
+            stats[f"{player[0][0]}:{player[0][1]}"] = 0
+
+        for building in self.buildinglist:
+            txt = " ".join(building.dic["version"].split("_"))
+
+            score = building_dico[txt].cost
+            if (building.is_functional):   # chaque bat fonctionnel
+                score += 10
+            if (building.dic['version'] == "dwell"):   # si c'est une maison (car sinon pb avec prefecture)
+                score += (building.structure_level) * 5  # niveau 1 (+5) ; niveau 2 (+10)
+            else:
+                score += 20  # si c'est un autre bat : +20
+            if (building.isDestroyed or building.isBurning):      # -10pts par destruction
+                score *= -1
+
+            stats[f"{building.owner[0]}:{building.owner[1]}"] += score
+
+        return stats
