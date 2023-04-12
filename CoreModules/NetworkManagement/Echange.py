@@ -35,6 +35,7 @@ class PacketTypes(IntEnum):
     Ok_Connection = 11
     Ask_Broadcast = 12
     Walker_mov = 13
+    poubelle = 5000
 
 
 
@@ -91,6 +92,9 @@ class Packet:
             body,
         ) = struct.unpack(cls.binPattern, data)
 
+        if packetType not in iter(PacketTypes):
+            packetType = PacketTypes.poubelle
+
         return cls(
             body,
             port,
@@ -140,7 +144,7 @@ def encode_update_packets(update): #-> List[Packet]
 
     while sum(len(update_element) for update_element, _ in update_elements) > 0:
         packetBody = []
-        while len(packetBody) + len(update_elements[updateIndex][0]) < BODY_SIZE:
+        while len(packetBody) + len(flatten(update_elements[updateIndex][0])) < BODY_SIZE:
             if len(update_elements[updateIndex][0]) == 0:
                 updateIndex += 1
                 continue
