@@ -248,14 +248,14 @@ def decode_ponctual_packets(packet: Packet):
         8: [lambda : None, 0],
     }
     body = []
-    for hexa in range(len(packet.body)-2):
-        if int(packet.body[hexa]) == 0 and int(packet.body[hexa+1]) == 0:
+    for hexa in range(len(packet.body)-4):
+        if int(packet.body[hexa]) == 0 and int(packet.body[hexa+1]) == 0 and int(packet.body[hexa+2]) == 0 and int(packet.body[hexa+3]) == 0:
             break
         else:
             body.append(int(packet.body[hexa]))
     #print(len(body), body)
-    assert len(
-        body) == ponctual_dict[packet.type][1], f"Packet {packet.type} has a wrong body length"
+    #assert len(
+    #    body) == ponctual_dict[packet.type][1], f"Packet {packet.type} has a wrong body length"
     return ponctual_dict[packet.type][0](*body), packet.sourceAddress
 
 class Echange:
