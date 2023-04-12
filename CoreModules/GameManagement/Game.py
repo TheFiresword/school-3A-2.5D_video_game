@@ -454,12 +454,12 @@ class Game:
                             update.collapsed.append(i)
                         self.guide_homeless_and_jobless_citizens(k)
 
-                if building_update["fire_level"][0]:
-                    update.fire_level_change.append(
-                        (k.position, building_update["fire_level"][1]))
-                if building_update["collapse_level"][0]:
-                    update.collapse_level_change.append(
-                        (k.position, building_update["collapse_level"][1]))
+                    if building_update["fire_level"][0]:
+                        update.fire_level_change.append(
+                            (k.position, building_update["fire_level"][1]))
+                    if building_update["collapse_level"][0]:
+                        update.collapse_level_change.append(
+                            (k.position, building_update["collapse_level"][1]))
 
                 # =======================================
                 # Managment of burning houses
