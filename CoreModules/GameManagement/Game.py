@@ -1000,7 +1000,7 @@ class Game:
                     building.BurningTime = 0
                     building.risk_dico['fire'] = 100
                     building.functional = False
-
+                    self.guide_homeless_and_jobless_citizens(building)
                     cases = self.map.buildings_layer.get_all_positions_of_element(building_pos_burning[0], building_pos_burning[1])
                     for i in cases:
                         self.map.buildings_layer.array[i[0]][i[1]].isBurning = True
@@ -1011,7 +1011,7 @@ class Game:
                     building.isDestroyed = True
                     building.isBurning = False
                     building.risk_dico['collapse'] = 100
-
+                    self.guide_homeless_and_jobless_citizens(building)
                     building.functional = False
 
                     cases = self.map.buildings_layer.get_all_positions_of_element(building_pos_collapsed[0], building_pos_collapsed[1])
