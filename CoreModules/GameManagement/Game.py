@@ -1088,9 +1088,10 @@ class Game:
                             ponctual_data[0][0], ponctual_data[0][1], dict_demon[ponctual_data[1]],from_packet=ip_source)
                         layer_to_be_updated.add("buildings")
                     case PacketTypes.Supprimer:
-                        self.remove_element((ponctual_data[0], ponctual_data[1]))
+                        self.remove_element((ponctual_data[0], ponctual_data[1]), from_packet=ip_source)
                         layer_to_be_updated.add("buildings")
                         layer_to_be_updated.add("roads")
+                        print("OUi je rentre la dedans")
                     case PacketTypes.Ajout_Route:
                         self.add_road(
                             ponctual_data[0], ponctual_data[1],from_packet=ip_source)

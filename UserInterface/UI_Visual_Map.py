@@ -337,7 +337,7 @@ class VisualMap:
             sprite.set_texture(0)
 
         if update_type in ["stat_inc", "stat_dec"]:
-            sprite.set_texture(special_value)
+            if len(sprite.textures) !=0: sprite.set_texture(special_value)
 
         if update_type == "reset":
             sprite.set_texture(0)
