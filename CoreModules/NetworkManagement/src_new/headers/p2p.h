@@ -4,7 +4,7 @@
 #ifndef P2P_H
 #define P2P_H
 
-#define PACKET_BODY_SIZE 512 - 12
+#define PACKET_BODY_SIZE 64 - 12
 #define MAX_SIZE 2097152
 
 #define DEFAULT 0

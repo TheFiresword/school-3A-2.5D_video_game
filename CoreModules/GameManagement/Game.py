@@ -429,10 +429,11 @@ class Game:
                 # =======================================
                 #  Update of burnt and collapsed buildings
                 # =======================================
-                building_update = self.updatebuilding(k)
+                
                 # The fire and collapse risks are updated but graphically only for the buildings owned by the player
                 # Other players should be updated graphically only when they send their updates
                 if k.owner == self.owner:
+                    building_update = self.updatebuilding(k)
                     cases = self.map.buildings_layer.get_all_positions_of_element(
                         pos[0], pos[1])
                     if building_update["fire"]:                        
@@ -629,6 +630,7 @@ class Game:
 
         if self.is_online:
             if not update_to_send.is_Empty():
+                print(update_to_send.catchedfire, update_to_send.collapsed, update_to_send.removed, update_to_send.has_evolved)
                 sending_update_packets = encode_update_packets(update_to_send)
                 walkers_packets = encode_walkers_movments_packets(walkers.shared_walker_mvt_updates)
                 #self.send_update_packets(sending_update_packets + walkers_packets)
@@ -1012,8 +1014,9 @@ class Game:
 
                     building.functional = False
 
-                    cases = self.map.buildings_layer.get_all_positions_of_element(building_pos_burning[0], building_pos_burning[1])
+                    cases = self.map.buildings_layer.get_all_positions_of_element(building_pos_collapsed[0], building_pos_collapsed[1])
                     for i in cases:
+                        self.map.buildings_layer.array[i[0]][i[1]].isBurning = False
                         self.map.buildings_layer.array[i[0]][i[1]].isDestroyed = True
                         update.collapsed.append(i)
                 # ---------------------------------------------------------
@@ -1099,4 +1102,4 @@ class Game:
 
     def send_update_packets(self, packets):
         for packet in packets:
-            echanger.send(packet, False)
+            echanger.send(packet, True)

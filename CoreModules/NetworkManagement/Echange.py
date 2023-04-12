@@ -10,7 +10,7 @@ import sysv_ipc
 from CoreModules.GameManagement.Update import LogicUpdate
 from Services import Service_Static_functions as static
 
-BODY_SIZE = 512 - 12
+BODY_SIZE = 64 - 12
 
 MQ_KEY_FROM_PY = 12346
 MQ_KEY_TO_PY = 64321
@@ -40,7 +40,7 @@ class PacketTypes(IntEnum):
 
 class Packet:
     binPattern: str = f"<2H2I{BODY_SIZE}s"
-    assert struct.calcsize(binPattern) == 512
+    assert struct.calcsize(binPattern) == 64
 
     def __init__(
         self,
@@ -232,7 +232,7 @@ def decode_walkers_movments_packets(packet: Packet):
     return walker_updates, packet.sourceAddress
 
 def decode_login_packets(packet: Packet):
-    intAddress, port, *_ = struct.unpack("IH494x", packet.body)
+    intAddress, port, *_ = struct.unpack(f"IH{BODY_SIZE-6}x", packet.body)
     return Packet.addressFromIntAddress(intAddress), port
 
 
@@ -274,14 +274,14 @@ class Echange:
         try:
             self.mq_snd.send(packet.pack(), type=packet.type, block=block)
         except sysv_ipc.BusyError:
-            print("The message queue is full")
+            print("Send: The message queue is full")
 
     def receive(self, type: Union[int,PacketTypes] = 0, block: bool = False):
         try:
             data, type = self.mq_rcv.receive(type=type, block=block)
             return Packet.unpack(data)
         except sysv_ipc.BusyError:
-            print("The message queue is full")
+            print("Receive: The message queue is full")
             return None
 
     def getter_current_messages(self):
