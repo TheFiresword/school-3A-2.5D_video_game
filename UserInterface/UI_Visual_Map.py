@@ -156,9 +156,13 @@ class VisualMap:
                         collapse_risk_sprite.center_y = self.grass_layer[k].center_y + h/2
                     collapse_risk_sprite.visible = array[i][j].dic["version"] not in ["null","occupied"]
                     self.fire_risk_layer.append(fire_risk_sprite)
-                    self.collapse_risk_layer.append(collapse_risk_sprite)        
-                    temp = [ i[0] for i in self.game.players]
-                    if array[i][j].owner  in temp:
+                    self.collapse_risk_layer.append(collapse_risk_sprite)
+
+                    # only for previous saves that didn't have the new attributes
+                    if not hasattr(self.game, 'players'):
+                        self.game.players = []
+                    temp = [i[0] for i in self.game.players]
+                    if array[i][j].owner in temp:
                         this_sprite = arcade.Sprite(texture=self.ownership_sprite)
                         this_sprite.center_x, this_sprite.center_y = _sprite.center_x, _sprite.center_y
                         player_index = temp.index(array[i][j].owner)
@@ -333,7 +337,7 @@ class VisualMap:
             sprite.set_texture(0)
 
         if update_type in ["stat_inc", "stat_dec"]:
-            sprite.set_texture(special_value)
+            if len(sprite.textures) !=0: sprite.set_texture(special_value)
 
         if update_type == "reset":
             sprite.set_texture(0)

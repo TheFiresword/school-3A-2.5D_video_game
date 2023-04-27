@@ -39,6 +39,7 @@ class GameView(arcade.View):
 
     def __init__(self, _game, name="save_1"):
         super().__init__()
+        self.tmp_statistics_sect = None
         self.last_click_time = None
         self.food_qty_text = None
         self.name = name
@@ -86,6 +87,85 @@ class GameView(arcade.View):
                                               "sword": arcade.gui.UIManager(),
                                               "carry": arcade.gui.UIManager()
                                               }
+        self.right_panel_manager_depth_two = {
+                                              "academy":None,
+                                              "actor colony":None,
+                                              "architects guild":None,
+                                              "aqueduct":None,
+                                              "arena":None,
+                                              "ares temple":None,
+                                              "neptune temple":None,
+                                              "mercury temple":None,
+                                              "mars temple":None,
+                                              "venus temple":None,
+                                              "amphitheater":None,
+                                              "barber":None,
+                                              "baths":None,
+                                              "barracks":None,
+                                              "clay pit":None,
+                                              "colosseum":None,
+                                              "dock":None,
+                                              "doctor":None,
+                                              "dwell":None,
+                                              "engineer's post":None,
+                                              "forum":None,
+                                              "fruit farm":None,
+                                              "furniture workshop":None,
+                                              "fort":None,
+                                              "fountain":None,
+                                              "garden":None,
+                                              "gatehouse":None,
+                                              "gladiator school":None,
+                                              "governor housing house":None,
+                                              "governor housing villa":None,
+                                              "governor housing palace":None,
+                                              "granary":None,
+                                              "hospital":None,
+                                              "iron mine":None,
+                                              "library":None,
+                                              "lion house":None,
+                                              "low bridge":None,
+                                              "lararium":None,
+                                              "lighthouse":None,
+                                              "marble quarry":None,
+                                              "market":None,
+                                              "oil workshop":None,
+                                              "military academi":None,
+                                              "olive farm":None,
+                                              "palisade":None,
+                                              "plaza":None,
+                                              "pig farm": None,
+                                              "prefecture": None,
+                                              "pottery workshop": None,
+                                              "reservoir": None,
+                                              "senate": None,
+                                              "school": None,
+                                              "ship bridge": None,
+                                              "tavern": None,
+                                              "theater": None,
+                                              "tower": None,
+                                              "timber yard": None,
+                                              "vegetable farm": None,
+                                              "vine farm": None,
+                                              "watchtower": None,
+                                              "weapons workshop": None,
+                                              "wheat farm": None,
+                                              "wine workshop": None,
+                                              "warehouse": None,
+                                              "work camp": None,
+                                              "wall": None,
+                                              "well": None
+                                             }
+        self.manager_state = {"water":False,
+                                              "health":False,
+                                              "religion":False,
+                                              "education":False,
+                                              "entertainment":False,
+                                              "roll":False,
+                                              "hammer":False,
+                                              "sword":False,
+                                              "carry":False,
+}
         self.map_camera = arcade.Camera()
         self.menu_camera = arcade.Camera()
         self.minimap_camera = arcade.Camera()
@@ -106,7 +186,7 @@ class GameView(arcade.View):
                                                          "allowed fires to start. Even now, flames are\n"
                                                          "sweeping through parts of the city.",
                                              top_left_corner=(
-                                             0, constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]),
+                                                 0, constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]),
                                              order=["title_zone", "image_zone", "carved_text_zone", "button_zone"])
         self.collapse_show = 0
         # Collapse PoP_Up
@@ -120,7 +200,7 @@ class GameView(arcade.View):
                                                              "the building has become unstable and \n"
                                                              "has collapsed under its own weight.",
                                                  top_left_corner=(
-                                                 0, constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]),
+                                                     0, constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]),
 
                                                  order=["title_zone", "image_zone", "carved_text_zone", "button_zone"])
         # City debt PoP_Up
@@ -134,7 +214,7 @@ class GameView(arcade.View):
                                                               "but he will not be so generous next time.\n"
                                                               "Develop export to raise funds",
                                                   top_left_corner=(
-                                                  0, constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]),
+                                                      0, constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1]),
                                                   order=["title_zone", "image_zone", "carved_text_zone", "button_zone"])
         self.automatic_pop_up = self.fire_Pop_up
         self.actual_pop_up = self.fire_Pop_up
@@ -142,11 +222,11 @@ class GameView(arcade.View):
         self.fps_text = None
         buttons_render = UI_buttons.buttons
         self.buttons = [arcade.gui.UITextureButton(x=b0, y=(
-                    3 * constantes.DEFAULT_SCREEN_HEIGHT / 4 - self.bar.image.size[1] / 2 + b1), texture=b2,
+                3 * constantes.DEFAULT_SCREEN_HEIGHT / 4 - self.bar.image.size[1] / 2 + b1), texture=b2,
                                                    texture_hovered=b3, texture_pressed=b4,
                                                    width=b2.image.size[0] * constantes.SPRITE_SCALING, height=(
-                                                                                                                          b2.image.size[
-                                                                                                                              1] * constantes.DEFAULT_SCREEN_HEIGHT / 2) / 900)
+                                                                                                                      b2.image.size[
+                                                                                                                          1] * constantes.DEFAULT_SCREEN_HEIGHT / 2) / 900)
                         for (b0, b1, b2, b3, b4) in buttons_render]
         self.buttons[5].on_click = self.button_click_house
         self.buttons[6].on_click = self.button_click_shovel
@@ -165,9 +245,9 @@ class GameView(arcade.View):
                                                              my_text="Load Game", color="black")
         self.load_button.on_click = self.button_load_on_click
         self.layer_button = UI_buttons.Text_Button_background(x=constantes.DEFAULT_SCREEN_WIDTH - 162 + 3, y=(
-                                                                                                                         3 * constantes.DEFAULT_SCREEN_HEIGHT / 4 -
-                                                                                                                         self.bar.image.size[
-                                                                                                                             1] / 2) + constantes.DEFAULT_SCREEN_HEIGHT / 2 * 0.4444444444,
+                                                                                                                     3 * constantes.DEFAULT_SCREEN_HEIGHT / 4 -
+                                                                                                                     self.bar.image.size[
+                                                                                                                         1] / 2) + constantes.DEFAULT_SCREEN_HEIGHT / 2 * 0.4444444444,
                                                               width=120, height=25, texture=UI_buttons.texture_panel11,
                                                               my_text="Overlays", color="black")
         self.layer_button.on_click = self.button_layer_on_click
@@ -200,6 +280,7 @@ class GameView(arcade.View):
                                                                        width=120, height=25,
                                                                        texture=UI_buttons.texture_panel11,
                                                                        my_text="owner", color="black")
+
         self.owner_layer_button.on_click = self.button_owner_layer_on_click
         self.layer_manager.add(self.owner_layer_button)
         self.collapse_layer_button.on_click = self.button_collapse_layer_on_click
@@ -240,20 +321,24 @@ class GameView(arcade.View):
 
     def setup(self):
         if not self.game:
+            # Set up the owner id
+            ip = fct.get_ip()
+            port = fct.get_free_port(ip)
             self.game = game.Game(map.MapLogic((constantes.TILE_COUNT // 2, 0), (0, constantes.TILE_COUNT // 2),
-                                               constantes.TILE_COUNT - 7), name=self.name, game_view=self)
+                                               constantes.TILE_COUNT - 7), name=self.name, owner_id=(ip, port), is_online=False)
         else:
             self.name = self.game.name
         self.money_text = text.Sprite_sentence("Dn: " + str(self.game.money), "white",
                                                (205, constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] / 4))
         self.fps_text = text.Sprite_sentence(str(self.speed_ratio) + "%", "black", (
-        constantes.DEFAULT_SCREEN_WIDTH - 162 + 85,
-        constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT / 2 + 10))
+            constantes.DEFAULT_SCREEN_WIDTH - 162 + 85,
+            constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT / 2 + 10))
         self.population_text = text.Sprite_sentence("Pop :" + str(constantes.WALKER_UNIT * len(self.game.walkersAll)),
                                                     "white", (
-                                                    505, constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] / 4))
+                                                        505,
+                                                        constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] / 4))
         self.fps_text2 = text.Sprite_sentence("Pop :" + str(self.game.framerate), "white", (
-        605 - (len(self.population_text.sentence)), constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] / 4))
+            605 - (len(self.population_text.sentence)), constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] / 4))
 
         self.food_qty_text = text.Sprite_sentence(f"Your town has {self.game.update_food_qty()} lots of food", "black",
                                                   (constantes.DEFAULT_SCREEN_WIDTH - len(self.fps_text2.sentence),
@@ -284,9 +369,9 @@ class GameView(arcade.View):
         map_width = constantes.MAP_WIDTH * self.visualmap.map_scaling
         map_height = constantes.MAP_HEIGHT * self.visualmap.map_scaling
         proj = self.minimap_camera.position[0] - (15 * map_width / 100), self.minimap_camera.position[0] + (
-                    85 * map_width / 100), \
+                85 * map_width / 100), \
                self.minimap_camera.position[1] - (15 * map_height / 100), self.minimap_camera.position[1] + (
-                           85 * map_height / 100)
+                       85 * map_height / 100)
 
         with self.minimap_sprite_list.atlas.render_into(self.minimap_texture, projection=proj) as fbo:
             fbo.clear(MINIMAP_BACKGROUND_COLOR)
@@ -400,20 +485,20 @@ class GameView(arcade.View):
             self.layer_manager.draw()
             for but in self.layer_manager.children[0]:
                 but.draw_()
-        if self.fire_show == 1 and not self.fire_Pop_up.already_closed_once:
-            self.fire_Pop_up.draw_()
-            self.is_paused = True
-            self.count_pauses += 1
-        if self.collapse_show == 1 and not self.collapse_Pop_up.already_closed_once:
-            self.collapse_Pop_up.draw_()
-            self.is_paused = True
-            self.count_pauses += 1
-        if self.game.money <= 10 and not self.city_debt_Pop_up.already_closed_once:
-            self.city_debt_Pop_up.draw_()
-            self.is_paused = True
-            self.count_pauses += 1
-        if self.actual_pop_up and self.actual_pop_up.visible:
-            self.actual_pop_up.draw_()
+        # if self.fire_show == 1 and not self.fire_Pop_up.already_closed_once:
+        #     self.fire_Pop_up.draw_()
+        #     self.is_paused = True
+        #     self.count_pauses += 1
+        # if self.collapse_show == 1 and not self.collapse_Pop_up.already_closed_once:
+        #     self.collapse_Pop_up.draw_()
+        #     self.is_paused = True
+        #     self.count_pauses += 1
+        # if self.game.money <= 10 and not self.city_debt_Pop_up.already_closed_once:
+        #     self.city_debt_Pop_up.draw_()
+        #     self.is_paused = True
+        #     self.count_pauses += 1
+        # if self.actual_pop_up and self.actual_pop_up.visible:
+        #     self.actual_pop_up.draw_()
 
         # Testing something cool -- error message when building farm on non yellow grass
         self.draw_message_for_farm_building()
@@ -425,6 +510,10 @@ class GameView(arcade.View):
         # Draw the minimap
         self.minimap_sprite_list.draw()
 
+        # Statistics
+        if self.tmp_statistics_sect:
+            self.tmp_statistics_sect.on_draw()
+
     def on_update(self, delta_time: float):
         if self.is_paused:
             arcade.get_window().set_update_rate(0)
@@ -432,7 +521,18 @@ class GameView(arcade.View):
             arcade.get_window().set_update_rate(1 / self.game.framerate)
             self.p_key_pressed = False
 
-            update = self.game.updategame(self.visualmap.map_scaling)
+            tmp = self.game.updategame(self.visualmap.map_scaling)
+            layer_to_update_from_packet = []
+            if  isinstance(tmp, tuple):
+                update,layer_to_update_from_packet = tmp
+            else:
+                update = tmp
+
+            for layer in layer_to_update_from_packet:
+                if layer == "buildings":
+                    self.visualmap.update_layers(self.visualmap.buildings_layer, self.game.map.buildings_layer.array)
+                elif layer == "roads":
+                    self.visualmap.update_layers(self.visualmap.roads_layer, self.game.map.roads_layer.array)
             if len(update.catchedfire) > 0:
                 self.fire_show += 1
             if len(update.collapsed) > 0:
@@ -445,17 +545,18 @@ class GameView(arcade.View):
             self.move_map_camera_with_keys()
             self.visualmap.update_walker_list(self.game.walkersOut)
             self.money_text = text.Sprite_sentence("Dn: " + str(self.game.money), "white", (
-            320 - (len(self.money_text.sentence) + 5) * constantes.FONT_WIDTH / 4,
-            constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] / 4))
+                320 - (len(self.money_text.sentence) + 5) * constantes.FONT_WIDTH / 4,
+                constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] / 4))
             self.fps_text = text.Sprite_sentence(str(self.speed_ratio) + "%", "black", (
-            constantes.DEFAULT_SCREEN_WIDTH - 162 + 85,
-            constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT / 2 + 10))
+                constantes.DEFAULT_SCREEN_WIDTH - 162 + 85,
+                constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] - constantes.DEFAULT_SCREEN_HEIGHT / 2 + 10))
             self.population_text = text.Sprite_sentence(
                 "Pop :" + str(constantes.WALKER_UNIT * len(self.game.walkersAll)), "white", (
-                505 - (len(self.population_text.sentence)),
-                constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] / 4))
+                    505 - (len(self.population_text.sentence)),
+                    constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] / 4))
             self.fps_text2 = text.Sprite_sentence("Fps:" + str(1 / delta_time), "white", (
-            605 - (len(self.population_text.sentence)), constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] / 4))
+                605 - (len(self.population_text.sentence)),
+                constantes.DEFAULT_SCREEN_HEIGHT - self.bar.image.size[1] / 4))
             self.food_qty_text = text.Sprite_sentence(f"Your town has {self.game.update_food_qty()} lots of food",
                                                       "black",
                                                       (800,
@@ -497,13 +598,13 @@ class GameView(arcade.View):
                         bat = self.game.map.buildings_layer.get_cell(i, j)
                         print(bat.dic["version"])
                         k, p = 0, 0
-                        self.actual_pop_up = pop.info_building_pop_up(bat.dic["version"],
-                                                                      bat.current_number_of_employees,
-                                                                      bat.max_number_of_employees)
-                        if self.actual_pop_up:
-                            self.actual_pop_up.visible = True
-                            self.is_paused = True
-                            self.count_pauses += 1
+                        #self.actual_pop_up = pop.info_building_pop_up(bat.dic["version"],
+                        #                                              bat.current_number_of_employees,
+                        #                                              bat.max_number_of_employees)
+                        #if self.actual_pop_up:
+                        #    self.actual_pop_up.visible = True
+                        #    self.is_paused = True
+                        #   self.count_pauses += 1
                     # self.visualmap.red_sprite.texture = nearest_sprite.texture
                 else:
                     (nearest_sprite, d) = arcade.get_closest_sprite(self.visualmap.red_sprite,
@@ -539,18 +640,31 @@ class GameView(arcade.View):
                     # If the remove_mode is not set the normal cursor is drawn
                     fct.draw_normal_cursor()
                 if self.builder_mode:
+                    """
                     if self.mouse_left_maintained:
                         if self.builder_content == "dwell":
                             self.add_multiple_one_sized_building()
                             self.dragged_sprite.clear()
                         elif self.builder_content == "road":
                             tmp_end_pos = Vec2(x, y) + self.map_camera.position
-                            self.add_roads_serie(self.init_mouse_pos, tmp_end_pos)
+                            #self.add_roads_serie(self.init_mouse_pos, tmp_end_pos)
                     else:
                         if self.builder_content == "road":
                             self.add_road(self.mouse_pos)
                         else:
                             self.add_one_sized_building(self.mouse_pos)
+                    """
+                    if self.builder_content == "road":
+                        self.add_road(self.mouse_pos)
+                    elif self.builder_content == "dwell":
+                        if self.mouse_left_maintained:
+                            self.add_multiple_one_sized_building()
+                            self.dragged_sprite.clear()
+                        else:
+                            self.add_one_sized_building(self.mouse_pos)
+                    else:
+                        self.add_one_sized_building(self.mouse_pos)
+
                 self.mouse_left_pressed = False
                 self.mouse_left_maintained = False
 
@@ -568,10 +682,7 @@ class GameView(arcade.View):
         tmp_end_pos = Vec2(x, y) + self.map_camera.position
         if self.mouse_left_pressed:
             if self.builder_mode:
-                if self.builder_content == "road":
-                    if self.mouse_left_maintained:
-                        self.add_roads_serie(self.init_mouse_pos, tmp_end_pos, True)
-                else:
+                if self.builder_content == "dwell":
                     self.get_surface_dragged(self.init_mouse_pos, tmp_end_pos)
                     self.dragged_sprite.clear()
                     self.visualmap.fill_temporary_build(self.surface_drag, self.dragged_sprite, self.builder_content,
@@ -652,6 +763,31 @@ class GameView(arcade.View):
                 self.is_paused = False
             self.count_pauses += 1
 
+        elif symbol == arcade.key.TAB:
+            # Print statistics of players
+            rows = []
+            p = self.game.players
+
+            spacing = 30
+            offset_y = 100
+            stats =self.game.generateStat()
+
+            rows.append(arcade.Text(text='╚═══════════════════════╩══════════════╝', start_x=10,
+                                    start_y=offset_y, color=(255, 255, 255), font_size=20, font_name="Monospace"))
+            for i in range(len(p)):
+                key = f"{(p[i][0][0]):>15}:{p[i][0][1]:<5}"
+                score = f"{stats[f'{p[i][0][0]}:{p[i][0][1]}']:<12}"
+                rows.append(arcade.Text(text=f"║ {key} ║ {score} ║", start_x=10,
+                                        start_y=spacing + spacing * i + offset_y, color=p[i][1], font_size=20, font_name="Monospace"))
+                
+            rows.append(arcade.Text(text='╔═══════ Players ═══════╦═ Statistics ═╗', start_x=10,
+                                    start_y=spacing + spacing * (i+1) + offset_y, color=(255, 255, 255), font_size=20, font_name="Monospace"))
+            
+            self.tmp_statistics_sect = arcade.Section(left=0, bottom=constantes.DEFAULT_SCREEN_HEIGHT / 2,
+                                                      width=300, height=300, name="Statistics",
+                                                      accept_keyboard_events=False)
+
+            self.tmp_statistics_sect.on_draw = lambda: [row.draw() for row in rows]
     def on_key_release(self, _symbol: int, _modifiers: int):
         if _symbol == arcade.key.UP:
             self.up_pressed = False
@@ -661,6 +797,9 @@ class GameView(arcade.View):
             self.left_pressed = False
         elif _symbol == arcade.key.RIGHT:
             self.right_pressed = False
+        elif _symbol == arcade.key.TAB:
+            # destroy the view statistics
+            self.tmp_statistics_sect = None
 
     # =======================================
     #  Camera Related Fuctions
@@ -1002,6 +1141,3 @@ class GameView(arcade.View):
         for briskcollapse in update.collapse_level_change:
             self.visualmap.update_one_sprite(layer=self.visualmap.buildings_layer, position=briskcollapse[0],
                                              update_type="risk_update", special_value=("collapse", briskcollapse[1]))
-
-
-

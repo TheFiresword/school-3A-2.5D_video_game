@@ -1,10 +1,19 @@
 import struct
 from enum import IntEnum, unique
 from functools import reduce
-from typing import Any, Callable, Dict, Tuple, Union
+from typing import Tuple, Union
+
 
 import sysv_ipc
 
+
+from CoreModules.GameManagement.Update import LogicUpdate
+from Services import Service_Static_functions as static
+
+BODY_SIZE = 64 - 12
+
+MQ_KEY_FROM_PY = 12346
+MQ_KEY_TO_PY = 64321
 """
 Implementation du protocole definit dans : https://docs.google.com/spreadsheets/d/19Q2D6Y_1bfit8nrRQ_JPPvHSeOotOISHyBvppbNOFP4/edit?usp=sharing
 """
@@ -12,13 +21,27 @@ Implementation du protocole definit dans : https://docs.google.com/spreadsheets/
 
 @unique
 class PacketTypes(IntEnum):
-    Default = 1
-    NewPoint = 2
+    Default = 0
+    Ajouter = 1
+    Supprimer = 2
+    Ajout_Route = 3
+    Suppr_Route = 4
+    Sauvegarde_ask = 5
+    Update = 6
+    Init = 7
+    Sauvegarde_send = 8
+    Broacast_new_player = 9
+    Send_IP = 10
+    Ok_Connection = 11
+    Ask_Broadcast = 12
+    Walker_mov = 13
+    poubelle = 5000
+
 
 
 class Packet:
-    binPattern: str = "<BH2I501s"
-    assert struct.calcsize(binPattern) == 512
+    binPattern: str = f"<2H2I{BODY_SIZE}s"
+    assert struct.calcsize(binPattern) == 64
 
     def __init__(
         self,
@@ -27,66 +50,217 @@ class Packet:
         sourceAddress: str,
         destinationAddress: str,
         packetType: Union[int, PacketTypes] = PacketTypes.Default,
-        final=False
     ) -> None:
-
+        print(f"Type paquet{packetType}")
         self.body = body
         self.port = port
         self.sourceAddress = sourceAddress
         self.destinationAddress = destinationAddress
         self.type: PacketTypes = PacketTypes(packetType)
-        self.final = final
 
     def __str__(self) -> str:
-        return f"{self.__class__}\n\ttype : {self.type} {'(final)' if self.final else ''}\n\tport : {self.port}\n\tfrom : {self.sourceAddress}\n\tto  : {self.destinationAddress}"
+        return f"{self.__class__}\n\ttype : {self.type}\n\tport : {self.port}\n\tfrom : {self.sourceAddress}\n\tto  : {self.destinationAddress}"
 
     @staticmethod
     def addressFromIntAddress(intAddress: int) -> str:
-        return f"{intAddress >> 24 & 0xFF}.{intAddress >> 16 & 0xFF}.{intAddress >> 8 & 0xFF}.{intAddress & 0xFF}"
-    
-    @staticmethod
-    def parseType(type:int) -> Tuple[PacketTypes, bool]:
-        return bool(type & 1), type >> 1
+        return f"{intAddress >> 0 & 0xFF}.{intAddress >> 8 & 0xFF}.{intAddress >> 16 & 0xFF}.{intAddress >> 24 & 0xFF}"
+
+    # @staticmethod
+    # def parseType(type: int) -> Tuple[PacketTypes, bool]:
+    #     return bool(type & 1), type >> 1
 
     @staticmethod
     def intAddressFromAdress(address: str) -> int:
         return reduce(
             lambda a, b: a | int(b[1]) << (8 * b[0]),
-            enumerate(address.split(".")[::-1]),
+            enumerate(address.split(".")),
             0,
         )
-    
+
     @classmethod
-    def unpack(cls, data: Union[bytearray, bytes]):
+    def unpack(cls, data: Union[bytearray, bytes]):#-> Paquet
+        """
+        Unpack data into a Packet object.
+        : data is the binary data to unpack.
+        
+        """
         (
             packetType,
             port,
             intSourceAddress,
             intDestinationAddress,
-            *body,
+            body,
         ) = struct.unpack(cls.binPattern, data)
 
+        if packetType not in iter(PacketTypes):
+            packetType = PacketTypes.poubelle
+
         return cls(
-            *body,
+            body,
             port,
             cls.addressFromIntAddress(intSourceAddress),
             cls.addressFromIntAddress(intDestinationAddress),
-            *cls.parseType(packetType)
+            packetType,
         )
 
-    def generalPack(self, *data):
+    def generalPack(self, *data):#-> Binary data
         return struct.pack(
             self.binPattern,
-            self.type.value << 1 | int(self.final),
+            self.type,
             self.port,
             self.intAddressFromAdress(self.sourceAddress),
             self.intAddressFromAdress(self.destinationAddress),
             *data,
         )
 
-    def pack(self):
+    def pack(self):#-> Binary data
         return self.generalPack(self.body)
 
+
+def flatten(t):
+    out = []
+    if type(t) in [list, tuple]:
+        for el in t:
+            out += flatten(el)
+    else:
+        out += [t]
+    return out
+
+def encode_update_packets(update): #-> List[Packet]
+    """
+    Return a list of Packets to send to the other players.
+    A packet contains 512 data bytes, and can contains many single update informations.
+    """
+    
+    packets = []
+    update_elements = [
+        [update.catchedfire.copy(), 1],
+        [update.has_evolved.copy(), 2],
+        [update.collapsed.copy(), 3],
+        [update.removed.copy(), 4]
+    ]
+
+    updateIndex = 0
+
+    while sum(len(update_element) for update_element, _ in update_elements) > 0:
+        packetBody = []
+        while len(packetBody) + len(flatten(update_elements[updateIndex][0])) < BODY_SIZE:
+            if len(update_elements[updateIndex][0]) == 0:
+                updateIndex += 1
+                continue
+
+            update_data = flatten(update_elements[updateIndex][0].pop())
+            packetBody += [update_elements[updateIndex][1]] + update_data
+
+            if (
+                updateIndex >= len(update_elements)
+                or sum(len(update_element) for update_element, _ in update_elements)
+                == 0
+            ):
+                break
+
+        packetBody += [0] * (BODY_SIZE - len(packetBody))
+
+        # TODO : generaliser l'adresse et le port
+        packets.append(
+            Packet(bytearray(packetBody), 0, static.get_ip() , "255.255.255.255", packetType=PacketTypes.Update)
+        )
+    return packets
+
+
+def encode_walkers_movments_packets(movments_update: list):
+    packets = []
+    while(len(movments_update) > 0):
+        one_packet_body = []
+        flattened_updates = [(flatten(one_mov)) for one_mov in movments_update]
+        while len(one_packet_body) + len(flattened_updates) < BODY_SIZE:
+            if len(flattened_updates) == 0:
+                break
+            one_packet_body.extend(flattened_updates.pop())
+            movments_update.pop()
+
+        one_packet_body += [0] * (BODY_SIZE - len(one_packet_body))
+        # TODO : generaliser l'adresse et le port
+        packets.append(
+            Packet(bytearray(one_packet_body), 0, static.get_ip(), "255.255.255.255", packetType=PacketTypes.Walker_mov)
+        )
+    return packets
+
+
+
+def decode_update_packets(packet: Packet):
+    update_dict = {
+        1: [lambda x, y: (x, y), 2],
+        #2: [lambda x, y, z: ((x, y), z), 3],
+        3: [lambda x, y: (x, y), 2],
+        4: [lambda x, y: (x, y), 2]
+    }
+
+    updates = [[], [], [], []]
+
+    body = [int(hexa) for hexa in packet.body]
+
+    cursor = 0
+
+    while body[cursor] in update_dict.keys():
+        update_id = body[cursor]
+        assert 4>= update_id >= 0
+        update_factory, update_len = update_dict[update_id]
+        cursor += 1
+
+        updates[update_id-1].append(update_factory(*body[cursor: cursor + update_len]))
+        cursor += update_len
+
+    return {
+        "catchedfire": updates[0],
+        "has_evolved": updates[1],
+        "collapsed": updates[2],
+        "removed": updates[3]
+    }
+    
+def decode_walkers_movments_packets(packet: Packet):
+    decode_function = lambda a, b, c, d, e, f, g: (a, (b, c), (d, e), (f, g))
+    UPDATE_LEN = 7
+    walker_updates = []
+    body = [int(hexa) for hexa in packet.body]
+
+    cursor = 0
+    while cursor < len(body):
+        tmp = body[cursor: cursor + UPDATE_LEN]
+        # I assume that (0,(0,0),(0,0),(0,0)) is never sent
+        # that would mean static walker
+        if len(tmp) == 7 and sum(i for i in tmp) != 0:
+            walker_updates.append(decode_function(*tmp))
+            cursor += UPDATE_LEN
+        else:
+            break
+    return walker_updates, packet.sourceAddress
+
+def decode_login_packets(packet: Packet):
+    intAddress, port, *_ = struct.unpack(f"IH{BODY_SIZE-6}x", packet.body)
+    return Packet.addressFromIntAddress(intAddress), port
+
+
+def decode_ponctual_packets(packet: Packet):
+
+    ponctual_dict = {
+        1: [lambda x, y, z: ((x, y), z), 3],
+        2: [lambda x, y: (x, y), 2],
+        3: [lambda x, y: (x, y), 2],
+        4: [lambda x, y, z: ((x, y), z), 3],
+        5: [lambda : None, 0],
+        8: [lambda : None, 0],
+    }
+    body = []
+    for hexa in range(len(packet.body)-4):
+        if int(packet.body[hexa]) == 0 and int(packet.body[hexa+1]) == 0 and int(packet.body[hexa+2]) == 0 and int(packet.body[hexa+3]) == 0:
+            break
+        else:
+            body.append(int(packet.body[hexa]))
+    #print(len(body), body)
+    #assert len(
+    #    body) == ponctual_dict[packet.type][1], f"Packet {packet.type} has a wrong body length"
+    return ponctual_dict[packet.type][0](*body), packet.sourceAddress
 
 class Echange:
     def __init__(self, mq_key_rcv: int, mq_key_snd: int, clear=False) -> None:
@@ -101,15 +275,138 @@ class Echange:
         while mq.current_messages > 0:
             mq.receive()
 
-    def send(self, packet: Packet, block: bool = False):
-        self.mq_snd.send(packet.pack(), type=packet.type, block=block)
+    def send(self, packet: Packet, block: bool = True):
+        try:
+            self.mq_snd.send(packet.pack(), type=packet.type, block=block)
+        except sysv_ipc.BusyError:
+            print("Send: The message queue is full")
 
-    def receive(self, type: int = 0, block: bool = False):
-        data, type = self.mq_rcv.receive(type=type, block=block)
-        return Packet.unpack(data)
-    
+    def receive(self, type: Union[int,PacketTypes] = 0, block: bool = False):
+        try:
+            data, type = self.mq_rcv.receive(type=type, block=block)
+            return Packet.unpack(data)
+        except sysv_ipc.BusyError:
+            print("Receive: The message queue is full")
+            return None
+
+    def getter_current_messages(self):
+        return (self.mq_rcv.current_messages, self.mq_snd.current_messages)
+
+
+echanger = Echange(MQ_KEY_FROM_PY, MQ_KEY_TO_PY, clear=True)
+
+dict_demon={1: 'academy',
+            2: 'actor_colony',
+            3: 'aqueduct',
+            4: 'ares_temple', 
+            5: 'neptune_temple', 
+            6: 'mercury_temple', 
+            7: 'mars_temple', 
+            8: 'venus_temple', 
+            9: 'amphitheater', 
+            10: 'barber', 
+            11: 'normal_bath', 
+            12: 'barracks',
+            13: 'clay_pit', 
+            14: 'colosseum', 
+            15: 'dock', 
+            16: 'dwell', 
+            17: "engineer's_post", 
+            18: 'forum', 
+            19: 'fruit_farm', 
+            20: 'furniture_workshop', 
+            21: 'fort', 
+            22: 'fountain', 
+            23: 'garden', 
+            24: 'gladiator_school', 
+            25: 'gov_housing_house',
+            26: 'gov_housing_villa', 
+            27: 'gov_housing_palace', 
+            28: 'granary', 
+            29: 'hospital', 
+            30: 'iron_mine', 
+            31: 'library', 
+            32: 'lion_house', 
+            33: 'market', 
+            34: 'oil_mill', 
+            35: 'olive_farm', 
+            36: 'oracle', 
+            37: 'palace', 
+            38: 'perfumery', 
+            39: 'police_station', 
+            40: 'pottery', 
+            41: 'prefecture', 
+            42: "proconsul's_palace", 
+            43: "procurator's_palace", 
+            44: 'quarry', 
+            45: 'roadblock', 
+            46: 'rock_quarry', 
+            47: 'school', 
+            48: 'shipyard', 
+            49: 'smithy', 
+            50: 'statue', 
+            51: 'stone_mason', 
+            52: 'storage_yard', 
+            53: 'tax_office', 
+            54: 'teacher', 
+            55: 'temple_of_vesta', 
+            56: 'theater', 
+            57: 'timber_yard', 
+            58: 'toolmaker', 
+            59: 'townhouse', 
+            60: 'trading_post', 
+            61: 'trireme_shipyard', 
+            62: 'tunnel', 
+            63: 'university', 
+            64: 'vase_painter', 
+            65: 'vintner', 
+            66: 'wall',
+            67: 'wine_press',
+            68: 'workshop',
+            69: 'senate',
+            70: 'reservoir',
+            71: 'well',
+            72: 'luxurious_bath',
+            73: 'military_academy',
+            74: 'wheat_farm',
+            75: 'vegetable_farm',
+            76: 'vine_farm',
+            77: 'pig_farm',
+            78: 'fruit_farm'
+}
+
+def find_key(value, dict):
+    for keys, values in dict.items():
+        if values == value:
+            return keys
+
+
+
+
 if __name__ == "__main__":
-    p = Packet(b"test", 8000, "127.0.0.1","127.0.0.1", PacketTypes.Default, True)
-    print(p)
-    print(p.pack())
-    print(Packet.unpack(p.pack()))
+    p = Packet(b"test", 8200, "127.0.0.1", "127.0.0.1", PacketTypes.Default)
+    #print(p)
+    #print(p.pack())
+    #print(Packet.unpack(p.pack()))
+
+    #=========================
+    # Test walker update encoding-decoding
+    #=========================
+    import random
+    w_updates = []
+    for _ in range(5):
+        w_updates.append(
+        (
+            1,
+            (random.randint(0, 10), random.randint(0, 10)),
+            (random.randint(0, 10),random.randint(0, 10)),
+            (random.randint(0, 10),random.randint(0, 10))
+            )
+        )
+
+    print(w_updates)
+    a = encode_walkers_movments_packets(w_updates)[0]
+    print(f"Encodage = {a.body} \n Taille du paquet = {len(a.body)}")
+    b = decode_walkers_movments_packets(a)[0]
+    b.reverse()
+    print(f"Decodage:: {b}")

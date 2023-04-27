@@ -1,27 +1,37 @@
+import copy
+
+from CoreModules.NetworkManagement.Echange import echanger, dict_demon, encode_update_packets, \
+decode_update_packets, decode_ponctual_packets, encode_walkers_movments_packets, decode_walkers_movments_packets, \
+find_key,decode_login_packets, Packet, PacketTypes
+
+from CoreModules.WalkersManagement import walkersManagementWalker as walkers
+from CoreModules.BuildingsManagement import buildingsManagementBuilding as buildings
+from CoreModules.GameManagement import Update as updates
+from Services.servicesmMapSpriteToFile import water_structures_types, farm_types, temple_types, sanitation_types
+from Services.Service_Game_Data import building_dico, road_dico, removing_cost
+from Services import Service_Save_and_Load as save_and_load
+from Services import Service_Save_and_Load as saveLoad
+import time
 import random
 from Services.Service_Static_functions import position_is_valid
 from Services import servicesGlobalVariables as globalVar
-from Services.Service_Game_Data import building_dico, road_dico, removing_cost
-from Services.servicesmMapSpriteToFile import water_structures_types, farm_types, temple_types
-from CoreModules.GameManagement import Update as updates
-from CoreModules.BuildingsManagement import buildingsManagementBuilding as buildings
-from CoreModules.WalkersManagement import walkersManagementWalker as walkers
+import struct
 
-import copy
 
 INIT_MONEY = 100000000
 TIME_BEFORE_REMOVING_DWELL = 1.5  # seconds
-sanitation_str = ["luxurious_bath", "normal_bath", "fountain", "fountain2","fountain3", "fountain4"]
-import time
+
 
 
 class Game:
-    def __init__(self, _map, name="save", game_view=None):
+    def __init__(self, _map, name="save", owner_id=None, is_online=False):
         self.name = name
         self.map = _map
         self.startGame()
         self.scaling = 0
-
+        self.owner = owner_id
+        print(self.owner)
+        self.is_online = is_online
         self.money = INIT_MONEY
         self.food = 0
         self.potery = 0
@@ -37,8 +47,7 @@ class Game:
 
         self.framerate = globalVar.DEFAULT_FPS
         self.updated = []
-        self.players = [["moi", (0,0,255)]]
-
+        self.players = [(self.owner, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))]
         # some lists of specific buildings
         self.dwelling_list = []
 
@@ -52,9 +61,10 @@ class Game:
         self.bathhouse_structures_list = []
 
         self.granary_list = []
-
+        self.prefecture_list = []
+        self.farm_list = []
         self.reservoir_list = []
-        self.military_structures_list = []
+        self.military_list = []
 
         #
         self.last_water_structure_removed = None
@@ -66,7 +76,6 @@ class Game:
         self.last_pottery_structure_removed = None
         self.last_bathhouse_structure_removed = None
         self.last_reservoir_removed = None
-
 
         # Timer
         self.init_time = time.time()
@@ -81,6 +90,11 @@ class Game:
         self.total_food = 0
 
         self.queue_exit = []
+
+    def add_player(self, id_player, color):
+        if (id_player, color) not in self.players:
+            self.players.append((id_player, color))
+
     def update_food_qty(self):
         self.total_food = sum(gran.storage for gran in self.granary_list)
         return self.total_food
@@ -92,7 +106,8 @@ class Game:
         # ---------------------------------#
         _path = self.map.path_entry_to_exit(self.map.roads_layer.get_entry_position(),
                                             self.map.roads_layer.get_exit_position())
-        self.map.roads_layer.build_path_entry_to_exit(_path, [self.map.hills_layer, self.map.trees_layer])
+        self.map.roads_layer.build_path_entry_to_exit(
+            _path, [self.map.hills_layer, self.map.trees_layer])
 
     def change_game_speed(self, step):
         """
@@ -142,7 +157,8 @@ class Game:
             print(b.dic['version'])
 
     def update_supply_requirements_with_structure_range(self, of_what: 'water' or 'food' or 'temple' or 'education'
-        or 'fountain' or 'basic_entertainment' or 'pottery' or 'bathhouse', spec_building):
+                                                                       or 'fountain' or 'basic_entertainment' or 'pottery' or 'bathhouse',
+                                                        spec_building):
         """
         This functions searches for supply structures on the map and for each one look for dwell within the range of
         the structure. If the dwell required a structure of this type, then its position will be added to the list of
@@ -151,8 +167,9 @@ class Game:
         """
         tmp = of_what + '_structures_list'
         structures_list = getattr(self, tmp)
-        if spec_building  in structures_list:
-            self.intermediate_update_supply_function(of_what, spec_building, evolvable=True)
+        if spec_building in structures_list:
+            self.intermediate_update_supply_function(
+                of_what, spec_building, evolvable=True)
         """
         for structure in structures_list:
             if not structure.is_functional():
@@ -161,7 +178,8 @@ class Game:
         """
 
     def intermediate_update_supply_function(self, of_what: 'water' or 'food' or 'temple' or 'education' or 'fountain' or
-    'basic_entertainment' or 'pottery' or 'bathhouse', structure,evolvable=True):
+                                                           'basic_entertainment' or 'pottery' or 'bathhouse', structure,
+                                            evolvable=True):
         if structure:  # None
             if structure.is_functional():
                 _range = structure.range
@@ -172,25 +190,29 @@ class Game:
                     if -_range + _position[0] <= line < _range + 1 + _position[0] and -_range + _position[1] <= column \
                             < _range + 1 + _position[1]:
                         dwelling.update_requirements()
-                        status = dwelling.update_with_supply(of_what, evolvable=evolvable)
+                        status = dwelling.update_with_supply(
+                            of_what, evolvable=evolvable)
 
-    def update_water_for_fountain_or_bath(self, reservoir, evolvable=True):
+    def update_water_for_fountain_or_bath(self, reservoir, update, evolvable=True):
         if reservoir and reservoir.is_functional():  # None
             _range = reservoir.range
             _position = reservoir.position
             for fountain_bath in self.water_structures_list:
-                if fountain_bath.dic['version'] in sanitation_str:
+                if fountain_bath.dic['version'] in sanitation_types:
                     line, column = fountain_bath.position
                     if -_range + _position[0] <= line < _range + 1 + _position[0] and \
                             -_range + _position[1] <= column < _range + 1 + _position[1]:
-                        fountain_bath.set_functional(evolvable)
+                        if fountain_bath.set_functional(evolvable):
+                            
+                            update.has_evolved.append((fountain_bath.position, fountain_bath.structure_level))
 
-    def downgrade_supply_requirement_with_structure_range(self,of_what: 'water' or 'food' or 'temple' or
-        'education' or 'fountain' or 'basic_entertainment' or 'pottery' or 'bathhouse'):
+    def downgrade_supply_requirement_with_structure_range(self, of_what: 'water' or 'food' or 'temple' or
+                                                                         'education' or 'fountain' or 'basic_entertainment' or 'pottery' or 'bathhouse'):
         tmp = 'last_' + of_what + '_structure_removed'
         structure = getattr(self, tmp)
         if structure:
-            self.intermediate_update_supply_function(of_what, structure, evolvable=False)
+            self.intermediate_update_supply_function(
+                of_what, structure, evolvable=False)
             setattr(self, tmp, None)
 
     def downgrade_supply_requirement_with_walker(self, supply):
@@ -217,7 +239,7 @@ class Game:
         # if k.dic['version']=="granary": print(f"Has road={has_road} -- Number of employees={k.current_number_of_employees} ")
         if worker_job and has_road and k.current_number_of_employees < k.max_number_of_employees \
                 and not k.isDestroyed and not k.isBurning:
-            #if k.dic['version']=="military_academy":print(f"{k.current_number_of_employees} vs {k.max_number_of_employees}")
+            # if k.dic['version']=="military_academy":print(f"{k.current_number_of_employees} vs {k.max_number_of_employees}")
 
             if self.unemployedCitizens:
                 citizen = random.choice(self.unemployedCitizens)
@@ -229,27 +251,28 @@ class Game:
                 self.walkersAll = list(set(self.walkersAll))
 
                 worker.set_working_building(k)
-                k.add_employee(worker.id, update_number=True)
+                k.add_employee(worker.id, update_number=True, e_object=worker)
                 if not k.is_functional():
                     k.set_functional(True)
 
                 a = random.randint(0, len(possible_road) - 1)
                 worker.init_pos = possible_road[a]
                 self.walkersGetOut(worker)
-                if should_wait: worker.wait = True
+                if should_wait:
+                    worker.wait = True
                 return True
             return False
 
-    def actions_on_buildings(self, buildinglist, update):
+    def actions_on_buildings(self, buildinglist, update, update_to_send):
         for k in buildinglist:
             if True:
-
                 # Some variables that will be used
                 if isinstance(k, buildings.Farm | buildings.Granary):
                     voisins = self.get_voisins_tuples(k, offset=1)
                 else:
                     voisins = self.get_voisins_tuples(k)
-                possible_roads = [v for v in voisins if self.map.roads_layer.is_real_road(v[0], v[1])]
+                possible_roads = [
+                    v for v in voisins if self.map.roads_layer.is_real_road(v[0], v[1])]
                 has_road = len(possible_roads) != 0
                 pos = k.position
 
@@ -257,17 +280,22 @@ class Game:
                 #  Updates of the requirements
                 # =======================================
                 if k in self.water_structures_list:
-                    self.update_supply_requirements_with_structure_range('water', k)
+                    self.update_supply_requirements_with_structure_range(
+                        'water', k)
                 if k in self.bathhouse_structures_list:
-                    self.update_supply_requirements_with_structure_range('education', k)
+                    self.update_supply_requirements_with_structure_range(
+                        'education', k)
                 if k in self.fountain_structures_list:
-                    self.update_supply_requirements_with_structure_range('fountain', k)
+                    self.update_supply_requirements_with_structure_range(
+                        'fountain', k)
                 if k in self.basic_entertainment_structures_list:
-                    self.update_supply_requirements_with_structure_range('basic_entertainment', k)
+                    self.update_supply_requirements_with_structure_range(
+                        'basic_entertainment', k)
                 if k in self.bathhouse_structures_list:
-                    self.update_supply_requirements_with_structure_range('bathhouse', k)
+                    self.update_supply_requirements_with_structure_range(
+                        'bathhouse', k)
                 if k in self.reservoir_list:
-                    self.update_water_for_fountain_or_bath(k)
+                    self.update_water_for_fountain_or_bath(k, update=update)
 
                 # Update of the risk speed level
                 k.update_risk_speed_with_level()
@@ -295,7 +323,8 @@ class Game:
                             self.tmp_ref_time = time.time()
                             # We call the required number of immigrants sequentially but with a delay of 2s to render
                             if k not in self.timer_for_immigrant_arrival.keys():
-                                self.timer_for_immigrant_arrival[k] = time.time()
+                                self.timer_for_immigrant_arrival[k] = time.time(
+                                )
                             current_time = time.time()
                             if int(current_time - self.timer_for_immigrant_arrival[k]) > 0.3:
                                 self.create_immigrant(path.copy(), k)
@@ -308,9 +337,8 @@ class Game:
                 # ======================================================
                 #  Creation of prefects, engineers, priests and traders, and soldiers
                 # ======================================================
-                if k.dic['version'] in ["engineer's_post", "prefecture", "granary","military_academy"] + temple_types:
+                if k.dic['version'] in ["engineer's_post", "prefecture", "granary", "military_academy"] + temple_types:
                     self.workers_create(k, possible_roads, has_road)
-
 
                 # =======================================
                 #  Creation of cart_pushers
@@ -322,11 +350,11 @@ class Game:
                             k.stop_production = False
 
                     else:
-                        pusher_id = list(k.get_all_employees())[0]
-                        pusher = self.get_citizen_by_id(pusher_id)
+                        pusher = list(k.get_all_employees(real_object=True))[0]
 
                         if k.in_state_1():
-                            self.workers_create(k, possible_roads, has_road, should_wait=True)
+                            self.workers_create(
+                                k, possible_roads, has_road, should_wait=True)
 
                         elif k.in_state_2(pusher):
                             k.stop_production = False
@@ -358,7 +386,6 @@ class Game:
                             else:
                                 # print("Je ne trouve pas de grenier")
                                 k.stop_production = True
-
 
                         elif k.in_state_4(pusher):
                             # print("Etat4")
@@ -401,29 +428,37 @@ class Game:
                 # =======================================
                 #  Update of burnt and collapsed buildings
                 # =======================================
-                building_update = self.updatebuilding(k)
-                cases = self.map.buildings_layer.get_all_positions_of_element(pos[0], pos[1])
-                if building_update["fire"]:
-                    # the building is no more functional
-                    for i in cases:
-                        k.functional = False
-                        self.map.buildings_layer.array[i[0]][i[1]].isBurning = True
-                        update.catchedfire.append(i)
-                    self.guide_homeless_and_jobless_citizens(k)
-
-                if building_update["collapse"]:
-                    # the building is no more functional
-                    for i in cases:
-                        self.map.buildings_layer.array[i[0]][i[1]].isDestroyed = True
+                
+                # The fire and collapse risks are updated but graphically only for the buildings owned by the player
+                # Other players should be updated graphically only when they send their updates
+                if k.owner == self.owner:
+                    building_update = self.updatebuilding(k)
+                    cases = self.map.buildings_layer.get_all_positions_of_element(
+                        pos[0], pos[1])
+                    if building_update["fire"]:                        
                         # the building is no more functional
                         k.functional = False
-                        update.collapsed.append(i)
-                    self.guide_homeless_and_jobless_citizens(k)
+                        for i in cases:                            
+                            self.map.buildings_layer.array[i[0]
+                                                        ][i[1]].isBurning = True
+                            update.catchedfire.append(i)
+                        self.guide_homeless_and_jobless_citizens(k)
 
-                if building_update["fire_level"][0]:
-                    update.fire_level_change.append((k.position, building_update["fire_level"][1]))
-                if building_update["collapse_level"][0]:
-                    update.collapse_level_change.append((k.position, building_update["collapse_level"][1]))
+                    if building_update["collapse"]:
+                        # the building is no more functional
+                        k.functional = False
+                        for i in cases:
+                            self.map.buildings_layer.array[i[0]
+                                                        ][i[1]].isDestroyed = True                            
+                            update.collapsed.append(i)
+                        self.guide_homeless_and_jobless_citizens(k)
+
+                    if building_update["fire_level"][0]:
+                        update.fire_level_change.append(
+                            (k.position, building_update["fire_level"][1]))
+                    if building_update["collapse_level"][0]:
+                        update.collapse_level_change.append(
+                            (k.position, building_update["collapse_level"][1]))
 
                 # =======================================
                 # Managment of burning houses
@@ -439,7 +474,9 @@ class Game:
 
                 # And a final update of all buildings
                 update.has_evolved.append((k.position, k.structure_level))
-
+                if k.dic['version'] in ['dwell']:
+                    update_to_send.has_evolved.append((k.position, k.structure_level))
+                
 
     def updategame(self, scaling):
         """
@@ -447,17 +484,20 @@ class Game:
         In fact it updates the buildings of the game but also the walkers
         Differents types of updates can occur: a building evolving, a building burning or a building collapsing
         """
-        # The important object that will contain the updates
+        walkers.clear_shared_object()
+        
         self.scaling = scaling
         self.update_food_qty()
-
+        
+        # The important object that will contain the updates
         update = updates.LogicUpdate()
         # =======================================
         #  Updates of the walker
         # =======================================
 
         if self.queue_exit:
-            self.queue_exit = [non_citizen for non_citizen in self.queue_exit if not non_citizen.exit_way()]
+            self.queue_exit = [
+                non_citizen for non_citizen in self.queue_exit if not non_citizen.exit_way()]
 
         walker_to_update = set()
         for walker in self.walkersOut:
@@ -494,7 +534,8 @@ class Game:
                         granary = walker.transition_building
                         if granary:
                             walker.transition_building = None
-                            walker.move_to_another_dwell(walker.work_building.position)
+                            walker.move_to_another_dwell(
+                                walker.work_building.position)
                             if not (granary.isDestroyed or granary.isBurning):
                                 granary.inc_storage()
 
@@ -509,19 +550,21 @@ class Game:
                         if tmp and not tmp.isDestroyed:
                             tmp.automatic_destruction()
                             walker.work_target = None
-                            walker.move_to_another_dwell(walker.work_building.position)
+                            walker.move_to_another_dwell(
+                                walker.work_building.position)
                         elif not tmp:
                             # in casern
                             walker.going_back_mlt = True
 
-
                 elif status is None:
                     if type(walker) in [walkers.Prefect, walkers.Engineer]:
-                        walker.work(self.get_buildings_for_walker_with_offset(walker.init_pos, type(walker)), update)
+                        walker.work(self.get_buildings_for_walker_with_offset(
+                            walker.init_pos, type(walker)), update)
 
                     elif isinstance(walker, walkers.Priest | walkers.Market_Trader):
                         dwells_around = [b for b in
-                                         self.get_buildings_for_walker_with_offset(walker.init_pos, type(walker))
+                                         self.get_buildings_for_walker_with_offset(
+                                             walker.init_pos, type(walker))
                                          if b.dic['version'] == "dwell"]
                         walker.work(dwells_around, update)
             else:
@@ -545,7 +588,8 @@ class Game:
             self.downgrade_supply_requirement_with_walker('temple')
 
         self.downgrade_supply_requirement_with_structure_range('fountain')
-        self.downgrade_supply_requirement_with_structure_range('basic_entertainment')
+        self.downgrade_supply_requirement_with_structure_range(
+            'basic_entertainment')
         self.downgrade_supply_requirement_with_structure_range('bathhouse')
 
         # -------------------------------------------------------------------------------------------------#
@@ -553,7 +597,8 @@ class Game:
         # Typically fountains
         # -------------------------------------------------------------------------------------------------#
         if self.last_reservoir_removed:
-            self.update_water_for_fountain_or_bath(self.last_reservoir_removed, evolvable=False)
+            self.update_water_for_fountain_or_bath(self.last_reservoir_removed, update=update,evolvable=False)
+            self.last_reservoir_removed = None
 
         # ---------------------------------------------------------
         # Main loop that check each building built
@@ -563,21 +608,51 @@ class Game:
         building_list1 = self.buildinglist[:size // 2]
         building_list2 = self.buildinglist[size // 2:]
 
-        self.actions_on_buildings(building_list1, update)
-        self.actions_on_buildings(building_list2, update)
+        # Reduced update object to send when online
+        # On purpose, it contains has_evolved type updates, only for dwells
+        # It does not neither contain risk changes of buildings
+        update_to_send = updates.LogicUpdate()
+        
+        self.actions_on_buildings(building_list1, update, update_to_send=update_to_send)
+        self.actions_on_buildings(building_list2, update, update_to_send=update_to_send)
+        
+        update.has_evolved = list(set(update.has_evolved))
+        # ---------------------------------------------------------
+        # Sending updates to other players
+        # ---------------------------------------------------------
 
+        #update_to_send.fire_level_change = update.fire_level_change
+        #update_to_send.collapse_level_change = update.collapse_level_change
+        update_to_send.collapsed = update.collapsed
+        update_to_send.catchedfire = update.catchedfire
+        update_to_send.removed = update.removed
 
+        if self.is_online:
+            if not update_to_send.is_Empty():
+                print(update_to_send.catchedfire, update_to_send.collapsed, update_to_send.removed, update_to_send.has_evolved)
+                sending_update_packets = encode_update_packets(update_to_send)
+                walkers_packets = encode_walkers_movments_packets(walkers.shared_walker_mvt_updates)
+                #self.send_update_packets(sending_update_packets + walkers_packets)
+                self.send_update_packets(sending_update_packets)
+
+            # ---------------------------------------------------------
+            # Receiving updates from other players
+            # ---------------------------------------------------------
+            incoming_packets = [ echanger.receive() for _ in range(echanger.getter_current_messages()[0]) ]
+            #print(incoming_packets)
+            layers_to_update_from_packets= self.include_incoming_packets(incoming_packets,update)
+            return update, layers_to_update_from_packets
         return update
 
 
     def attack(self, building_pos):
-        if (len(self.military_structures_list) != 0):
+        if (len(self.military_list) != 0):
             for soldier in self.walkersOut:
                 if isinstance(soldier, walkers.Soldier):
-                    building = self.map.buildings_layer.get_cell(building_pos[0], building_pos[1])
+                    building = self.map.buildings_layer.get_cell(
+                        building_pos[0], building_pos[1])
                     soldier.s_work(building)
-
-
+                    return
 
     def get_citizen_by_id(self, id: int):
         for ctz in self.walkersAll:
@@ -589,28 +664,33 @@ class Game:
         Note: Retire les citoyens même s'ils ne sont pas effectivement sortis
         """
         if type(building) == buildings.Dwelling:
-            for ctz_id in building.get_all_employees():
+            for ctz_id in building.get_all_employees(real_object=False):
                 ctz = self.get_citizen_by_id(ctz_id)
-                if isinstance(ctz, walkers.Soldier): self.going_back_mlt = False
+                #ctz = ctz_id
+                if isinstance(ctz, walkers.Soldier):
+                    self.going_back_mlt = False
                 ctz.wait = False
                 if ctz.exit_way() == [] or ctz.exit_way == None:
                     self.queue_exit.append(ctz)
                 if ctz in self.unemployedCitizens:
                     self.unemployedCitizens.remove(ctz)
                 if ctz.work_building:
-                    ctz.work_building.rem_employee(ctz_id)
+                    ctz.work_building.rem_employee(ctz_id, e_object = ctz)
                 self.walkersGetOut(ctz)
             building.flush_employee()
 
         else:
-            for ctz_id in building.get_all_employees():
+            for ctz_id in building.get_all_employees(real_object=False):
                 ctz = self.get_citizen_by_id(ctz_id)
-                if isinstance(ctz, walkers.Soldier): self.going_back_mlt = False
-                if building.dic['version']=="military_academy":
+                #ctz = ctz_id
+                if isinstance(ctz, walkers.Soldier):
+                    self.going_back_mlt = False
+                if building.dic['version'] == "military_academy":
                     print("BATARD DEGAGE")
-                ctz.wait=False
+                ctz.wait = False
                 # Return in its house
-                ctz.move_to_another_dwell(ctz.house.position, walk_through=True)
+                ctz.move_to_another_dwell(
+                    ctz.house.position, walk_through=True)
                 self.walkersAll.remove(ctz)
                 if ctz in self.walkersOut:
                     self.walkersOut.remove(ctz)
@@ -621,7 +701,6 @@ class Game:
                 ctz.work_building = None
                 self.walkersGetOut(ctz)
                 break
-
             building.flush_employee()
 
     def get_buildings_for_walker_with_offset(self, walker_position, walker_class):
@@ -632,7 +711,8 @@ class Game:
             case _:
                 right_range = range(-2, 3)
 
-        tmp = [(walker_position[0] + i, walker_position[1] + j) for i in right_range for j in right_range]
+        tmp = [(walker_position[0] + i, walker_position[1] + j)
+               for i in right_range for j in right_range]
         building_where_to_work = []
         for b in self.buildinglist:
             if b.position in tmp:
@@ -640,8 +720,7 @@ class Game:
         return building_where_to_work
 
     def create_immigrant(self, path=[], building=None, display=False):
-        walker = walkers.Immigrant(self.map.roads_layer.get_entry_position()[0],
-                                   self.map.roads_layer.get_entry_position()[1],
+        walker = walkers.Immigrant(self.map.roads_layer.get_entry_position()[0], self.map.roads_layer.get_entry_position()[1],
                                    None, 0, self, path, building)
         self.walkersAll.append(walker)
         self.walkersAll = list(set(self.walkersAll))
@@ -655,18 +734,28 @@ class Game:
     def walkersOutUpdates(self, exit=False):  # fps = self.framerate
         pass
 
-    def remove_element(self, pos) -> str | None:
+    def remove_element(self, pos, from_packet = False) -> str | None:
         """
         Cette fonction permet d'enlever un element de la map à une position donnée
         On ne peut pas retirer de l'herbe ou une montagne
         """
+        line, column = pos[0], pos[1]
+        layer_type, _element = self.map.get_element_in_cell(line, column)
+        # Ownership rights
+        # Implementation choice:: Everyone can remove a road whoever its owner is
+        # Nobody can remove trees
+        if layer_type != globalVar.LAYER4 and _element and _element.owner != self.owner and not from_packet:
+            print("Not your building")
+            return None
+        
         if self.money < removing_cost:
             print("Not enough money")
             return None
-        line, column = pos[0], pos[1]
-        status, element_type, _element = self.map.remove_element_in_cell(line, column)
+        
+        status, element_type, _element = self.map.remove_element_in_cell(
+            line, column)
         if status:
-            self.money -= removing_cost
+            if not from_packet: self.money -= removing_cost
             if element_type == globalVar.LAYER5:
                 if self.buildinglist:
                     """
@@ -676,6 +765,7 @@ class Game:
                     """
                     self.buildinglist.remove(_element)
                     self.guide_homeless_and_jobless_citizens(_element)
+
                     if type(_element) == buildings.Dwelling:
                         self.dwelling_list.remove(_element)
 
@@ -689,13 +779,21 @@ class Game:
 
                     if type(_element) == buildings.Granary:
                         self.granary_list.remove(_element)
-
                     if type(_element) == buildings.Temple:
                         self.temple_structures_list.remove(_element)
+                    if _element.dic["version"] == "prefecture":
+                        self.prefecture_list.remove(_element)
+                    if _element.dic['version'] in farm_types:
+                        self.farm_list.remove(_element)
                     if type(_element) == buildings.MilitaryAc:
-                        self.military_structures_list.remove(_element)
-
+                        self.military_list.remove(_element)
                     del _element
+                    
+            if self.is_online:
+                if not from_packet:
+                    body = [line ,column]
+                    packet =  Packet(bytearray(body),0,self.owner[0],"255.255.255.255",packetType=PacketTypes.Supprimer)
+                    echanger.send(packet)
         return element_type
 
     def remove_elements_serie(self, start_pos, end_pos) -> set:
@@ -729,20 +827,29 @@ class Game:
                     _set.add(result)
         return _set
 
-    def add_road(self, line, column) -> bool:
+    def add_road(self, line, column,from_packet = False) -> bool:
         # Precondition: we must have enough money for adding a road
         if self.money < road_dico['cost']:
             print("Not enough money")
             return False
-        status = self.map.roads_layer.set_cell_constrained_to_bottom_layer(self.map.collisions_layers, line, column)
+        status = self.map.roads_layer.set_cell_constrained_to_bottom_layer(
+            self.map.collisions_layers, line, column)
         if status:
             self.money -= road_dico['cost']
+            if self.is_online:
+                if not from_packet:
+                    body = [line ,column]
+                    # The packet should be sent to everyone
+                    packet = Packet(bytearray(body),0,self.owner[0],"255.255.255.255",packetType=PacketTypes.Ajout_Route)
+                    echanger.send(packet)
+
         return status
 
     def add_roads_serie(self, start_pos, end_pos, dynamically=False) -> bool:
         # Here we can't precisely calculate the money that will be needed to construct all the roads. we'll estimate
         # that
-        estimated_counter_roads = (abs(start_pos[0] - end_pos[0])) + (abs(start_pos[1] - end_pos[1])) + 1
+        estimated_counter_roads = (
+            abs(start_pos[0] - end_pos[0])) + (abs(start_pos[1] - end_pos[1])) + 1
         if self.money < estimated_counter_roads * road_dico['cost']:
             print("Not enough money")
             return False
@@ -754,28 +861,41 @@ class Game:
             self.money -= road_dico['cost'] * count
         return status
 
-    def add_building(self, line, column, version) -> bool:
-        txt = " ".join(version.split("_"))
+    def add_building(self, line, column, version, from_packet = False) -> bool:
+        txt= " ".join(version.split("_"))
         if self.money < building_dico[txt].cost:
             print("Not enough money")
             return False
         # we have to determine the exact class of the building bcause they have not the same prototype
         if version == "dwell":
-            building = buildings.Dwelling(self.map.buildings_layer, globalVar.LAYER5)
+            building = buildings.Dwelling(
+                self.map.buildings_layer, globalVar.LAYER5)
         elif version in water_structures_types:
-            building = buildings.WaterStructure(self.map.buildings_layer, globalVar.LAYER5, version)
+            building = buildings.WaterStructure(
+                self.map.buildings_layer, globalVar.LAYER5, version)
         elif version in farm_types:
-            building = buildings.Farm(self.map.buildings_layer, globalVar.LAYER5, version)
+            building = buildings.Farm(
+                self.map.buildings_layer, globalVar.LAYER5, version)
         elif version == "granary":
-            building = buildings.Granary(self.map.buildings_layer, globalVar.LAYER5)
+            building = buildings.Granary(
+                self.map.buildings_layer, globalVar.LAYER5)
         elif version in temple_types:
-            building = buildings.Temple(self.map.buildings_layer, globalVar.LAYER5, version)
+            building = buildings.Temple(
+                self.map.buildings_layer, globalVar.LAYER5, version)
         elif version == "military_academy":
-            building = buildings.MilitaryAc(self.map.buildings_layer, globalVar.LAYER5)
+            building = buildings.MilitaryAc(
+                self.map.buildings_layer, globalVar.LAYER5)
         else:
-            building = buildings.Building(self.map.buildings_layer, globalVar.LAYER5, version)
-        building.owner = "moi"
-
+            building = buildings.Building(
+                self.map.buildings_layer, globalVar.LAYER5, version)
+        
+        if not from_packet:
+            building.owner = self.owner
+        else:
+            # we should receive ip of the player who constructed
+            building.owner = self.identify_owner(from_packet)
+            
+            
         # we should check that there is no water on the future positions
         cells_number = building.dic['cells_number']
         can_build_out_of_water = all([not self.map.grass_layer.cell_is_water(line + i, column + j)
@@ -794,7 +914,7 @@ class Game:
         status = self.map.buildings_layer.set_cell_constrained_to_bottom_layer(self.map.collisions_layers, line, column,
                                                                                building)
         if status:
-            self.money -= building_dico[txt].cost
+            if not from_packet: self.money -= building_dico[txt].cost
             self.buildinglist.append(building)
             if version == "dwell":
                 # if user just built a dwell we associate a timer so that the dwell can be removed after x seconds
@@ -808,30 +928,30 @@ class Game:
                     # Functionality of a reservoir is calculated directly when it's created
                     # A reservoir is functional when adjacent to a river or a coast (water)
                     ajacent_to_water = any([self.map.grass_layer.cell_is_water(line + i, column + j)
-                                            for j in range(-1, cells_number + 1) for i in range(-1, cells_number + 1) if
-                                            i in [-1, cells_number]
+                                            for j in range(-1, cells_number+1) for i in range(-1, cells_number+1) if i in [-1, cells_number]
                                             or j in [-1, cells_number]])
                     if ajacent_to_water:
                         building.set_functional(True)
 
             if type(building) == buildings.Granary:
                 self.granary_list.append(building)
-
             if type(building) == buildings.Temple:
                 self.temple_structures_list.append(building)
-
+            if building.dic["version"] == "prefecture":
+                self.prefecture_list.append(building)
+            if building.dic['version'] in farm_types:
+                self.farm_list.append(building)
             if type(building) == buildings.MilitaryAc:
-                self.military_structures_list.append(building)
+                self.military_list.append(building)
+           
+            if self.is_online:
+                if not from_packet:
+                    body = [building.position[0],building.position[1],find_key(building.dic["version"],dict_demon)]
+                    print(body)
+                    packet = Packet(bytearray(body),0,self.owner[0],"255.255.255.255",packetType=PacketTypes.Ajouter)
+                    echanger.send(packet)
+            
         return status
-
-    def update_likability(self, building):
-        voisins = self.get_voisins(building)
-        score = 0
-        for voisin in voisins:
-            version = voisin.dic["version"]
-            if version not in ["null"]:
-                if version == "dwell":
-                    pass
 
     def get_buildings_in_neighboorhood(self, pos):
         pass
@@ -851,12 +971,160 @@ class Game:
 
     def get_prefets(self):
         prefets = []
+        for building in self.prefecture_list:
+            prefets += list(building.get_all_employees(real_object=True))
+        """
         for walker in self.walkersOut:
             if isinstance(walker, walkers.Prefect):
                 prefets.append(walker)
+        """
         return prefets
+    
+    def identify_owner(self, sender_ip):
+        for (ip,port),color in self.players:
+                if ip == sender_ip:
+                    return (ip, port)
 
+    def include_incoming_packets(self, packets,update):
+        layer_to_be_updated = set()
+        for packet in packets:
+            if packet.type == PacketTypes.Update:
+                update_dict = decode_update_packets(packet)                
+                for building_pos_to_remove in update_dict['removed']:
+                    self.remove_element(building_pos_to_remove, from_packet=True)
+                
+                for building_pos_burning in update_dict['catchedfire']:
+                    building = self.map.buildings_layer.get_cell(building_pos_burning[0], building_pos_burning[1])
+                    building.isBurning = True
+                    building.BurningTime = 0
+                    building.risk_dico['fire'] = 100
+                    building.functional = False
+                    self.guide_homeless_and_jobless_citizens(building)
+                    cases = self.map.buildings_layer.get_all_positions_of_element(building_pos_burning[0], building_pos_burning[1])
+                    for i in cases:
+                        self.map.buildings_layer.array[i[0]][i[1]].isBurning = True
+                        update.catchedfire.append(i)
 
+                for building_pos_collapsed in update_dict['collapsed']:
+                    building = self.map.buildings_layer.get_cell(building_pos_collapsed[0], building_pos_collapsed[1])
+                    building.isDestroyed = True
+                    building.isBurning = False
+                    building.risk_dico['collapse'] = 100
+                    self.guide_homeless_and_jobless_citizens(building)
+                    building.functional = False
 
+                    cases = self.map.buildings_layer.get_all_positions_of_element(building_pos_collapsed[0], building_pos_collapsed[1])
+                    for i in cases:
+                        self.map.buildings_layer.array[i[0]][i[1]].isBurning = False
+                        self.map.buildings_layer.array[i[0]][i[1]].isDestroyed = True
+                        update.collapsed.append(i)
+                # ---------------------------------------------------------
+                # Evolution managment
+                # We exchange evolution of dwelling that are suplly-updated by walkers
+                # ---------------------------------------------------------
+                is_one_priest_present = len(self.food_structures_list) != 0 and self.food_structures_list[0].is_functional()
+                is_one_trader_present = len(self.temple_structures_list) != 0 and self.temple_structures_list[0].is_functional()
+                active_updating_dwell_lvl_job = [is_one_priest_present, is_one_trader_present]
+                if any(active_updating_dwell_lvl_job):
+                    for building_pos_evolved in update_dict['has_evolved']:
+                        building = self.map.buildings_layer.get_cell(building_pos_evolved[0], building_pos_evolved[1])
+                        building.update_with_supply('temple', evolvable=True)
+                        building.update_with_supply('food', evolvable=True)
 
+            elif packet.type == PacketTypes.Walker_mov:
+                for walker_mov_upd, ip in decode_walkers_movments_packets(packet=packet):
+                    w_type, init_pos, dest_pos, target_pos = walker_mov_upd
 
+                    walker_enterprise = walkers.reverse_convert_value_into_activity_field(w_type)
+                    if not walker_enterprise:
+                        continue
+                    tmp = walker_enterprise + '_list'
+                    structures_list = getattr(self, tmp)
+                    # Get a walker owned by the sender_player who has the same job
+                    sender = self.identify_owner(ip)
+                    for building in structures_list:
+                        if building.owner == sender:
+                            # we have a valid building
+                            # we teleport the walker
+                            the_ultimate_walker = list(building.get_all_employees(real_object=True))[0]
+                            the_ultimate_walker.init_pos = init_pos
+                            the_ultimate_walker.dest_pos = None
+                            the_ultimate_walker.offset_x, the_ultimate_walker.offset_y = 0, 0
+                            the_ultimate_walker.compteur = 0
+                            the_ultimate_walker.wait = False
+                            the_ultimate_walker.current_path_to_follow = []
+                            the_ultimate_walker.move_to_another_dwell(target_pos, walk_through=True)
+          
+            elif packet.type in [PacketTypes.Init,PacketTypes.Broacast_new_player,PacketTypes.Send_IP,PacketTypes.Ask_Broadcast,PacketTypes.Sauvegarde_ask]:
+                Adress,port = decode_login_packets(packet)
+                match packet.type:
+                    case PacketTypes.Init:
+                        self.players.append(((Adress,port),(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))))
+                        echanger.send(Packet(packet.body,port,self.owner[0],Adress,packetType=PacketTypes.Send_IP))
+                    case PacketTypes.Broacast_new_player:
+                        ipList = [player[0] for player in self.players]
+                        if (Adress,port) in ipList:
+                            continue
+                        self.players.append(((Adress,port),(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))))
+                        echanger.send(Packet(struct.pack("IH", Packet.intAddressFromAdress(self.owner[0]),self.owner[1]),port,self.owner[0],Adress,packetType=PacketTypes.Send_IP))
+                    case PacketTypes.Send_IP:
+                        ipList = [player[0] for player in self.players]
+                        if (Adress,port) in ipList:
+                            continue
+                        self.players.append(((Adress,port),(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))))
+                        echanger.send(Packet(struct.pack("IH", Packet.intAddressFromAdress(self.owner[0]),self.owner[1]),port,self.owner[0],Adress,packetType=PacketTypes.Send_IP))
+                    case PacketTypes.Ask_Broadcast:
+                        echanger.send(Packet(packet.body,0,self.owner[0],"255.255.255.255",packetType=PacketTypes.Broacast_new_player))
+                    case PacketTypes.Sauvegarde_ask:
+                        saveLoad.save_game(self, "to-send")
+                        p = Packet(b"", port, self.owner[0], Adress,PacketTypes.Sauvegarde_send)
+                        echanger.send(p,True)
+            elif packet.type in [PacketTypes.Ajouter,PacketTypes.Supprimer,PacketTypes.Ajout_Route,PacketTypes.Suppr_Route]:
+                ponctual_data, ip_source = decode_ponctual_packets(packet)
+                match packet.type:
+                    case PacketTypes.Ajouter:
+                            if len(ponctual_data)==2:
+                                self.add_building(
+                                    ponctual_data[0][0], ponctual_data[0][1], dict_demon[ponctual_data[1]],from_packet=ip_source)
+                                layer_to_be_updated.add("buildings")
+                    case PacketTypes.Supprimer:
+                        if len(ponctual_data)==2:
+                            self.remove_element((ponctual_data[0], ponctual_data[1]), from_packet=ip_source)
+                            layer_to_be_updated.add("buildings")
+                            layer_to_be_updated.add("roads")
+                    case PacketTypes.Ajout_Route:
+                        if len(ponctual_data)==2:
+                            self.add_road(
+                                ponctual_data[0], ponctual_data[1],from_packet=ip_source)
+                            layer_to_be_updated.add("roads")
+                    case PacketTypes.Suppr_Route:
+                        if len(ponctual_data)==2:
+                            self.remove_element(
+                                ponctual_data[0], ponctual_data[1])
+        return layer_to_be_updated
+
+    def send_update_packets(self, packets):
+        for packet in packets:
+            echanger.send(packet, True)
+
+    def generateStat(self):
+            stats = {}
+            for player in self.players:
+                stats[f"{player[0][0]}:{player[0][1]}"] = 0
+
+            for building in self.buildinglist:
+                txt = " ".join(building.dic["version"].split("_"))
+
+                score = building_dico[txt].cost
+                if (building.is_functional):   # chaque bat fonctionnel
+                    score += 10
+                if (building.dic['version'] == "dwell"):   # si c'est une maison (car sinon pb avec prefecture)
+                    score += (building.structure_level) * 5  # niveau 1 (+5) ; niveau 2 (+10)
+                else:
+                    score += 20  # si c'est un autre bat : +20
+                if (building.isDestroyed or building.isBurning):      # -10pts par destruction
+                    score *= -1
+
+                stats[f"{building.owner[0]}:{building.owner[1]}"] += score
+
+            return stats

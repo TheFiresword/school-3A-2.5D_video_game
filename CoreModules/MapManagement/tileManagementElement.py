@@ -21,6 +21,7 @@ class Element:
         self.layer = layer
         self.dic = {"version": version, "cells_number": 0}
         self.set_file_infos()
+        self.owner = None
 
     def set_file_infos(self):
         self.file_paths = mapping.mapping_function(self.type, self.dic['version'])
