@@ -1,5 +1,7 @@
 # Projet PYSAR de programmation python 3A INSA
 
+![Image du jeu PYSAR](jeu_evolue.png)
+
 Pysar est un jeu de city building inspiré de la civilisation romaine antique, et qui est basé sur le jeu `Caesar III`. Son implémentation doit respecter les mécanismes du jeu Caesar3. 
 Le but du jeu est de construire une ville fonctionnelle à partir d’un terrain vide (mais parsemé d’obstacles et de végétations). Le jeu est divisé en nivaux qui correspondent 
 à des missions. Chaque niveau impose de satisfaire les critères suivants : 
